@@ -1,0 +1,53 @@
+name: cnaas-nac-e2e
+
+mgmt:
+  network: cnaas_nac_mgmt # management network name
+  ipv4-subnet: 10.100.2.0/24 # ipv4 range
+  ipv4-gw: 10.100.2.1
+
+topology:
+  kinds:
+    arista_ceos:
+      image-pull-policy: Never
+    linux:
+      startup-delay: 10
+
+  nodes:
+    eos-a1:
+      kind: arista_ceos
+      image: ceos:4.32.5.1M
+      startup-config: eos-a1_startup_config.txt
+      mgmt-ipv4: 10.100.2.11
+
+    alpine-a1:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - ip address add 192.168.1.2/24 dev eth1
+    alpine-a2:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - ip address add 192.168.1.3/24 dev eth1
+    alpine-a3:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - ip address add 192.168.1.4/24 dev eth1
+    alpine-a4:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - ip address add 192.168.1.5/24 dev eth1
+    alpine-a5:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - ip address add 192.168.1.6/24 dev eth1
+
+  links:
+    - endpoints: ["eos-a1:eth1", "alpine-a1:eth1"]
+    - endpoints: ["eos-a1:eth2", "alpine-a2:eth1"]
+    - endpoints: ["eos-a1:eth3", "alpine-a3:eth1"]
+    - endpoints: ["eos-a1:eth4", "alpine-a4:eth1"]
+    - endpoints: ["eos-a1:eth5", "alpine-a5:eth1"]

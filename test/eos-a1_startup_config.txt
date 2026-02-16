@@ -1,0 +1,106 @@
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$cpGmCQItlNlsZSTv$/Pl3AN1CoUO1yiy3P7.eEP9ZzqO5r5fJbWBaeL7ZUOeEHIAjxwbj4xooYPKEtxJSlwLEbYEgNJuAYKhcvsNE4.
+!
+management api http-commands
+   no shutdown
+!
+no service interface inactive port-id allocation disabled
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model multi-agent
+!
+hostname eos-a1
+!
+spanning-tree mode mstp
+!
+system l1
+   unsupported speed action error
+   unsupported error-correction action error
+!
+vlan 13
+   name quarantine
+!
+vlan 14
+   name vlan_14
+!
+management api gnmi
+   transport grpc default
+!
+management api netconf
+   transport ssh default
+!
+radius-server attribute 32 include-in-access-req hostname
+!
+radius-server host 130.243.97.107 key 7 120D0004060202037B7977
+!
+aaa group server radius cnaas-nac
+   server 130.243.97.107
+!
+aaa authentication dot1x default group cnaas-nac
+!
+interface Vlan14
+   ip address 192.168.0.1/24
+!
+interface Ethernet1
+   description DOT1X
+   spanning-tree portfast
+   spanning-tree bpduguard enable
+   dot1x pae authenticator
+   dot1x authentication failure action traffic allow vlan 13
+   dot1x port-control auto
+   dot1x eapol disabled
+   dot1x mac based authentication
+!
+interface Ethernet2
+   description DOT1X
+   spanning-tree portfast
+   spanning-tree bpduguard enable
+   dot1x pae authenticator
+   dot1x authentication failure action traffic allow vlan 13
+   dot1x port-control auto
+   dot1x eapol disabled
+   dot1x mac based authentication
+!
+interface Ethernet3
+   description DOT1X
+   spanning-tree portfast
+   spanning-tree bpduguard enable
+   dot1x pae authenticator
+   dot1x authentication failure action traffic allow vlan 13
+   dot1x port-control auto
+   dot1x eapol disabled
+   dot1x mac based authentication
+!
+interface Ethernet4
+   description DOT1X
+   spanning-tree portfast
+   spanning-tree bpduguard enable
+   dot1x pae authenticator
+   dot1x authentication failure action traffic allow vlan 13
+   dot1x port-control auto
+   dot1x eapol disabled
+   dot1x mac based authentication
+!
+interface Ethernet5
+   description DOT1X
+   spanning-tree portfast
+   spanning-tree bpduguard enable
+   dot1x pae authenticator
+   dot1x authentication failure action traffic allow vlan 13
+   dot1x port-control auto
+   dot1x eapol disabled
+   dot1x mac based authentication
+!
+interface Management0
+   ip address 10.100.2.11/24
+!
+no ip routing
+!
+ip route 0.0.0.0/0 10.100.2.1
+!
+dot1x system-auth-control
+!
+end
