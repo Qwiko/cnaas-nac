@@ -13,18 +13,23 @@ from cnaas_nac.api_internal.exceptions import (
     unauthorized_exception_handler,
     validation_exception_handler,
 )
+from cnaas_nac.api_internal.scheduled_tasks import setup_scheduled_tasks
 from cnaas_nac.api_internal.schemas import AccessReject
 
 
-def run_migrations():
+def run_alembic_migrations():
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
 
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
-    run_migrations()
+    run_alembic_migrations()
+    
+    scheduler = setup_scheduled_tasks()
+    scheduler.start()
     yield
+    scheduler.shutdown()
 
 
 app = FastAPI(
@@ -47,7 +52,6 @@ app = FastAPI(
         },
     },
 )
-
 
 # Set all CORS enabled origins
 # if settings.all_cors_origins:

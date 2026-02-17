@@ -7,6 +7,7 @@ pydantic==2.12.5
 sqlalchemy
 pyrad==2.5.4
 netutils>=1.15.1
+apscheduler==3.11.2
 
 # Dev
 httpx==0.28.1
