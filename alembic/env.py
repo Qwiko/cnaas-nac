@@ -35,7 +35,7 @@ from cnaas_nac.models.radgroupreply import *  # noqa: E402, F403
 from cnaas_nac.models.radpostauth import *  # noqa: E402, F403
 from cnaas_nac.models.radreply import *  # noqa: E402, F403
 from cnaas_nac.models.radusergroup import *  # noqa: E402, F403
-from cnaas_nac.models.raduserlog import *  # noqa: E402, F403
+# from cnaas_nac.models.raduserlog import *  # noqa: E402, F403
 
 target_metadata = Base.metadata
 

@@ -36,3 +36,6 @@ class RadPostAuth(Base):
     calledstationid: Mapped[Optional[str]] = mapped_column(Text)
     callingstationid: Mapped[Optional[str]] = mapped_column(Text)
     class_: Mapped[Optional[str]] = mapped_column("class", Text)
+    
+    # Custom nac fields
+    reply_message: Mapped[Optional[str]] = mapped_column(Text)

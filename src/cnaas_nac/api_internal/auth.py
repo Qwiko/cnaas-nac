@@ -30,6 +30,15 @@ async def post_auth(
         await db.execute(select(RadCheck).where(RadCheck.username == auth.username))
     ).scalar_one_or_none()
 
+    # User is not found, creating -> Reject
+    if not user:
+        if settings.RADIUS_SLAVE:
+            logger.info("Configured as RADIUS_SLAVE, skipping user creation.")
+            await reject(db, auth, "user not found")
+        else:
+            logger.info(f"User: {auth.username} not found, creating.")
+            user = await create_new_user(db, auth)
+
     user_vlan = (
         (
             await db.execute(
@@ -43,18 +52,10 @@ async def post_auth(
         .first()
     )
 
+    # User should have been created with a vlan by now.
+    # But just in case we default to DEFAULT VLAN
     if not user_vlan:
         user_vlan = settings.RADIUS_DEFAULT_VLAN
-
-    # User is not found, creating -> Reject
-    if not user:
-        if settings.RADIUS_SLAVE:
-            logger.debug("Configured as RADIUS_SLAVE, skipping user creation.")
-        else:
-            logger.debug(f"User: {auth.username} not found, creating.")
-            await create_new_user(db, auth)
-
-        await reject(db, auth, "user not found")
 
     # Dictionary with key:value needed to create a NasPort
     # from auth model.
@@ -84,7 +85,6 @@ async def post_auth(
         logger.debug(
             f"User: {auth.username}, connected on a previous port, updating nasport."
         )
-        logger.debug(str(auth.model_dump()))
 
         # Force last_seen update for this nasport.
         # Even if the data is the same.
@@ -135,7 +135,7 @@ async def post_auth(
                 f"User: {auth.username} did not connect on expected locked port, rejecting."
             )
             error_msg = f"User: {auth.username} is connecting on: {auth.nas_identifier}:{auth.nas_port_id}, expected: {expected_port.nas_identifier}:{expected_port.nas_port_id}"
-            logger.debug(error_msg)
+            logger.info(error_msg)
 
             await reject(db, auth, "not expected port")
 
@@ -151,12 +151,12 @@ async def post_auth(
         if db_nas_port:
             await db.delete(db_nas_port)
         await db.commit()
-        await reject(db, auth)
+        await reject(db, auth, "user disabled")
 
     # Normal non-locked user
     if user.enabled:
-        logger.debug(f"User: {auth.username} is enabled, accepting.")
+        logger.info(f"User: {auth.username} is enabled, accepting.")
         return await accept(db, auth)
 
-    logger.debug(f"User: {auth.username} is found but not enabled, rejecting.")
-    await reject(db, auth, "User not found.")
+    logger.info(f"User: {auth.username} is found but not enabled, rejecting.")
+    await reject(db, auth, "user disabled")

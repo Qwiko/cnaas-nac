@@ -18,9 +18,3 @@ class DeviceOui(Base):
     oui: Mapped[str] = mapped_column(Unicode(64), nullable=False)
     vlan: Mapped[int] = mapped_column(Integer, nullable=False)
     description: Mapped[str] = mapped_column(Unicode(64), nullable=True)
-
-    @classmethod
-    def mac_in(cls, mac: str) -> bool:
-        # 00:00:00:00:00:00 -> 00:00:00
-        
-        return mac[:8] == cls.oui

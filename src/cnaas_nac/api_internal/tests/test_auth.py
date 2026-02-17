@@ -13,6 +13,7 @@ from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
+from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.schemas.internal_auth import InternalAuth
 
 pytestmark = pytest.mark.anyio
@@ -221,3 +222,33 @@ async def test_auth_port_update(
 
     # Make sure last_seen updated
     assert last_seen_time != nasport.last_seen
+    
+    
+async def test_auth_oui(
+    db: AsyncSession, int_client: AsyncClient, monkeypatch: MonkeyPatch
+) -> None:
+    # Add deviceoui
+    
+    db.add(DeviceOui(oui="aa:bb:cc", vlan=14))
+    await db.commit()
+    
+    auth = InternalAuth(
+        **{
+            "username": "aa:bb:cc:dd:ee:ff",
+            "nas_identifier": "a1",
+            "nas_port_id": "Ethernet1",
+            "calling_station_id": "00:00:00:00:00:01",
+            "called_station_id": "00:00:00:00:00:01",
+            "nas_ip_address": "10.0.0.2",
+        }
+    )
+
+    response = await int_client.post(
+        "/api/v2/auth",
+        json=auth.model_dump(),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json().get("Tunnel-Medium-Type").get("value") == "IEEE-802"
+    assert response.json().get("Tunnel-Type").get("value") == "VLAN"
+    assert response.json().get("Tunnel-Private-Group-Id").get("value") == "14"

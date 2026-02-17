@@ -1,55 +1,23 @@
 from datetime import datetime
 from typing import Any
 
+from netutils.mac import get_oui, is_valid_mac, mac_to_format
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.core.exceptions import Unauthorized
+from cnaas_nac.api_internal.exceptions import Unauthorized
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
-from cnaas_nac.models.raduserlog import RadUserLog
 from cnaas_nac.schemas.internal_auth import InternalAuth
 
 logger = get_logger()
 
 
-async def add_or_update_userinfo(
-    db: AsyncSession, auth: InternalAuth, extra_userinfo_data: dict[str, Any]
-):
-    return 
-    # userinfo = (
-    #     await db.execute(
-    #         select(RadUserInfo).where(RadUserInfo.username == auth.username)
-    #     )
-    # ).scalar_one_or_none()
-
-    # if not userinfo:
-    #     # Create new userinfo if not found
-    #     userinfo = RadUserInfo(
-    #         username=auth.username,
-    #         authdate=datetime.now(),
-    #         access_start=None,
-    #         access_stop=None,
-    #         accepts=0,
-    #         rejects=0,
-    #     )
-    #     db.add(userinfo)
-
-    # for key, val in extra_userinfo_data.items():
-    #     if key == "accepts":
-    #         userinfo.accepts += 1
-    #     elif key == "rejects":
-    #         userinfo.rejects += 1
-    #     else:
-    #         setattr(userinfo, key, val)
-
-    await db.commit()
-
-
-async def accept(db: AsyncSession, auth: InternalAuth, comment: str = None) -> dict:
+async def accept(db: AsyncSession, auth: InternalAuth) -> dict:
     """Helper function to return a Access-Accept"""
     replies_ret = await db.execute(
         select(RadReply).where(RadReply.username == auth.username)
@@ -63,12 +31,12 @@ async def accept(db: AsyncSession, auth: InternalAuth, comment: str = None) -> d
         reply.attribute: {"op": reply.op, "value": reply.value} for reply in replies
     }
 
-    await add_or_update_userinfo(db, auth, {"accepts": True, "reason": "accept"})
-
     return reply
 
 
-async def reject(db: AsyncSession, auth: InternalAuth, error_message: str, comment: str = None) -> None:
+async def reject(
+    db: AsyncSession, auth: InternalAuth, reason: str
+) -> None:
     """
     Reject the user with a 401.
 
@@ -88,19 +56,34 @@ async def reject(db: AsyncSession, auth: InternalAuth, error_message: str, comme
     #
     #  The status code is held in %{reply:REST-HTTP-Status-Code}.
     """
-    await add_or_update_userinfo(db, auth, {"rejects": True, "reason": "reject"})
 
-    raise Unauthorized(error_message)
+    raise Unauthorized(reason)
 
 
 async def create_new_user(db: AsyncSession, auth: InternalAuth) -> None:
-    vlan = settings.RADIUS_DEFAULT_VLAN
+    vlan = None
+    enabled = False
+
+    # Check if this oui have a vlan connected to itself.
+    if is_valid_mac(auth.username):
+        oui = mac_to_format(auth.username, "MAC_COLON_TWO")[:8]
+        logger.debug(f"Trying to find oui-specific vlan for oui: {oui}")
+        vlan = (
+            await db.execute(select(DeviceOui.vlan).where(DeviceOui.oui == oui))
+        ).scalar_one_or_none()
+
+    if vlan:
+        logger.debug(f"Found oui vlan: {vlan}")
+        enabled = True
+    else:
+        vlan = settings.RADIUS_DEFAULT_VLAN
+
     try:
         user = RadCheck(
             username=auth.username,
             attribute="Cleartext-Password",
             value=auth.password,
-            op="",
+            op=":=" if enabled else "",
         )
         tunnel_id = RadReply(
             username=auth.username,
@@ -125,16 +108,6 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> None:
             calling_station_id=auth.calling_station_id,
             called_station_id=auth.called_station_id,
         )
-        # userinfo = RadUserInfo(
-        #     username=auth.username,
-        #     reason="",
-        #     comment="comment",
-        #     authdate=datetime.utcnow(),
-        #     access_start=None,
-        #     access_stop=None,
-        #     accepts=0,
-        #     rejects=0,
-        # )
 
         db.add(user)
         db.add(tunnel_id)
@@ -143,6 +116,7 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> None:
         db.add(nas_port)
         # db.add(userinfo)
         await db.commit()
+        return user
     except Exception as e:
         error_msg = str(e)
         logger.error(error_msg)

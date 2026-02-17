@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from starlette.middleware.cors import CORSMiddleware
 
 from cnaas_nac.api_external.routes_v2 import api_v2_router
 from cnaas_nac.core.exceptions import (
@@ -8,7 +7,6 @@ from cnaas_nac.core.exceptions import (
     notfound_exception_handler,
     validation_exception_handler,
 )
-from cnaas_nac.core.settings import settings
 from cnaas_nac.schemas.generic import ErrorResponse
 
 app = FastAPI(

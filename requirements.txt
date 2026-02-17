@@ -6,6 +6,7 @@ psycopg2_binary==2.9.11
 pydantic==2.12.5
 sqlalchemy
 pyrad==2.5.4
+netutils>=1.15.1
 
 # Dev
 httpx==0.28.1

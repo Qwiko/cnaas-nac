@@ -1,13 +1,15 @@
 from typing import Annotated, Any, Literal, Optional
 
+from netutils.mac import is_valid_mac, mac_to_format
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     IPvAnyAddress,
     computed_field,
     field_validator,
-    ConfigDict,
 )
+
 from cnaas_nac.core.settings import settings
 
 
@@ -26,6 +28,13 @@ class InternalAuth(BaseModel):
         if "password" not in data:
             data["password"] = data.get("username")
         super().__init__(**data)
+
+    @field_validator("username", mode="after")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        if is_valid_mac(v):
+            return mac_to_format(v, "MAC_COLON_TWO")
+        return v
 
     @field_validator("nas_ip_address", mode="after")
     def nas_ip_as_string(v: IPvAnyAddress) -> str:
@@ -51,3 +60,11 @@ class AccessAccept(BaseModel):
     tunnel_private_group_id: Annotated[
         AttributeDetail, Field(..., alias="Tunnel-Private-Group-Id")
     ] = {"op": ":=", "value": settings.RADIUS_DEFAULT_VLAN}
+
+class AccessReject(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    reply_message: Annotated[AttributeDetail, Field(..., alias="Reply-Message")] = {
+        "op": ":=",
+        "value": "Reply-Message",
+    }

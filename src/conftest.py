@@ -2,7 +2,6 @@ from typing import AsyncGenerator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
@@ -15,10 +14,10 @@ from cnaas_nac.api_external.main import app as external_app
 from cnaas_nac.api_internal.main import app as internal_app
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.settings import settings
-from cnaas_nac.models.base import Base
 
-
-async_engine = create_async_engine(settings.POSTGRES_ASYNC_PREFIX + settings.POSTGRES_URI, future=True)
+async_engine = create_async_engine(
+    settings.POSTGRES_ASYNC_PREFIX + settings.POSTGRES_URI, future=True
+)
 async_session_factory = async_sessionmaker(bind=async_engine, expire_on_commit=False)
 
 
@@ -39,7 +38,7 @@ async def transaction(
 ) -> AsyncGenerator[AsyncTransaction, None]:
     async with connection.begin() as transaction:
         yield transaction
-        
+
         # Rollback for db, ext_client and int_client.
         await transaction.rollback()
 
@@ -65,7 +64,7 @@ async def ext_client(
         async_session = AsyncSession(
             bind=connection,
             join_transaction_mode="create_savepoint",
-            expire_on_commit=False
+            expire_on_commit=False,
         )
         async with async_session:
             yield async_session
@@ -86,7 +85,7 @@ async def int_client(
         async_session = AsyncSession(
             bind=connection,
             join_transaction_mode="create_savepoint",
-            expire_on_commit=False
+            expire_on_commit=False,
         )
         async with async_session:
             yield async_session

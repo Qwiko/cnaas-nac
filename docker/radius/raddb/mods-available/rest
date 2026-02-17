@@ -5,6 +5,8 @@ rest {
 	}
 
 	connect_uri = "http://nac_api_internal:8000"
+	http_negotiation = "default"
+	multiplex = yes
 
 	authorize {
 		uri = "${..connect_uri}/api/v2/auth"

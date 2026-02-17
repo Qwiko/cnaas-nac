@@ -34,10 +34,10 @@ management api netconf
 !
 radius-server attribute 32 include-in-access-req hostname
 !
-radius-server host 130.243.97.107 key 7 120D0004060202037B7977
+radius-server host 10.100.2.1 key 7 120D0004060202037B7977
 !
 aaa group server radius cnaas-nac
-   server 130.243.97.107
+   server 10.100.2.1
 !
 aaa authentication dot1x default group cnaas-nac
 !
@@ -102,5 +102,6 @@ no ip routing
 ip route 0.0.0.0/0 10.100.2.1
 !
 dot1x system-auth-control
+dot1x dynamic-authorization
 !
 end

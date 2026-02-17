@@ -8,12 +8,12 @@ from fastapi.exceptions import RequestValidationError
 from cnaas_nac.api_internal.auth import router as auth_router
 
 # from cnaas_nac.core.settings import settings
-from cnaas_nac.core.exceptions import (
+from cnaas_nac.api_internal.exceptions import (
     Unauthorized,
     unauthorized_exception_handler,
     validation_exception_handler,
 )
-from cnaas_nac.schemas.generic import ErrorResponse
+from cnaas_nac.schemas.internal_auth import AccessReject
 
 
 def run_migrations():
@@ -39,11 +39,11 @@ app = FastAPI(
     responses={
         401: {
             "description": "Unauthorized",
-            "model": ErrorResponse,
+            "model": AccessReject,
         },
         422: {
             "description": "Unprocessable Entity",
-            "model": ErrorResponse,
+            "model": AccessReject,
         },
     },
 )

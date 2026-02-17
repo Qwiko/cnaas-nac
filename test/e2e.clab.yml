@@ -9,8 +9,8 @@ topology:
   kinds:
     arista_ceos:
       image-pull-policy: Never
-    linux:
-      startup-delay: 10
+    # linux:
+    #   startup-delay: 10
 
   nodes:
     eos-a1:
