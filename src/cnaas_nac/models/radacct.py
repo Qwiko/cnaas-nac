@@ -36,6 +36,10 @@ class RadAcct(Base):
     acctsessionid: Mapped[str] = mapped_column(Text, nullable=False)
     acctuniqueid: Mapped[str] = mapped_column(Text, nullable=False)
     nasipaddress: Mapped[Any] = mapped_column(INET, nullable=False)
+    
+    # cnaas-nac specific
+    nasidentifier: Mapped[str] = mapped_column(Text, nullable=True)
+    
     username: Mapped[Optional[str]] = mapped_column(Text)
     groupname: Mapped[Optional[str]] = mapped_column(Text)
     realm: Mapped[Optional[str]] = mapped_column(Text)
