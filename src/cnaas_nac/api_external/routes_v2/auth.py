@@ -61,6 +61,8 @@ async def post_auth(
         attribute="Cleartext-Password",
         op=":=" if input_auth.enabled else "",
         value=input_auth.username,
+        access_start=input_auth.access_start,
+        access_stop=input_auth.access_stop,
     )
 
     db.add(user)
@@ -93,6 +95,14 @@ async def put_auth(
 
     if existing_user.enabled != input_auth.enabled:
         existing_user.op = ":=" if input_auth.enabled else ""
+
+    # TODO refactor
+
+    if existing_user.access_start != input_auth.access_start:
+        existing_user.access_start = input_auth.access_start
+        
+    if existing_user.access_stop != input_auth.access_stop:
+        existing_user.access_stop = input_auth.access_stop
 
     await db.execute(
         update(RadReply)
