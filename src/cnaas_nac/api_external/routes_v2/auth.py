@@ -14,6 +14,7 @@ from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
 from cnaas_nac.schemas.auth import AuthBase, AuthCreate, AuthResponse, AuthUpdate
 from netutils.mac import is_valid_mac, mac_to_format
+
 logger = get_logger()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -72,12 +73,12 @@ async def put_auth(
     username: str,
     input_auth: AuthUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Put auth.
     """
-    
+
     if is_valid_mac(username):
         username = mac_to_format(username, "MAC_COLON_TWO")
 
@@ -118,6 +119,9 @@ async def put_auth(
         .scalars()
         .first()
     )
+
+    # TODO: Check if another user have connected on this port after this username.
+    # Then we should not bounce the port and assume the username is already disconnected.
 
     if recent_nasport:
         coa = CoA(recent_nasport)
