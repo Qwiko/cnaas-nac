@@ -48,7 +48,13 @@ class RadCheck(Base):
         Text, nullable=False, server_default=text("''::text")
     )
 
+    access_start: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime(True), nullable=True
+    )
+    access_stop: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime(True), nullable=True
+    )
+
     @hybrid_property
     def enabled(self) -> bool:
         return self.op == ":="
-

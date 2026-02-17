@@ -30,5 +30,5 @@ class AuthUpdate(AuthBase):
     pass
 
 
-class AuthResponse(AuthBase):
+class AuthResponse(AuthCreate):
     id: int

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -12,7 +13,7 @@ from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
-from cnaas_nac.schemas.internal_auth import AccessAccept, InternalAuth
+from cnaas_nac.api_internal.schemas import AccessAccept, InternalAuth
 
 logger = get_logger()
 
@@ -105,7 +106,15 @@ async def post_auth(
         db.add(db_nas_port)
         await db.commit()
 
-    # TODO: Add check for time-based access/reject here
+    now = datetime.now(timezone.utc)
+    
+    if user.access_start and now < user.access_start:
+        logger.info(f"User: {auth.username} rejected. Time is before access_start.")
+        await reject(db, auth, "time is before access_start")
+    
+    if user.access_stop and now > user.access_stop:
+        logger.info(f"User: {auth.username} rejected. Time is after access_stop.")
+        await reject(db, auth, "time is after access_stop")
 
     if user_vlan in settings.RADIUS_LOCK_VLANS:
         # Get expected port this user should be connected to.

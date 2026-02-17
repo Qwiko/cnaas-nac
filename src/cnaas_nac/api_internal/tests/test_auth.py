@@ -14,7 +14,7 @@ from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
 from cnaas_nac.models.oui import DeviceOui
-from cnaas_nac.schemas.internal_auth import InternalAuth
+from cnaas_nac.api_internal.schemas import InternalAuth
 
 pytestmark = pytest.mark.anyio
 
@@ -179,9 +179,11 @@ async def test_auth_port_update(
         )
         .values(value="3131")
     )
-        
+
     # Update last_seen_time to something in the past.
-    last_seen_time = datetime.datetime(2000, 1, 1, 1, 1, 1, 1, tzinfo=datetime.timezone.utc)
+    last_seen_time = datetime.datetime(
+        2000, 1, 1, 1, 1, 1, 1, tzinfo=datetime.timezone.utc
+    )
     await db.execute(
         update(NasPort)
         .where(
@@ -222,16 +224,16 @@ async def test_auth_port_update(
 
     # Make sure last_seen updated
     assert last_seen_time != nasport.last_seen
-    
-    
+
+
 async def test_auth_oui(
     db: AsyncSession, int_client: AsyncClient, monkeypatch: MonkeyPatch
 ) -> None:
     # Add deviceoui
-    
+
     db.add(DeviceOui(oui="aa:bb:cc", vlan=14))
     await db.commit()
-    
+
     auth = InternalAuth(
         **{
             "username": "aa:bb:cc:dd:ee:ff",
@@ -252,3 +254,74 @@ async def test_auth_oui(
     assert response.json().get("Tunnel-Medium-Type").get("value") == "IEEE-802"
     assert response.json().get("Tunnel-Type").get("value") == "VLAN"
     assert response.json().get("Tunnel-Private-Group-Id").get("value") == "14"
+
+
+async def test_auth_access_time(
+    db: AsyncSession, int_client: AsyncClient, monkeypatch: MonkeyPatch
+) -> None:
+    # Add deviceoui
+
+    db.add(DeviceOui(oui="aa:bb:cc", vlan=14))
+    await db.commit()
+
+    auth = InternalAuth(
+        **{
+            "username": "aa:bb:cc:dd:ee:ff",
+            "nas_identifier": "a1",
+            "nas_port_id": "Ethernet1",
+            "calling_station_id": "00:00:00:00:00:01",
+            "called_station_id": "00:00:00:00:00:01",
+            "nas_ip_address": "10.0.0.2",
+        }
+    )
+
+    # Set access_start and access_stop to valid times.
+    await db.execute(
+        update(RadCheck)
+        .where(RadCheck.username == auth.username)
+        .values(
+            access_start=datetime.datetime.now() - datetime.timedelta(hours=1),
+            access_stop=datetime.datetime.now() + datetime.timedelta(hours=1),
+        )
+    )
+
+    response = await int_client.post(
+        "/api/v2/auth",
+        json=auth.model_dump(),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Update access_start to the future.
+    await db.execute(
+        update(RadCheck)
+        .where(RadCheck.username == auth.username)
+        .values(
+            access_start=datetime.datetime.now() + datetime.timedelta(hours=1),
+            access_stop=None,
+        )
+    )
+
+    response = await int_client.post(
+        "/api/v2/auth",
+        json=auth.model_dump(),
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # Update access_stop to have already passed.
+    await db.execute(
+        update(RadCheck)
+        .where(RadCheck.username == auth.username)
+        .values(
+            access_start=None,
+            access_stop=datetime.datetime.now() - datetime.timedelta(hours=1),
+        )
+    )
+
+    response = await int_client.post(
+        "/api/v2/auth",
+        json=auth.model_dump(),
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
