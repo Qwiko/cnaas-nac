@@ -13,7 +13,7 @@ from cnaas_nac.api_internal.exceptions import (
     unauthorized_exception_handler,
     validation_exception_handler,
 )
-from cnaas_nac.schemas.internal_auth import AccessReject
+from cnaas_nac.api_internal.schemas import AccessReject
 
 
 def run_migrations():

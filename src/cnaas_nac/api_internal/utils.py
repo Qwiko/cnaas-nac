@@ -12,7 +12,7 @@ from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
-from cnaas_nac.schemas.internal_auth import InternalAuth
+from cnaas_nac.api_internal.schemas import InternalAuth
 
 logger = get_logger()
 

@@ -2,7 +2,7 @@ from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from cnaas_nac.schemas.internal_auth import AccessReject
+from cnaas_nac.api_internal.schemas import AccessReject
 
 
 class BaseException(Exception):
