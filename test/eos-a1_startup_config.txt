@@ -51,9 +51,11 @@ interface Ethernet1
    spanning-tree bpduguard enable
    dot1x pae authenticator
    dot1x authentication failure action traffic allow vlan 13
+   dot1x reauthentication
    dot1x port-control auto
    dot1x eapol disabled
    dot1x mac based authentication
+   dot1x timeout reauth-period 60
 !
 interface Ethernet2
    description DOT1X
@@ -61,9 +63,11 @@ interface Ethernet2
    spanning-tree bpduguard enable
    dot1x pae authenticator
    dot1x authentication failure action traffic allow vlan 13
+   dot1x reauthentication
    dot1x port-control auto
    dot1x eapol disabled
    dot1x mac based authentication
+   dot1x timeout reauth-period 60
 !
 interface Ethernet3
    description DOT1X
@@ -71,9 +75,11 @@ interface Ethernet3
    spanning-tree bpduguard enable
    dot1x pae authenticator
    dot1x authentication failure action traffic allow vlan 13
+   dot1x reauthentication
    dot1x port-control auto
    dot1x eapol disabled
    dot1x mac based authentication
+   dot1x timeout reauth-period 60
 !
 interface Ethernet4
    description DOT1X
@@ -81,9 +87,11 @@ interface Ethernet4
    spanning-tree bpduguard enable
    dot1x pae authenticator
    dot1x authentication failure action traffic allow vlan 13
+   dot1x reauthentication
    dot1x port-control auto
    dot1x eapol disabled
    dot1x mac based authentication
+   dot1x timeout reauth-period 60
 !
 interface Ethernet5
    description DOT1X
@@ -91,9 +99,11 @@ interface Ethernet5
    spanning-tree bpduguard enable
    dot1x pae authenticator
    dot1x authentication failure action traffic allow vlan 13
+   dot1x reauthentication
    dot1x port-control auto
    dot1x eapol disabled
    dot1x mac based authentication
+   dot1x timeout reauth-period 60
 !
 interface Management0
    ip address 10.100.2.11/24
