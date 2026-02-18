@@ -74,7 +74,7 @@ async def prune_inactive_radcheck():
             .outerjoin(
                 last_activity_subq, RadCheck.username == last_activity_subq.c.username
             )
-            .where(last_activity_subq.c.last_seen < cutoff, RadCheck.op != ":=")
+            .where(last_activity_subq.c.last_seen < cutoff, not RadCheck.enabled)
         )
 
         # Execute and get the list of usernames
@@ -91,7 +91,7 @@ async def prune_inactive_radcheck():
             select(1).where(RadPostAuth.username == RadCheck.username).exists()
         )
 
-        stmt = select(RadCheck.username).where(~log_exists_stmt, RadCheck.op != ":=")
+        stmt = select(RadCheck.username).where(~log_exists_stmt, not RadCheck.enabled)
 
         # Execute and return list of usernames
         users_with_logs = (await db.execute(stmt)).scalars().all()

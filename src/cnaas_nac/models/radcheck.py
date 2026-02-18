@@ -11,7 +11,7 @@ from sqlalchemy import (
     false,
     text,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, foreign
 
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.radacct import RadAcct
@@ -49,9 +49,7 @@ class RadCheck(Base, TimestampsMixin):
 
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
-    comment: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True, server_default=text("''::text")
-    )
+    comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     access_start: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime(True), nullable=True
@@ -61,31 +59,78 @@ class RadCheck(Base, TimestampsMixin):
     )
 
     nasports: Mapped[list["NasPort"]] = relationship(
-        primaryjoin="RadCheck.username == NasPort.username",
-        foreign_keys="NasPort.username",
+        primaryjoin=username == foreign(NasPort.username),
+        foreign_keys="[NasPort.username]",
         cascade="all, delete-orphan",
     )
 
     radaccts: Mapped[list["RadAcct"]] = relationship(
-        primaryjoin="RadCheck.username == RadAcct.username",
-        foreign_keys="RadAcct.username",
+        primaryjoin=username == foreign(RadAcct.username),
+        foreign_keys="[RadAcct.username]",
         cascade="all, delete-orphan",
     )
 
     radreplies: Mapped[list["RadReply"]] = relationship(
-        primaryjoin="RadCheck.username == RadReply.username",
-        foreign_keys="RadReply.username",
+        primaryjoin=username == foreign(RadReply.username),
+        foreign_keys="[RadReply.username]",
         cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     radusergroups: Mapped[list["RadUserGroup"]] = relationship(
-        primaryjoin="RadCheck.username == RadUserGroup.username",
-        foreign_keys="RadUserGroup.username",
+        primaryjoin=username == foreign(RadUserGroup.username),
+        foreign_keys="[RadUserGroup.username]",
         cascade="all, delete-orphan",
     )
 
     radpostauths: Mapped[list["RadPostAuth"]] = relationship(
-        primaryjoin="RadCheck.username == RadPostAuth.username",
-        foreign_keys="RadPostAuth.username",
+        primaryjoin=username == foreign(RadPostAuth.username),
+        foreign_keys="[RadPostAuth.username]",
         cascade="all, delete-orphan",
     )
+
+    @property
+    def vlan(self) -> Optional[int]:
+        """
+        Gets the VLAN ID (Tunnel-Private-Group-Id) from RadReply.
+        """
+        for reply in self.radreplies:
+            if reply.attribute == "Tunnel-Private-Group-Id":
+                return int(reply.value)
+        return None
+
+    @vlan.setter
+    def vlan(self, vlan_id: str | int | None):
+        """
+        Sets or updates the VLAN ID in RadReply.
+        If set to None, the specific RadReply entry is removed.
+        """
+        target_attribute = "Tunnel-Private-Group-Id"
+
+        # 1. Search for existing entry
+        existing_reply = next(
+            (r for r in self.radreplies if r.attribute == target_attribute), None
+        )
+
+        # 2. Case: Remove the VLAN (set to None)
+        if vlan_id is None:
+            if existing_reply:
+                self.radreplies.remove(existing_reply)
+            return
+
+        # 3. Case: Update or Create
+        str_value = str(vlan_id)
+
+        if existing_reply:
+            # Update existing
+            existing_reply.value = str_value
+        else:
+            # Create new. Note: 'op' usually defaults to ':=' or '=' for replies.
+            # We explicitly set it to ':=' which is standard for VLAN assignment.
+            new_reply = RadReply(
+                username=self.username,
+                attribute=target_attribute,
+                op=":=",
+                value=str_value,
+            )
+            self.radreplies.append(new_reply)

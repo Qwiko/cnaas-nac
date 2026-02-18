@@ -109,6 +109,8 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
         db.add(nas_port)
         # db.add(userinfo)
         await db.commit()
+        # Update relationships
+        await db.refresh(user)
         return user
     except Exception as e:
         error_msg = str(e)

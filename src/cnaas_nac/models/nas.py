@@ -11,6 +11,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -80,3 +81,7 @@ class NasPort(Base, TimestampsMixin):
     called_station_id: Mapped[Optional[str]] = mapped_column(
         Unicode(64), nullable=False
     )
+
+    @hybrid_property
+    def last_seen(self) -> datetime.datetime:
+        return self.updated_at

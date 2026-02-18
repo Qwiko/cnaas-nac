@@ -2,17 +2,16 @@ from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import Integer, and_, cast, or_, select
+from sqlalchemy import and_, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import inspect
+
+from cnaas_nac.api_internal.schemas import AccessAccept, InternalAuth
 from cnaas_nac.api_internal.utils import accept, create_new_user, reject
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.radcheck import RadCheck
-from cnaas_nac.models.radreply import RadReply
-from cnaas_nac.api_internal.schemas import AccessAccept, InternalAuth
 
 logger = get_logger()
 
@@ -26,6 +25,7 @@ async def post_auth(
     """
     Internal endpoint that is used from the Freeradius rest module
     """
+
     user = (
         await db.execute(select(RadCheck).where(RadCheck.username == auth.username))
     ).scalar_one_or_none()
@@ -41,23 +41,10 @@ async def post_auth(
 
     assert user
 
-    user_vlan = (
-        (
-            await db.execute(
-                select(cast(RadReply.value, Integer)).where(
-                    RadReply.username == auth.username,
-                    RadReply.attribute == "Tunnel-Private-Group-Id",
-                )
-            )
-        )
-        .scalars()
-        .first()
-    )
+    user_vlan = user.vlan if user.vlan else settings.RADIUS_DEFAULT_VLAN
 
-    # User should have been created with a vlan by now.
-    # But just in case we default to DEFAULT VLAN
-    if not user_vlan:
-        user_vlan = settings.RADIUS_DEFAULT_VLAN
+    # Make sure user_vlan is actually an int.
+    assert isinstance(user_vlan, int)
 
     # Dictionary with key:value needed to create a NasPort
     # from auth model.
