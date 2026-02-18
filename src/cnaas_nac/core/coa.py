@@ -22,7 +22,10 @@ class CoA:
 
         self.client.timeout = 10
 
-    def send_packet(self):
+    def send_packet(self) -> None:
+        if not settings.RADIUS_COA_ENABLED:
+            logger.debug("CoA is disabled, not sending CoA packet.")
+            return
         logger.debug(
             f"Sending CoA packet to: {self.nasport.nas_identifier} to bounce: {self.nasport.nas_port_id}, user: {self.nasport.username}."
         )

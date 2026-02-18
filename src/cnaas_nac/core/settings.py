@@ -7,10 +7,12 @@ from pydantic_settings import BaseSettings
 
 class AppSettings(BaseSettings):
     RADIUS_SLAVE: bool = False
-    RADIUS_COA_SECRET: str = "testing123"
     RADIUS_LOCK_VLANS: list[int] = []
     RADIUS_DEFAULT_VLAN: int = 13
 
+class RadiusCoASettings(BaseSettings):
+    RADIUS_COA_ENABLED: bool = True
+    RADIUS_COA_SECRET: str = "testing123"
 
 class PostgresSettings(BaseSettings):
     POSTGRES_USER: str = "cnaas"
@@ -41,6 +43,7 @@ class PostgresSettings(BaseSettings):
 
 class Settings(
     AppSettings,
+    RadiusCoASettings,
     PostgresSettings,
     # EnvironmentSettings
 ):
