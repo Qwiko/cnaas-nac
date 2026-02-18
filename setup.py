@@ -2,7 +2,7 @@ import os
 
 import setuptools
 
-from src.cnaas_nms import version
+from src.cnaas_nms import version  # type: ignore[import-not-found]
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, "README.md")).read()

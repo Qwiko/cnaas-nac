@@ -136,7 +136,7 @@ async def put_auth(
 
         background_tasks.add_task(coa.send_packet)
 
-    response: AuthResponse = {
+    response = {
         "id": existing_user.id,
         "username": existing_user.username,
         "enabled": input_auth.enabled,

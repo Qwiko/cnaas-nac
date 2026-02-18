@@ -1,4 +1,4 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from datetime import datetime, timedelta
 from cnaas_nac.core.logging import get_logger
 from sqlalchemy import or_, select, delete, func, over, text, and_

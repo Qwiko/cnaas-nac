@@ -58,7 +58,7 @@ async def reject(db: AsyncSession, auth: InternalAuth, reason: str) -> None:
     raise Unauthorized(reason)
 
 
-async def create_new_user(db: AsyncSession, auth: InternalAuth) -> None:
+async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
     vlan = None
     enabled = False
 

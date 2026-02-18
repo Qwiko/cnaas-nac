@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import Integer, and_, cast, delete, func, or_, select, update
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v2", tags=["auth"])
 @router.post("/auth", response_model=AccessAccept)
 async def post_auth(
     db: Annotated[AsyncSession, Depends(get_async_session)], auth: InternalAuth
-) -> dict:
+) -> Any:
     """
     Internal endpoint that is used from the Freeradius rest module
     """
@@ -39,6 +39,8 @@ async def post_auth(
         else:
             logger.info(f"User: {auth.username} not found, creating.")
             user = await create_new_user(db, auth)
+
+    assert user
 
     user_vlan = (
         (

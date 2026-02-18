@@ -37,7 +37,8 @@ class InternalAuth(BaseModel):
         return v
 
     @field_validator("nas_ip_address", mode="after")
-    def nas_ip_as_string(v: IPvAnyAddress) -> str:
+    @classmethod
+    def nas_ip_as_string(cls, v: IPvAnyAddress) -> str:
         """Everything is mapped as a string later"""
         return str(v)
 
@@ -50,22 +51,26 @@ class AttributeDetail(BaseModel):
 class AccessAccept(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    tunnel_type: Annotated[AttributeDetail, Field(..., alias="Tunnel-Type")] = {
-        "op": ":=",
-        "value": "VLAN",
-    }
+    tunnel_type: Annotated[AttributeDetail, Field(..., alias="Tunnel-Type")] = (
+        AttributeDetail(
+            op=":=",
+            value="VLAN",
+        )
+    )
     tunnel_medium_type: Annotated[
         AttributeDetail, Field(..., alias="Tunnel-Medium-Type")
-    ] = {"op": ":=", "value": "IEEE-802"}
+    ] = AttributeDetail(op=":=", value="IEEE-802")
     tunnel_private_group_id: Annotated[
         AttributeDetail, Field(..., alias="Tunnel-Private-Group-Id")
-    ] = {"op": ":=", "value": settings.RADIUS_DEFAULT_VLAN}
+    ] = AttributeDetail(op=":=", value=settings.RADIUS_DEFAULT_VLAN)
 
 
 class AccessReject(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    reply_message: Annotated[AttributeDetail, Field(..., alias="Reply-Message")] = {
-        "op": ":=",
-        "value": "Reply-Message",
-    }
+    reply_message: Annotated[AttributeDetail, Field(..., alias="Reply-Message")] = (
+        AttributeDetail(
+            op=":=",
+            value="Reply-Message",
+        )
+    )

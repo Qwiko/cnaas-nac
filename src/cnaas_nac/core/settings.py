@@ -23,7 +23,7 @@ class PostgresSettings(BaseSettings):
 
     POSTGRES_URL: Optional[str] = None
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def POSTGRES_URI(self) -> str:
         return f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"

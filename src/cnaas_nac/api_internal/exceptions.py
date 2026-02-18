@@ -2,7 +2,7 @@ from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from cnaas_nac.api_internal.schemas import AccessReject
+from cnaas_nac.api_internal.schemas import AccessReject, AttributeDetail
 
 
 class BaseException(Exception):
@@ -17,7 +17,7 @@ class Unauthorized(BaseException):
 
 
 def unauthorized_exception_handler(request: Request, exc: Unauthorized):
-    error = AccessReject(reply_message={"value": exc.error})
+    error = AccessReject(reply_message=AttributeDetail(value=exc.error))
 
     return JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -25,14 +25,12 @@ def unauthorized_exception_handler(request: Request, exc: Unauthorized):
     )
 
 
-async def validation_exception_handler(
-    request, exc: RequestValidationError
-) -> AccessReject:
+def validation_exception_handler(request, exc: RequestValidationError):
     message = "Validation errors:"
     for error in exc.errors():
         message += f"\nField: {error['loc']}, Error: {error['msg']}"
 
-    error = AccessReject(reply_message={"value": message})
+    error = AccessReject(reply_message=AttributeDetail(value=message))
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

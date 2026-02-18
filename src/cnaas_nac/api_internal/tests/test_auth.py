@@ -223,6 +223,8 @@ async def test_auth_port_update(
         )
     ).scalar_one_or_none()
 
+    assert nasport
+
     # Make sure last_seen updated
     assert updated_at_time != nasport.updated_at
 
