@@ -6,17 +6,9 @@ from sqlalchemy import (
     Text,
     text,
 )
-from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column
 
-
 from .base import Base
-
-
-if TYPE_CHECKING:
-    from cnaas_nac.models.radcheck import RadCheck
-else:
-    RadCheck = "RadCheck"
 
 
 class RadReply(Base):
