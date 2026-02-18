@@ -1,23 +1,12 @@
-import datetime
-from typing import Any, Optional
-
-from pydantic import AwareDatetime, IPvAnyAddress
 from sqlalchemy import (
-    VARCHAR,
-    BigInteger,
-    Column,
-    DateTime,
     Index,
     Integer,
     PrimaryKeyConstraint,
     String,
     Text,
-    UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import INET
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from cnaas_nac.models.base import Base
 

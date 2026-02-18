@@ -10,9 +10,11 @@ class AppSettings(BaseSettings):
     RADIUS_LOCK_VLANS: list[int] = []
     RADIUS_DEFAULT_VLAN: int = 13
 
+
 class RadiusCoASettings(BaseSettings):
     RADIUS_COA_ENABLED: bool = True
     RADIUS_COA_SECRET: str = "testing123"
+
 
 class PostgresSettings(BaseSettings):
     POSTGRES_USER: str = "cnaas"

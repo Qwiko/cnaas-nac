@@ -8,13 +8,11 @@ from cnaas_nac.core.coa import CoA
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
-from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.schemas.generic import Username
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
-from cnaas_nac.schemas.auth import AuthBase, AuthCreate, AuthResponse, AuthUpdate
-from netutils.mac import is_valid_mac, mac_to_format
+from cnaas_nac.schemas.auth import AuthCreate, AuthResponse, AuthUpdate
 
 logger = get_logger()
 
@@ -57,14 +55,7 @@ async def post_auth(
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    user = RadCheck(
-        username=input_auth.username,
-        attribute="Cleartext-Password",
-        op=":=" if input_auth.enabled else "",
-        value=input_auth.username,
-        access_start=input_auth.access_start,
-        access_stop=input_auth.access_stop,
-    )
+    user = RadCheck(**input_auth.model_dump())
 
     db.add(user)
     await db.commit()
@@ -92,7 +83,7 @@ async def put_auth(
         )
 
     if existing_user.enabled != input_auth.enabled:
-        existing_user.op = ":=" if input_auth.enabled else ""
+        existing_user.enabled = input_auth.enabled
 
     # TODO refactor
 
@@ -144,3 +135,26 @@ async def put_auth(
     }
 
     return response
+
+
+@router.delete("/{username}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_auth(
+    username: Username,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+) -> None:
+    """
+    Delete auth.
+    """
+
+    user = (
+        await db.execute(select(RadCheck).where(RadCheck.username == username))
+    ).scalar_one_or_none()
+
+    if not user:
+        raise NotFound()
+
+    await db.delete(user)
+
+    await db.commit()
+
+    return None

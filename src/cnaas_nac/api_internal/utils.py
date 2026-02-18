@@ -1,7 +1,4 @@
-from datetime import datetime
-from typing import Any
-
-from netutils.mac import get_oui, is_valid_mac, mac_to_format
+from netutils.mac import is_valid_mac, mac_to_format
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -79,9 +76,7 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
     try:
         user = RadCheck(
             username=auth.username,
-            attribute="Cleartext-Password",
-            value=auth.password,
-            op=":=" if enabled else "",
+            enabled=enabled,
         )
         tunnel_id = RadReply(
             username=auth.username,

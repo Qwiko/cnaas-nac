@@ -2,9 +2,8 @@ from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import Integer, and_, cast, delete, func, or_, select, update
+from sqlalchemy import Integer, and_, cast, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy import inspect
 from cnaas_nac.api_internal.utils import accept, create_new_user, reject
 from cnaas_nac.core.db import get_async_session

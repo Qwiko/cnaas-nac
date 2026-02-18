@@ -1,10 +1,7 @@
-from asyncio import sleep
 import datetime
 from fastapi import status
-from fastapi.testclient import TestClient
 from pytest import MonkeyPatch
 from sqlalchemy import select, update
-from sqlalchemy.orm import Session
 from httpx import AsyncClient
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -57,7 +54,7 @@ async def test_auth_authorized(db: AsyncSession, int_client: AsyncClient) -> Non
 
     # Enable user
     await db.execute(
-        update(RadCheck).where(RadCheck.username == auth.username).values(op=":=")
+        update(RadCheck).where(RadCheck.username == auth.username).values(enabled=True)
     )
 
     # Set user vlan
@@ -107,7 +104,7 @@ async def test_auth_port_lock_wrong_port(
 
     # Enable user
     await db.execute(
-        update(RadCheck).where(RadCheck.username == auth.username).values(op=":=")
+        update(RadCheck).where(RadCheck.username == auth.username).values(enabled=True)
     )
 
     # Set user vlan
@@ -167,7 +164,7 @@ async def test_auth_port_update(
 
     # Enable user
     await db.execute(
-        update(RadCheck).where(RadCheck.username == auth.username).values(op=":=")
+        update(RadCheck).where(RadCheck.username == auth.username).values(enabled=True)
     )
 
     # Set user vlan

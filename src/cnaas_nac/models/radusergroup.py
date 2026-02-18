@@ -1,19 +1,11 @@
-from typing import Any, Optional
-import datetime
-
 from sqlalchemy import (
-    BigInteger,
-    DateTime,
     Index,
     Integer,
     PrimaryKeyConstraint,
-    String,
     Text,
-    UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import INET
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 

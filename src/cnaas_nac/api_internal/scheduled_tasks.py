@@ -1,9 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from datetime import datetime, timedelta
 from cnaas_nac.core.logging import get_logger
-from sqlalchemy import or_, select, delete, func, over, text, and_
-from sqlalchemy.orm import Session
-from cnaas_nac.models.radacct import RadAcct
+from sqlalchemy import select, delete, func, and_
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radpostauth import RadPostAuth
 from cnaas_nac.core.db import async_session_factory

@@ -1,8 +1,6 @@
-import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
-from sqlalchemy.engine import Connection
 
 from alembic import context
 from cnaas_nac.core.settings import settings

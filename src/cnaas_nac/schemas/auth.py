@@ -1,6 +1,6 @@
-from typing import Optional, Annotated
+from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel
 
 from pydantic import AwareDatetime
 from cnaas_nac.core.settings import settings
@@ -8,8 +8,8 @@ from cnaas_nac.schemas.generic import Username, VlanID
 
 
 class AuthBase(BaseModel):
-    enabled: Optional[bool] = False
-    vlan: Optional[VlanID] = settings.RADIUS_DEFAULT_VLAN
+    enabled: bool = False
+    vlan: VlanID = settings.RADIUS_DEFAULT_VLAN
     access_start: Optional[AwareDatetime] = None
     access_stop: Optional[AwareDatetime] = None
 

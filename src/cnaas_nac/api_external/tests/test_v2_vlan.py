@@ -1,10 +1,9 @@
 import pytest
 from fastapi import status
 from httpx import AsyncClient
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.models.radreply import RadReply
 
 pytestmark = pytest.mark.anyio

@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from netutils.mac import is_valid_mac, mac_to_format
 from pydantic import (
@@ -6,7 +6,6 @@ from pydantic import (
     ConfigDict,
     Field,
     IPvAnyAddress,
-    computed_field,
     field_validator,
 )
 

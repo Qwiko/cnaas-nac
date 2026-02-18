@@ -2,7 +2,7 @@ from typing import Annotated, Any
 from fastapi import status, Response
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.exceptions import NotFound
