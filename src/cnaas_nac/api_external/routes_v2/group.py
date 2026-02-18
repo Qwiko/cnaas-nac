@@ -22,7 +22,7 @@
 #     """
 
 #     groups = (await db.execute(select(Group))).scalars().all()
-    
+
 #     if not groups:
 #         raise NotFound()
 

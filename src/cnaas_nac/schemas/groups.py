@@ -6,5 +6,6 @@ class GroupBase(BaseModel):
     fieldname: str
     condition: str
 
+
 class GroupResponse(GroupBase):
     id: int

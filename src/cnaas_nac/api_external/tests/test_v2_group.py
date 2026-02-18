@@ -21,7 +21,7 @@
 
 
 # async def test_v1_group_post_fail(ext_client: AsyncClient) -> None:
-#     # No data 
+#     # No data
 #     response = await ext_client.post(
 #         "/api/v1.0/groups",
 #         json={},

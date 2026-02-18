@@ -10,6 +10,7 @@ from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
+from cnaas_nac.schemas.generic import Username
 from cnaas_nac.models.radcheck import RadCheck
 from cnaas_nac.models.radreply import RadReply
 from cnaas_nac.schemas.auth import AuthBase, AuthCreate, AuthResponse, AuthUpdate
@@ -72,7 +73,7 @@ async def post_auth(
 
 @router.put("/{username}", response_model=AuthResponse)
 async def put_auth(
-    username: str,
+    username: Username,
     input_auth: AuthUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     background_tasks: BackgroundTasks,
@@ -80,9 +81,6 @@ async def put_auth(
     """
     Put auth.
     """
-
-    if is_valid_mac(username):
-        username = mac_to_format(username, "MAC_COLON_TWO")
 
     existing_user = (
         await db.execute(select(RadCheck).where(RadCheck.username == username))
@@ -100,7 +98,7 @@ async def put_auth(
 
     if existing_user.access_start != input_auth.access_start:
         existing_user.access_start = input_auth.access_start
-        
+
     if existing_user.access_stop != input_auth.access_stop:
         existing_user.access_stop = input_auth.access_stop
 
@@ -123,7 +121,7 @@ async def put_auth(
                 .where(
                     NasPort.username == username,
                 )
-                .order_by(NasPort.last_seen.desc())
+                .order_by(NasPort.updated_at.desc())
             )
         )
         .scalars()

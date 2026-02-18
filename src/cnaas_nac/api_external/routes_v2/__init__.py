@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from .auth import router as auth_router
+
 # from .group import router as group_router
 from .oui import router as oui_router
 from .vlan import router as vlan_router

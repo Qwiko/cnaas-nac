@@ -42,6 +42,3 @@ class RadGroupCheck(Base):
     value: Mapped[str] = mapped_column(
         Text, nullable=False, server_default=text("''::text")
     )
-
-
-

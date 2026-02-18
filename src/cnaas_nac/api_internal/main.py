@@ -25,7 +25,7 @@ def run_alembic_migrations():
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
     run_alembic_migrations()
-    
+
     scheduler = setup_scheduled_tasks()
     scheduler.start()
     yield

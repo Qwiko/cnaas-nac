@@ -4,8 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy import Integer, and_, cast, delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.attributes import flag_dirty
-
+from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy import inspect
 from cnaas_nac.api_internal.utils import accept, create_new_user, reject
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.logging import get_logger
@@ -83,13 +83,7 @@ async def post_auth(
     ).scalar_one_or_none()
 
     if db_nas_port:
-        logger.debug(
-            f"User: {auth.username}, connected on a previous port, updating nasport."
-        )
-
-        # Force last_seen update for this nasport.
-        # Even if the data is the same.
-        flag_dirty(db_nas_port)
+        logger.debug(f"User: {auth.username}, connected on a known previous port.")
 
         # Update nasport if some information have changed.
         # For example changed hostname but same called_station_id
@@ -97,6 +91,18 @@ async def post_auth(
         for k, v in auth_nas_port_dict.items():
             if getattr(db_nas_port, k) != v:
                 setattr(db_nas_port, k, v)
+
+        if inspect(db_nas_port).modified:
+            logger.debug(
+                f"Port: {db_nas_port.nas_identifier}:{db_nas_port.nas_port_id} have been modified with new data."
+            )
+        else:
+            # Force updated_at update for this nasport.
+            # Even if the data is the same.
+            logger.debug(
+                f"No new data for port: {db_nas_port.nas_identifier}:{db_nas_port.nas_port_id}, still updating updated_at to use as last_seen."
+            )
+            db_nas_port.updated_at = datetime.now(timezone.utc)
 
         await db.commit()
 
@@ -107,11 +113,11 @@ async def post_auth(
         await db.commit()
 
     now = datetime.now(timezone.utc)
-    
+
     if user.access_start and now < user.access_start:
         logger.info(f"User: {auth.username} rejected. Time is before access_start.")
         await reject(db, auth, "time is before access_start")
-    
+
     if user.access_stop and now > user.access_stop:
         logger.info(f"User: {auth.username} rejected. Time is after access_stop.")
         await reject(db, auth, "time is after access_stop")
@@ -125,7 +131,7 @@ async def post_auth(
                     .where(
                         NasPort.username == auth.username,
                     )
-                    .order_by(NasPort.last_seen.desc())
+                    .order_by(NasPort.updated_at.desc())
                 )
             )
             .scalars()

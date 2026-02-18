@@ -61,6 +61,7 @@ class AccessAccept(BaseModel):
         AttributeDetail, Field(..., alias="Tunnel-Private-Group-Id")
     ] = {"op": ":=", "value": settings.RADIUS_DEFAULT_VLAN}
 
+
 class AccessReject(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 

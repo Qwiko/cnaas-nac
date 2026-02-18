@@ -22,7 +22,7 @@ async def get_ouis(
     """
 
     ouis = (await db.execute(select(DeviceOui))).scalars().all()
-    
+
     if not ouis:
         raise NotFound()
 

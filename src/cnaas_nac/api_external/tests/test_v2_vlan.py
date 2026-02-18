@@ -32,17 +32,19 @@ async def test_v2_vlans_get(db: AsyncSession, ext_client: AsyncClient) -> None:
     assert isinstance(res_json, list)
     assert len(res_json) >= 90
 
+
 async def test_v2_vlans_get_notfound(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Remove all replies if there are any in test-db
     # Will be brought back by a transaction.
-    
+
     await db.execute(delete(RadReply))
-    
+
     response = await ext_client.get(
         "/api/v2/vlans",
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
 
 async def test_v2_vlans_get_id(db: AsyncSession, ext_client: AsyncClient) -> None:
     for i in range(10, 100):

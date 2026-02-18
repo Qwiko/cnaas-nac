@@ -28,7 +28,11 @@ class RadAcct(Base):
         UniqueConstraint("acctuniqueid", name="radacct_acctuniqueid_key"),
         Index("radacct_active_session_idx", "acctuniqueid"),
         Index("radacct_bulk_close", "nasipaddress", "acctstarttime"),
-        Index("radacct_bulk_timeout", Column("acctstoptime").nullsfirst(), "acctupdatetime"),
+        Index(
+            "radacct_bulk_timeout",
+            Column("acctstoptime").nullsfirst(),
+            "acctupdatetime",
+        ),
         Index("radacct_start_user_idx", "acctstarttime", "username"),
     )
 
@@ -36,10 +40,10 @@ class RadAcct(Base):
     acctsessionid: Mapped[str] = mapped_column(Text, nullable=False)
     acctuniqueid: Mapped[str] = mapped_column(Text, nullable=False)
     nasipaddress: Mapped[Any] = mapped_column(INET, nullable=False)
-    
+
     # cnaas-nac specific
     nasidentifier: Mapped[str] = mapped_column(Text, nullable=True)
-    
+
     username: Mapped[Optional[str]] = mapped_column(Text)
     groupname: Mapped[Optional[str]] = mapped_column(Text)
     realm: Mapped[Optional[str]] = mapped_column(Text)

@@ -18,7 +18,7 @@ def setup_scheduled_tasks() -> AsyncIOScheduler:
     logger.info("Setting up tasks")
 
     scheduler.add_job(prune_postauth, "interval", days=1)
-    scheduler.add_job(prune_inactive_radcheck, "interval", minutes=1)
+    scheduler.add_job(prune_inactive_radcheck, "interval", days=1)
 
     return scheduler
 
@@ -99,9 +99,11 @@ async def prune_inactive_radcheck():
         users_with_logs = (await db.execute(stmt)).scalars().all()
 
         for user in users_with_logs:
-            logger.info(f"User: {user} does not have any radpostauths associated with it, creating one.")
+            logger.info(
+                f"User: {user} does not have any radpostauths associated with it, creating one."
+            )
             db.add(RadPostAuth(username=user))
-        
+
         await db.commit()
 
         logger.info("Completed task: prune_inactive_radcheck.")

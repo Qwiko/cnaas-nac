@@ -23,11 +23,11 @@ from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, foreign, mapped_column, relationship
 
-from .base import Base
+from .base import Base, TimestampsMixin
 from .radreply import RadReply
 
 
-class RadCheck(Base):
+class RadCheck(Base, TimestampsMixin):
     __tablename__ = "radcheck"
     __table_args__ = (
         PrimaryKeyConstraint("id", name="radcheck_pkey"),
@@ -55,16 +55,9 @@ class RadCheck(Base):
         DateTime(True), nullable=True
     )
 
-    # TODO:
-    # Add field with created_time / updated_time
-    # With mixins?
-
     @hybrid_property
     def enabled(self) -> bool:
         return self.op == ":="
-
-
-
 
     # TODO:
     # Add relationships to other tables with cascade drops when this entry is deleted.

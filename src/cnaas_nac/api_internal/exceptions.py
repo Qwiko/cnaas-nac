@@ -12,8 +12,8 @@ class BaseException(Exception):
 
 class Unauthorized(BaseException):
     """Returns an Unauthorized 401"""
-    pass
 
+    pass
 
 
 def unauthorized_exception_handler(request: Request, exc: Unauthorized):

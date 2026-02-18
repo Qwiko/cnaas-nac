@@ -34,9 +34,7 @@ async def accept(db: AsyncSession, auth: InternalAuth) -> dict:
     return reply
 
 
-async def reject(
-    db: AsyncSession, auth: InternalAuth, reason: str
-) -> None:
+async def reject(db: AsyncSession, auth: InternalAuth, reason: str) -> None:
     """
     Reject the user with a 401.
 

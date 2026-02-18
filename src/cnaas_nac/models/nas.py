@@ -17,7 +17,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from .base import Base
+from .base import Base, TimestampsMixin
 
 
 class Nas(Base):
@@ -56,27 +56,30 @@ class NasReload(Base):
     )
 
 
-class NasPort(Base):
+class NasPort(Base, TimestampsMixin):
     __tablename__ = "nasport"
     __table_args__ = (
         None,
         UniqueConstraint("id"),
+        UniqueConstraint(
+            "username", "nas_identifier", "nas_port_id", name="uq_user_nas_port"
+        ),
+        UniqueConstraint(
+            "username",
+            "calling_station_id",
+            "nas_port_id",
+            name="uq_user_calling_station_port",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True)
-    username: Mapped[str] = mapped_column(
-        Unicode(64), nullable=False, index=True
-    )
+    username: Mapped[str] = mapped_column(Unicode(64), nullable=False, index=True)
     nas_identifier: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
     nas_port_id: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
     nas_ip_address: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
-    calling_station_id: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
-    called_station_id: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
-
-    # Keep track of where a user have been plugged in.
-    first_seen: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
+    calling_station_id: Mapped[Optional[str]] = mapped_column(
+        Unicode(64), nullable=False
     )
-    last_seen: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), onupdate=func.now(), server_default=func.now()
+    called_station_id: Mapped[Optional[str]] = mapped_column(
+        Unicode(64), nullable=False
     )

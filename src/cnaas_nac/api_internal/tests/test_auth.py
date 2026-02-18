@@ -180,8 +180,8 @@ async def test_auth_port_update(
         .values(value="3131")
     )
 
-    # Update last_seen_time to something in the past.
-    last_seen_time = datetime.datetime(
+    # Update updated_at to something in the past.
+    updated_at_time = datetime.datetime(
         2000, 1, 1, 1, 1, 1, 1, tzinfo=datetime.timezone.utc
     )
     await db.execute(
@@ -190,7 +190,7 @@ async def test_auth_port_update(
             NasPort.username == auth.username,
             NasPort.called_station_id == auth.called_station_id,
         )
-        .values(last_seen=last_seen_time)
+        .values(updated_at=updated_at_time)
     )
 
     await db.commit()
@@ -217,13 +217,14 @@ async def test_auth_port_update(
     nasport = (
         await db.execute(
             select(NasPort).where(
-                NasPort.username == auth.username, NasPort.nas_identifier == "eos-a1"
+                NasPort.username == auth.username,
+                NasPort.nas_identifier == "eos-a1",
             )
         )
     ).scalar_one_or_none()
 
     # Make sure last_seen updated
-    assert last_seen_time != nasport.last_seen
+    assert updated_at_time != nasport.updated_at
 
 
 async def test_auth_oui(
