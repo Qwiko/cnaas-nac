@@ -48,9 +48,9 @@ class EnvironmentOption(Enum):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_nested_delimiter='_', nested_model_default_partial_update=True
+        env_nested_delimiter="_", nested_model_default_partial_update=True
     )
-    
+
     DB: DBSettings = DBSettings()
     RADIUS: RadiusSettings = RadiusSettings()
     OIDC: OIDCSettings = OIDCSettings()

@@ -105,13 +105,13 @@ async def int_client(
 
 def create_test_token() -> str:
     """Generates a test JWT signed with the application's secret key."""
-    
+
     payload = {
         "sub": "test_user_123",
         "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
         # You can inject any other claims your API expects below:
         "email": "test@example.com",
-        "roles": ["admin"]
+        "roles": ["admin"],
     }
 
     # Encode the token using your secret key and the HS256 algorithm
