@@ -14,26 +14,26 @@ from cnaas_nac.models.radreply import RadReply
 pytestmark = pytest.mark.anyio
 
 
-async def test_v2_auth_get_none(db: AsyncSession, ext_client: AsyncClient) -> None:
+async def test_v2_user_get_none(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Delete all entries from the db.
 
     await db.execute(delete(RadCheck))
     await db.commit()
 
     response = await ext_client.get(
-        "/api/v2/auth",
+        "/api/v2/user",
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-async def test_v2_auth_get(db: AsyncSession, ext_client: AsyncClient) -> None:
+async def test_v2_user_get(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Create entry in db
     db.add(RadCheck(username="00:00:00:00:00:00", enabled=True, vlan=14))
     await db.commit()
 
     response = await ext_client.get(
-        "/api/v2/auth",
+        "/api/v2/user",
     )
 
     res_json = response.json()
@@ -44,13 +44,13 @@ async def test_v2_auth_get(db: AsyncSession, ext_client: AsyncClient) -> None:
     assert int(response.headers.get("X-Total-Count")) >= 1
 
 
-async def test_v2_auth_get_name(db: AsyncSession, ext_client: AsyncClient) -> None:
+async def test_v2_user_get_name(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Create entry in db
     db.add(RadCheck(username="00:00:00:00:00:01", enabled=True, vlan=14))
     await db.commit()
 
     response = await ext_client.get(
-        "/api/v2/auth/00:00:00:00:00:01",
+        "/api/v2/user/00:00:00:00:00:01",
     )
 
     res_json = response.json()
@@ -60,19 +60,19 @@ async def test_v2_auth_get_name(db: AsyncSession, ext_client: AsyncClient) -> No
     assert "00:00:00:00:00:01" == res_json.get("username")
 
 
-async def test_v2_auth_get_name_not_found(
+async def test_v2_user_get_name_not_found(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     response = await ext_client.get(
-        "/api/v2/auth/12:34:56:89:ab:01",
+        "/api/v2/user/12:34:56:89:ab:01",
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-async def test_v2_auth_post(db: AsyncSession, ext_client: AsyncClient) -> None:
+async def test_v2_user_post(db: AsyncSession, ext_client: AsyncClient) -> None:
     response = await ext_client.post(
-        "/api/v2/auth",
+        "/api/v2/user",
         json={"username": "00:00:0a:11:11:11", "enabled": True, "vlan": 14},
     )
 
@@ -108,17 +108,17 @@ async def test_v2_auth_post(db: AsyncSession, ext_client: AsyncClient) -> None:
     ].sort() == [r.attribute for r in db_replies].sort()
 
 
-async def test_v2_auth_delete_name_not_found(
+async def test_v2_user_delete_name_not_found(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     response = await ext_client.delete(
-        "/api/v2/auth/12:34:56:89:ab:01",
+        "/api/v2/user/12:34:56:89:ab:01",
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-async def test_v2_auth_delete_name(db: AsyncSession, ext_client: AsyncClient) -> None:
+async def test_v2_user_delete_name(db: AsyncSession, ext_client: AsyncClient) -> None:
     local_username = "a1:3f:00:00:00:11"
     # Create entries in db
     db.add(RadCheck(username=local_username, enabled=True, vlan=14))
@@ -145,7 +145,7 @@ async def test_v2_auth_delete_name(db: AsyncSession, ext_client: AsyncClient) ->
 
     with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
         response = await ext_client.delete(
-            f"/api/v2/auth/{local_username}",
+            f"/api/v2/user/{local_username}",
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -172,7 +172,7 @@ async def test_v2_auth_delete_name(db: AsyncSession, ext_client: AsyncClient) ->
     ).scalar_one_or_none()
 
 
-async def test_v2_auth_post_existing_user(
+async def test_v2_user_post_existing_user(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     # Create entry in db
@@ -180,24 +180,24 @@ async def test_v2_auth_post_existing_user(
     await db.commit()
 
     response = await ext_client.post(
-        "/api/v2/auth",
+        "/api/v2/user",
         json={"username": "bc:fe:00:00:00:01", "enabled": True, "vlan": 14},
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-async def test_v2_auth_put_name_not_found(
+async def test_v2_user_put_name_not_found(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     response = await ext_client.put(
-        "/api/v2/auth/12:34:56:89:ab:01", json={"enabled": True, "vlan": 14}
+        "/api/v2/user/12:34:56:89:ab:01", json={"enabled": True, "vlan": 14}
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-async def test_v2_auth_put_name(
+async def test_v2_user_put_name(
     db: AsyncSession,
     ext_client: AsyncClient,
 ) -> None:
@@ -206,7 +206,7 @@ async def test_v2_auth_put_name(
     await db.commit()
 
     response = await ext_client.put(
-        "/api/v2/auth/00:00:00:00:bc:11", json={"enabled": False, "vlan": 13}
+        "/api/v2/user/00:00:00:00:bc:11", json={"enabled": False, "vlan": 13}
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -221,7 +221,7 @@ async def test_v2_auth_put_name(
     assert db_user.vlan == 13
 
 
-async def test_v2_auth_put_name_issue_coa(
+async def test_v2_user_put_name_issue_coa(
     db: AsyncSession,
     ext_client: AsyncClient,
 ) -> None:
@@ -242,7 +242,7 @@ async def test_v2_auth_put_name_issue_coa(
 
     with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
         response = await ext_client.put(
-            "/api/v2/auth/00:00:00:aa:dd:11", json={"enabled": False, "vlan": 13}
+            "/api/v2/user/00:00:00:aa:dd:11", json={"enabled": False, "vlan": 13}
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -250,7 +250,7 @@ async def test_v2_auth_put_name_issue_coa(
         mock_send.assert_called_once()
 
 
-async def test_v2_auth_delete_name_issue_coa(
+async def test_v2_user_delete_name_issue_coa(
     db: AsyncSession,
     ext_client: AsyncClient,
 ) -> None:
@@ -270,7 +270,7 @@ async def test_v2_auth_delete_name_issue_coa(
     await db.commit()
 
     with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
-        response = await ext_client.delete("/api/v2/auth/00:00:ee:aa:dd:11")
+        response = await ext_client.delete("/api/v2/user/00:00:ee:aa:dd:11")
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 

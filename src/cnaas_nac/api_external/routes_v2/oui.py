@@ -9,13 +9,17 @@ from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.schemas.oui import DeviceOuiResponse, DeviceOuiBase
+from cnaas_nac.core.security import get_current_user
+
 
 router = APIRouter(prefix="/oui", tags=["oui"])
 
 
+
 @router.get("", response_model=list[DeviceOuiResponse])
 async def get_ouis(
-    db: Annotated[AsyncSession, Depends(get_async_session)], response: Response
+    db: Annotated[AsyncSession, Depends(get_async_session)], response: Response,
+    current_user = Depends(get_current_user)
 ) -> Any:
     """
     Retrieve oui.

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from starlette.middleware.sessions import SessionMiddleware
 
 from cnaas_nac.api_external.routes_v2 import api_v2_router
 from cnaas_nac.core.exceptions import (
@@ -7,6 +8,7 @@ from cnaas_nac.core.exceptions import (
     notfound_exception_handler,
     validation_exception_handler,
 )
+from cnaas_nac.core.settings import settings
 from cnaas_nac.schemas.generic import ErrorResponse
 
 app = FastAPI(
@@ -27,8 +29,8 @@ app = FastAPI(
             "model": ErrorResponse,
         },
     },
-    # generate_unique_id_function=custom_generate_unique_id,
 )
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # Set all CORS enabled origins
 # if settings.all_cors_origins:
