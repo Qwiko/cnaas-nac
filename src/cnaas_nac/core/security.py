@@ -2,7 +2,6 @@ from typing import Annotated
 
 from authlib.integrations.starlette_client import OAuth, StarletteOAuth2App
 from authlib.jose import jwt
-from authlib.jose.errors import BadSignatureError, DecodeError, ExpiredTokenError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -11,15 +10,15 @@ from fastapi.security import (
 )
 from starlette.requests import Request
 
-from cnaas_nac.core.settings import settings
+from cnaas_nac.core.settings import settings, EnvironmentOption
 
 oauth = OAuth()
 
 oauth.register(
     "oidc",
-    client_id=settings.OIDC_CLIENT_ID,
-    client_secret=settings.OIDC_CLIENT_SECRET,
-    server_metadata_url=settings.OIDC_DISCOVERY_URL,
+    client_id=settings.OIDC.CLIENT_ID,
+    client_secret=settings.OIDC.CLIENT_SECRET,
+    server_metadata_url=settings.OIDC.DISCOVERY_URL,
     client_kwargs={"scope": "openid profile email"},
 )
 
@@ -48,17 +47,18 @@ async def get_current_user(
     token: Annotated[HTTPAuthorizationCredentials, Depends(bearer)],
 ):
     # Local development token validation skip oauth
-    if settings.ENVIRONMENT == "local":
+    if settings.ENVIRONMENT == EnvironmentOption.LOCAL:
         if not token:
             raise HTTPException(
                 status_code=401,
                 detail="Missing token, must send bearer token in local-mode.",
             )
         try:
-            claims = jwt.decode(token, settings.SECRET_KEY)
+            claims = jwt.decode(token.credentials, settings.SECRET_KEY)
             claims.validate()
             return claims
-        except Exception:
+        except Exception as e:
+            print(e)
             raise HTTPException(
                 status_code=401,
                 detail="Token validation-error.",
@@ -68,7 +68,13 @@ async def get_current_user(
         access_token = token.credentials
     else:
         # Cookie access_token is the access_token
-        access_token = request.cookies.get("access_token")
+        access_token = request.cookies.get("access_token", "")
+
+    if not access_token:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing access_token cookie.",
+        )
 
     try:
         # Validate the token

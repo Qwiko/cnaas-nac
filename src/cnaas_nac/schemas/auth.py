@@ -9,7 +9,7 @@ from cnaas_nac.schemas.generic import Username, VlanID
 
 class AuthBase(BaseModel):
     enabled: bool = False
-    vlan: VlanID = settings.RADIUS_DEFAULT_VLAN
+    vlan: VlanID = settings.RADIUS.DEFAULT_VLAN
     access_start: Optional[AwareDatetime] = None
     access_stop: Optional[AwareDatetime] = None
 

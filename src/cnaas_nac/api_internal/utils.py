@@ -71,7 +71,7 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
         logger.debug(f"Found oui vlan: {vlan}")
         enabled = True
     else:
-        vlan = settings.RADIUS_DEFAULT_VLAN
+        vlan = settings.RADIUS.DEFAULT_VLAN
 
     try:
         user = RadCheck(

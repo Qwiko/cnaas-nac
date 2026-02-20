@@ -32,7 +32,7 @@ async def post_auth(
 
     # User is not found, creating -> Reject
     if not user:
-        if settings.RADIUS_SLAVE:
+        if settings.RADIUS.SLAVE:
             logger.info("Configured as RADIUS_SLAVE, skipping user creation.")
             await reject(db, auth, "user not found")
         else:
@@ -41,7 +41,7 @@ async def post_auth(
 
     assert user
 
-    user_vlan = user.vlan if user.vlan else settings.RADIUS_DEFAULT_VLAN
+    user_vlan = user.vlan if user.vlan else settings.RADIUS.DEFAULT_VLAN
 
     # Make sure user_vlan is actually an int.
     assert isinstance(user_vlan, int)
@@ -94,7 +94,7 @@ async def post_auth(
 
         await db.commit()
 
-    if not db_nas_port and user_vlan not in settings.RADIUS_LOCK_VLANS:
+    if not db_nas_port and user_vlan not in settings.RADIUS.LOCK_VLANS:
         logger.info(f"User: {auth.username} connected on new port. Adding nasport")
         db_nas_port = NasPort(**auth_nas_port_dict)
         db.add(db_nas_port)
@@ -110,7 +110,7 @@ async def post_auth(
         logger.info(f"User: {auth.username} rejected. Time is after access_stop.")
         await reject(db, auth, "time is after access_stop")
 
-    if user_vlan in settings.RADIUS_LOCK_VLANS:
+    if user_vlan in settings.RADIUS.LOCK_VLANS:
         # Get expected port this user should be connected to.
         expected_port = (
             (

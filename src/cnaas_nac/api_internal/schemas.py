@@ -61,7 +61,7 @@ class AccessAccept(BaseModel):
     ] = AttributeDetail(op=":=", value="IEEE-802")
     tunnel_private_group_id: Annotated[
         AttributeDetail, Field(..., alias="Tunnel-Private-Group-Id")
-    ] = AttributeDetail(op=":=", value=settings.RADIUS_DEFAULT_VLAN)
+    ] = AttributeDetail(op=":=", value=settings.RADIUS.DEFAULT_VLAN)
 
 
 class AccessReject(BaseModel):

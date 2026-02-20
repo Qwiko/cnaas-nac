@@ -15,11 +15,11 @@ from cnaas_nac.core.security import get_current_user
 router = APIRouter(prefix="/oui", tags=["oui"])
 
 
-
 @router.get("", response_model=list[DeviceOuiResponse])
 async def get_ouis(
-    db: Annotated[AsyncSession, Depends(get_async_session)], response: Response,
-    current_user = Depends(get_current_user)
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    response: Response,
+    current_user=Depends(get_current_user),
 ) -> Any:
     """
     Retrieve oui.

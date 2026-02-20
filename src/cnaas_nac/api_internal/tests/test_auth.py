@@ -82,7 +82,7 @@ async def test_auth_authorized(db: AsyncSession, int_client: AsyncClient) -> Non
 async def test_auth_port_lock_wrong_port(
     db: AsyncSession, int_client: AsyncClient, monkeypatch: MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(settings, "RADIUS_LOCK_VLANS", [3131])
+    monkeypatch.setattr(settings.RADIUS, "LOCK_VLANS", [3131])
 
     auth = InternalAuth(
         **{

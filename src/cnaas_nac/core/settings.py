@@ -2,49 +2,42 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import computed_field
-from pydantic_settings import BaseSettings
+from pydantic import computed_field, BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class AppSettings(BaseSettings):
-    RADIUS_SLAVE: bool = False
-    RADIUS_LOCK_VLANS: list[int] = []
-    RADIUS_DEFAULT_VLAN: int = 13
+class DBSettings(BaseModel):
+    USER: str = "cnaas"
+    PASSWORD: str = "cnaas"
+    SERVER: str = "nac_postgres"
+    PORT: int = 5432
+    DB: str = "nac"
 
-    SECRET_KEY: str = "replace_this_with_a_secure_random_string"
+    SYNC_PREFIX: str = "postgresql://"
+    ASYNC_PREFIX: str = "postgresql+asyncpg://"
 
-    FRONTEND_CALLBACK_URL: Optional[str] = "/"
-    # OpenID Connect Settings
-    OIDC_CLIENT_ID: Optional[str] = "cnaas-nac"
-    OIDC_CLIENT_SECRET: Optional[str] = "1Y6VUdjVpE7irdetMBQvJGQ7SywNWGqW"
-    # The URL that ends in .well-known/openid-configuration
-    # e.g.,
-    OIDC_DISCOVERY_URL: Optional[str] = (
-        "http://localhost:8080/realms/master/.well-known/openid-configuration"
-    )
-    OIDC_USERNAME_ATTRIBUTE: Optional[str] = "preferred_username"
-
-
-class RadiusCoASettings(BaseSettings):
-    RADIUS_COA_ENABLED: bool = True
-    RADIUS_COA_SECRET: str = "testing123"
-
-
-class PostgresSettings(BaseSettings):
-    POSTGRES_USER: str = "cnaas"
-    POSTGRES_PASSWORD: str = "cnaas"
-    POSTGRES_SERVER: str = "nac_postgres"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "nac"
-    POSTGRES_SYNC_PREFIX: str = "postgresql://"
-    POSTGRES_ASYNC_PREFIX: str = "postgresql+asyncpg://"
-
-    POSTGRES_URL: Optional[str] = None
+    URL: Optional[str] = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def POSTGRES_URI(self) -> str:
-        return f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    def URI(self) -> str:
+        return f"{self.USER}:{self.PASSWORD}@{self.SERVER}:{self.PORT}/{self.DB}"
+
+
+class RadiusSettings(BaseModel):
+    SLAVE: bool = False
+    LOCK_VLANS: list[int] = []
+    DEFAULT_VLAN: int = 13
+
+    COA_ENABLED: bool = True
+    COA_SECRET: str = "testing123"
+
+
+class OIDCSettings(BaseModel):
+    CLIENT_ID: str = "cnaas-nac"
+    CLIENT_SECRET: str = ""
+    DISCOVERY_URL: str = ""
+    USERNAME_ATTRIBUTE: str = "preferred_username"
 
 
 class EnvironmentOption(Enum):
@@ -53,12 +46,20 @@ class EnvironmentOption(Enum):
     PRODUCTION = "production"
 
 
-class EnvironmentSettings(BaseSettings):
-    ENVIRONMENT: EnvironmentOption = "local"
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_nested_delimiter='_', nested_model_default_partial_update=True
+    )
+    
+    DB: DBSettings = DBSettings()
+    RADIUS: RadiusSettings = RadiusSettings()
+    OIDC: OIDCSettings = OIDCSettings()
 
+    SECRET_KEY: str = "replace_this_with_a_secure_random_string"
 
-class Settings(AppSettings, RadiusCoASettings, PostgresSettings, EnvironmentSettings):
-    pass
+    FRONTEND_CALLBACK_URL: str = "/"
+
+    ENVIRONMENT: EnvironmentOption = EnvironmentOption.LOCAL
 
 
 settings = Settings()

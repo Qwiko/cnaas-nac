@@ -16,8 +16,8 @@ services:
       - RADIUS_COA_SECRET=testing123
       - RADIUS_NO_PORT_LOCK=no
       - RADIUS_DEFAULT_VLAN=13
-      - POSTGRES_USER=cnaas
-      - POSTGRES_PASSWORD=cnaas
+      - DB_USER=cnaas
+      - DB_PASSWORD=cnaas
     command: ["external"]
     depends_on:
       - nac_postgres
@@ -41,9 +41,9 @@ services:
       - RADIUS_COA_SECRET=testing123
       - RADIUS_NO_PORT_LOCK=no
       - RADIUS_DEFAULT_VLAN=13
-      - POSTGRES_USER=cnaas
-      - POSTGRES_PASSWORD=cnaas
-      # - POSTGRES_DB=nac
+      - DB_USER=cnaas
+      - DB_PASSWORD=cnaas
+      # - DB_NAME=nac
     command: ["internal"]
     depends_on:
       - nac_postgres
@@ -81,9 +81,9 @@ services:
         source: nac-postgres-data
         target: /var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=cnaas
-      - POSTGRES_PASSWORD=cnaas
-      - POSTGRES_DB=nac
+      - DB_USER=cnaas
+      - DB_PASSWORD=cnaas
+      - DB_DB=nac
     ports:
       - 5432:5432
 

@@ -54,9 +54,9 @@ services:
         source: nac-postgres-data
         target: /var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=cnaas
-      - POSTGRES_PASSWORD=cnaas
-      - POSTGRES_DB=nac
+      - DB_USER=cnaas
+      - DB_PASSWORD=cnaas
+      - DB_DB=nac
     ports:
       - 5432:5432
     networks:

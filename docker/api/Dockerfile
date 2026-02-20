@@ -6,6 +6,8 @@ LABEL org.opencontainers.image.description="CNaaS NAC"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONPATH="/app"
+# App environment
+ENV ENVIRONMENT="production"
 
 WORKDIR /app
 

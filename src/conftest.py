@@ -1,5 +1,5 @@
 from typing import AsyncGenerator
-
+from datetime import datetime, timedelta, timezone
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -10,13 +10,14 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+import jwt
 from cnaas_nac.api_external.main import app as external_app
 from cnaas_nac.api_internal.main import app as internal_app
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.settings import settings
 
 async_engine = create_async_engine(
-    settings.POSTGRES_ASYNC_PREFIX + settings.POSTGRES_URI, future=True
+    settings.DB.ASYNC_PREFIX + settings.DB.URI, future=True
 )
 async_session_factory = async_sessionmaker(bind=async_engine, expire_on_commit=False)
 
@@ -70,8 +71,11 @@ async def ext_client(
             yield async_session
 
     external_app.dependency_overrides[get_async_session] = override_get_async_session
+    test_token = create_test_token()
     async with AsyncClient(
-        transport=ASGITransport(app=external_app), base_url="http://cnaas-nac-external"
+        transport=ASGITransport(app=external_app),
+        base_url="http://cnaas-nac-external",
+        headers={"Authorization": f"Bearer {test_token}"},
     ) as ac:
         yield ac
     external_app.dependency_overrides.clear()
@@ -97,3 +101,20 @@ async def int_client(
         yield ac
 
     internal_app.dependency_overrides.clear()
+
+
+def create_test_token() -> str:
+    """Generates a test JWT signed with the application's secret key."""
+    
+    payload = {
+        "sub": "test_user_123",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
+        # You can inject any other claims your API expects below:
+        "email": "test@example.com",
+        "roles": ["admin"]
+    }
+
+    # Encode the token using your secret key and the HS256 algorithm
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    print(token)
+    return token
