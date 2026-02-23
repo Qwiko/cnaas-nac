@@ -9,7 +9,6 @@ from cnaas_nac.core.settings import settings
 
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.user import User
-from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.api_internal.schemas import InternalAuth
 
 pytestmark = pytest.mark.anyio
@@ -201,43 +200,9 @@ async def test_auth_port_update(
     assert updated_at_time != nasport.updated_at
 
 
-async def test_auth_oui(
-    db: AsyncSession, int_client: AsyncClient, monkeypatch: MonkeyPatch
-) -> None:
-    # Add deviceoui
-
-    db.add(DeviceOui(oui="aa:bb:cc", vlan=14))
-    await db.commit()
-
-    auth = InternalAuth(
-        **{
-            "username": "aa:bb:cc:dd:ee:ff",
-            "nas_identifier": "a1",
-            "nas_port_id": "Ethernet1",
-            "calling_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-            "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-            "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
-        }
-    )
-
-    response = await int_client.post(
-        "/api/v2/auth",
-        json=auth.model_dump(),
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json().get("Tunnel-Medium-Type").get("value") == "IEEE-802"
-    assert response.json().get("Tunnel-Type").get("value") == "VLAN"
-    assert response.json().get("Tunnel-Private-Group-Id").get("value") == "14"
-
-
 async def test_auth_access_time(
     db: AsyncSession, int_client: AsyncClient, monkeypatch: MonkeyPatch
 ) -> None:
-    # Add deviceoui
-
-    db.add(DeviceOui(oui="aa:bb:cc", vlan=14))
-    await db.commit()
 
     auth = InternalAuth(
         **{
@@ -251,14 +216,16 @@ async def test_auth_access_time(
     )
 
     # Set access_start and access_stop to valid times.
-    await db.execute(
-        update(User)
-        .where(User.username == auth.username)
-        .values(
+    db.add(
+        User(
+            username=auth.username,
             access_start=datetime.datetime.now() - datetime.timedelta(hours=1),
             access_stop=datetime.datetime.now() + datetime.timedelta(hours=1),
+            vlan=14,
+            enabled=True,
         )
     )
+    await db.commit()
 
     response = await int_client.post(
         "/api/v2/auth",

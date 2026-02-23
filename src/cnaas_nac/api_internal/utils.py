@@ -1,12 +1,13 @@
-from netutils.mac import is_valid_mac, mac_to_format
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.api_internal.exceptions import Unauthorized
 from cnaas_nac.core.logging import get_logger
+from cnaas_nac.core.rule_engine import evaluate_rule
 from cnaas_nac.core.settings import settings
+from cnaas_nac.models.assignment_rule import AssignmentRule
 from cnaas_nac.models.nas import NasPort
-from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.models.user import User
 from cnaas_nac.api_internal.schemas import InternalAuth
 
@@ -53,18 +54,27 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> User:
     vlan = None
     enabled = False
 
-    # Check if this oui have a vlan connected to itself.
-    if is_valid_mac(auth.username):
-        oui = mac_to_format(auth.username, "MAC_COLON_TWO")[:8]
-        logger.debug(f"Trying to find oui-specific vlan for oui: {oui}")
-        vlan = (
-            await db.execute(select(DeviceOui.vlan).where(DeviceOui.oui == oui))
-        ).scalar_one_or_none()
+    # Handle reassignment rules.
+    stmt = (
+        select(AssignmentRule)
+        .where(
+            AssignmentRule.is_active,
+        )
+        .order_by(AssignmentRule.priority.asc())
+        .options(selectinload(AssignmentRule.conditions))
+        .execution_options(stream_results=True)
+    )
 
-    if vlan:
-        logger.debug(f"Found oui vlan: {vlan}")
-        enabled = True
+    results = await db.stream_scalars(stmt)
+    async for rule in results:
+        if evaluate_rule(rule, dict(auth)):
+            # Match found, set new vlan if needed.
+            vlan = rule.target_vlan
+            enabled = True
+            logger.debug(f"User: {auth.username} is assigned to vlan: {vlan}")
+            break
     else:
+        # Default to DEFAULT_VLAN
         vlan = settings.RADIUS.DEFAULT_VLAN
 
     try:

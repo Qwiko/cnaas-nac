@@ -3,6 +3,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import and_, inspect, or_, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.api_internal.schemas import AccessAccept, InternalAuth
@@ -12,6 +13,8 @@ from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.user import User
+from cnaas_nac.models.assignment_rule import AssignmentRule
+from cnaas_nac.core.rule_engine import evaluate_rule
 
 logger = get_logger()
 
@@ -40,6 +43,29 @@ async def post_auth(
             user = await create_new_user(db, auth)
 
     assert user
+
+    # Handle reassignment rules.
+    stmt = (
+        select(AssignmentRule)
+        .where(
+            AssignmentRule.is_active,
+            AssignmentRule.reevaluate_existing,
+        )
+        .order_by(AssignmentRule.priority.asc())
+        .options(selectinload(AssignmentRule.conditions))
+        .execution_options(stream_results=True)
+    )
+
+    results = await db.stream_scalars(stmt)
+    async for rule in results:
+        if evaluate_rule(rule, dict(auth)):
+            # Match found, set new vlan if needed.
+            if user.vlan != rule.target_vlan:
+                logger.debug(
+                    f"User: {auth.username} is reassigned to vlan: {rule.target_vlan}"
+                )
+                user.vlan = rule.target_vlan
+            break
 
     user_vlan = user.vlan if user.vlan else settings.RADIUS.DEFAULT_VLAN
 

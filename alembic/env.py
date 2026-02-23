@@ -24,8 +24,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+from cnaas_nac.models.assignment_rule import *  # noqa: E402, F403
 from cnaas_nac.models.nas import *  # noqa: E402, F403
-from cnaas_nac.models.oui import *  # noqa: E402, F403
 from cnaas_nac.models.radacct import *  # noqa: E402, F403
 from cnaas_nac.models.user import *  # noqa: E402, F403
 from cnaas_nac.models.radpostauth import *  # noqa: E402, F403
