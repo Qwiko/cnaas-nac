@@ -19,6 +19,8 @@ extra_jobs:
       - cp docker/api/Dockerfile .
     docker_name: cnaas/nac-authapi
     docker_context_dir: .
+    docker_tags:
+      - "v2.0.0"
 
   - name: nac-radius
     git:
@@ -29,3 +31,5 @@ extra_jobs:
       - cp docker/radius/Dockerfile .
     docker_name: cnaas/nac-radius
     docker_context_dir: .
+    docker_tags:
+      - "v2.0.0"
