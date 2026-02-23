@@ -15,59 +15,17 @@ extra_jobs:
       branch: develop
     builders:
       - docker
+    pre_build_script:
+      - cp docker/api/Dockerfile .
     docker_name: cnaas/nac-authapi
-    docker_context_dir: docker/api
+    docker_context_dir: .
 
   - name: nac-radius
     git:
       branch: develop
     builders:
       - docker
+    pre_build_script:
+      - cp docker/radius/Dockerfile .
     docker_name: cnaas/nac-radius
-    docker_context_dir: docker/radius
-
-  - name: nac-radius-alpine
-    git:
-      branch: develop
-    builders:
-      - docker
-    docker_name: cnaas/nac-radius-alpine
-    docker_context_dir: docker/radius-alpine
-
-  - name: nac-postgres
-    git:
-      branch: develop
-    builders:
-      - docker
-    docker_name: cnaas/nac-postgres
-    docker_context_dir: docker/postgres
-
-  - name: nac-authapi-3.2
-    git:
-      branch: feature.network_radius
-    builders:
-      - docker
-    docker_name: cnaas/nac-authapi
-    docker_context_dir: docker/api
-    docker_tags:
-      - "freeradius-3.2"
-
-  - name: nac-radius-3.2
-    git:
-      branch: feature.network_radius
-    builders:
-      - docker
-    docker_name: cnaas/nac-radius
-    docker_context_dir: docker/radius
-    docker_tags:
-      - "freeradius-3.2"
-
-  - name: nac-postgres-3.2
-    git:
-      branch: feature.network_radius
-    builders:
-      - docker
-    docker_name: cnaas/nac-postgres
-    docker_context_dir: docker/postgres
-    docker_tags:
-      - "freeradius-3.2"
+    docker_context_dir: .

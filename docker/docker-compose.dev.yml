@@ -74,16 +74,16 @@ services:
         target: /opt/cnaas/certs/
 
   nac_postgres:
-    build: ./postgres
+    image: postgres:18
     restart: unless-stopped
     volumes:
       - type: volume
         source: nac-postgres-data
-        target: /var/lib/postgresql/data/
+        target: /var/lib/postgresql/18/docker
     environment:
-      - DB_USER=cnaas
-      - DB_PASSWORD=cnaas
-      - DB_DB=nac
+      - POSTGRES_USER=cnaas
+      - POSTGRES_PASSWORD=cnaas
+      - POSTGRES_DB=nac
     ports:
       - 5432:5432
 
