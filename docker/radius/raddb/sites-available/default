@@ -55,12 +55,17 @@ listen {
 
 authorize {
 	if (!&EAP-Message) {
-          rest
+    	rest
 
-	  if (!updated) {
-	      reject
-	  }
-        }
+	  	if (!updated) {
+	    	reject
+	  	}
+    } else {
+		rest
+		if (!updated) {
+			reject
+		}
+	}
 
 	filter_username
 #	filter_password
