@@ -1,6 +1,5 @@
 from typing import Annotated, Literal, Optional
 
-from netutils.mac import is_valid_mac, mac_to_format
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -8,32 +7,18 @@ from pydantic import (
     IPvAnyAddress,
     field_validator,
 )
-
+from pydantic_extra_types.mac_address import MacAddress
 from cnaas_nac.core.settings import settings
+from cnaas_nac.schemas.generic import Username
 
 
 class InternalAuth(BaseModel):
-    username: str
-    password: str
+    username: Username
     nas_identifier: Optional[str] = None
     nas_port_id: Optional[str] = None
-    calling_station_id: Optional[str] = None
-    called_station_id: Optional[str] = None
+    calling_station_id: Optional[MacAddress] = None
+    called_station_id: Optional[MacAddress] = None
     nas_ip_address: Annotated[IPvAnyAddress, Field(examples=["1.1.1.1"])]
-
-    def __init__(self, **data):
-        # Handle password field
-        # Not sending a password field will default password = username
-        if "password" not in data:
-            data["password"] = data.get("username")
-        super().__init__(**data)
-
-    @field_validator("username", mode="after")
-    @classmethod
-    def validate_username(cls, v: str) -> str:
-        if is_valid_mac(v):
-            return mac_to_format(v, "MAC_COLON_TWO")
-        return v
 
     @field_validator("nas_ip_address", mode="after")
     @classmethod

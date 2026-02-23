@@ -9,8 +9,7 @@ from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.models.nas import NasPort
-from cnaas_nac.models.radcheck import RadCheck
-from cnaas_nac.models.radreply import RadReply
+from cnaas_nac.models.user import User
 from cnaas_nac.schemas.auth import AuthCreate, AuthResponse, AuthUpdate
 from cnaas_nac.schemas.generic import Username
 
@@ -27,7 +26,7 @@ async def read_user(
     Retrieve user.
     """
 
-    users = (await db.execute(select(RadCheck))).scalars().all()
+    users = (await db.execute(select(User))).scalars().all()
 
     if not users:
         raise NotFound()
@@ -48,31 +47,15 @@ async def post_user(
     """
 
     existing_user = (
-        await db.execute(
-            select(RadCheck).where(RadCheck.username == input_user.username)
-        )
+        await db.execute(select(User).where(User.username == input_user.username))
     ).scalar_one_or_none()
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    user = RadCheck(**input_user.model_dump())
-
-    tunnel_id = RadReply(
-        username=input_user.username,
-        attribute="Tunnel-Private-Group-Id",
-        op=":=",
-        value=str(input_user.vlan),
-    )
-    tunnel_medium = RadReply(
-        username=input_user.username,
-        attribute="Tunnel-Medium-Type",
-        op=":=",
-        value="IEEE-802",
-    )
+    user = User(**input_user.model_dump())
 
     db.add(user)
-    db.add(tunnel_id)
-    db.add(tunnel_medium)
+
     await db.commit()
     return user
 
@@ -88,7 +71,7 @@ async def read_username(
     """
 
     user = (
-        await db.execute(select(RadCheck).where(RadCheck.username == username))
+        await db.execute(select(User).where(User.username == username))
     ).scalar_one_or_none()
 
     if not user:
@@ -109,7 +92,7 @@ async def put_user(
     """
 
     existing_user = (
-        await db.execute(select(RadCheck).where(RadCheck.username == username))
+        await db.execute(select(User).where(User.username == username))
     ).scalar_one_or_none()
     if not existing_user:
         raise NotFound()
@@ -157,7 +140,7 @@ async def delete_user(
     """
 
     user = (
-        await db.execute(select(RadCheck).where(RadCheck.username == username))
+        await db.execute(select(User).where(User.username == username))
     ).scalar_one_or_none()
 
     if not user:

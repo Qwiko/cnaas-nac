@@ -2,7 +2,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[impo
 from datetime import datetime, timedelta
 from cnaas_nac.core.logging import get_logger
 from sqlalchemy import select, delete, func, and_
-from cnaas_nac.models.radcheck import RadCheck
+from cnaas_nac.models.user import User
 from cnaas_nac.models.radpostauth import RadPostAuth
 from cnaas_nac.core.db import async_session_factory
 
@@ -16,7 +16,7 @@ def setup_scheduled_tasks() -> AsyncIOScheduler:
     logger.info("Setting up tasks")
 
     scheduler.add_job(prune_postauth, "interval", days=1)
-    scheduler.add_job(prune_inactive_radcheck, "interval", days=1)
+    scheduler.add_job(prune_inactive_user, "interval", days=1)
 
     return scheduler
 
@@ -55,9 +55,9 @@ async def prune_postauth():
         logger.info(f"Completed task: prune_postauth. Removed {result.rowcount} lines.")
 
 
-async def prune_inactive_radcheck():
+async def prune_inactive_user():
     async with async_session_factory() as db:
-        logger.info("Starting task: prune_inactive_radcheck")
+        logger.info("Starting task: prune_inactive_user")
 
         cutoff = datetime.now() - timedelta(days=30)
 
@@ -70,11 +70,11 @@ async def prune_inactive_radcheck():
         )
 
         stmt = (
-            select(RadCheck.username)
+            select(User.username)
             .outerjoin(
-                last_activity_subq, RadCheck.username == last_activity_subq.c.username
+                last_activity_subq, User.username == last_activity_subq.c.username
             )
-            .where(last_activity_subq.c.last_seen < cutoff, not RadCheck.enabled)
+            .where(last_activity_subq.c.last_seen < cutoff, not User.enabled)
         )
 
         # Execute and get the list of usernames
@@ -88,10 +88,10 @@ async def prune_inactive_radcheck():
 
         # Get all users without a radpostauth
         log_exists_stmt = (
-            select(1).where(RadPostAuth.username == RadCheck.username).exists()
+            select(1).where(RadPostAuth.username == User.username).exists()
         )
 
-        stmt = select(RadCheck.username).where(~log_exists_stmt, not RadCheck.enabled)
+        stmt = select(User.username).where(~log_exists_stmt, not User.enabled)
 
         # Execute and return list of usernames
         users_with_logs = (await db.execute(stmt)).scalars().all()
@@ -104,4 +104,4 @@ async def prune_inactive_radcheck():
 
         await db.commit()
 
-        logger.info("Completed task: prune_inactive_radcheck.")
+        logger.info("Completed task: prune_inactive_user.")

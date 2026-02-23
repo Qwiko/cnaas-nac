@@ -11,7 +11,7 @@ from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
-from cnaas_nac.models.radcheck import RadCheck
+from cnaas_nac.models.user import User
 
 logger = get_logger()
 
@@ -27,7 +27,7 @@ async def post_auth(
     """
 
     user = (
-        await db.execute(select(RadCheck).where(RadCheck.username == auth.username))
+        await db.execute(select(User).where(User.username == auth.username))
     ).scalar_one_or_none()
 
     # User is not found, creating -> Reject
@@ -146,7 +146,7 @@ async def post_auth(
             logger.info(
                 f"User: {auth.username} connected on expected locked port, accepting."
             )
-            return await accept(db, auth)
+            return await accept(db, auth, user_vlan)
 
         logger.info(
             f"User: {auth.username} is disabled on a locked vlan with changing expected port."
@@ -159,7 +159,7 @@ async def post_auth(
     # Normal non-locked user
     if user.enabled:
         logger.info(f"User: {auth.username} is enabled, accepting.")
-        return await accept(db, auth)
+        return await accept(db, auth, user_vlan)
 
     logger.info(f"User: {auth.username} is found but not enabled, rejecting.")
     await reject(db, auth, "user disabled")

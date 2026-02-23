@@ -7,9 +7,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.models.nas import NasPort
-from cnaas_nac.models.radcheck import RadCheck
+from cnaas_nac.models.user import User
 from cnaas_nac.models.radpostauth import RadPostAuth
-from cnaas_nac.models.radreply import RadReply
 
 pytestmark = pytest.mark.anyio
 
@@ -17,7 +16,7 @@ pytestmark = pytest.mark.anyio
 async def test_v2_user_get_none(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Delete all entries from the db.
 
-    await db.execute(delete(RadCheck))
+    await db.execute(delete(User))
     await db.commit()
 
     response = await ext_client.get(
@@ -29,7 +28,7 @@ async def test_v2_user_get_none(db: AsyncSession, ext_client: AsyncClient) -> No
 
 async def test_v2_user_get(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Create entry in db
-    db.add(RadCheck(username="00:00:00:00:00:00", enabled=True, vlan=14))
+    db.add(User(username="00:00:00:00:00:00", enabled=True, vlan=14))
     await db.commit()
 
     response = await ext_client.get(
@@ -46,7 +45,7 @@ async def test_v2_user_get(db: AsyncSession, ext_client: AsyncClient) -> None:
 
 async def test_v2_user_get_name(db: AsyncSession, ext_client: AsyncClient) -> None:
     # Create entry in db
-    db.add(RadCheck(username="00:00:00:00:00:01", enabled=True, vlan=14))
+    db.add(User(username="00:00:00:00:00:01", enabled=True, vlan=14))
     await db.commit()
 
     response = await ext_client.get(
@@ -82,30 +81,13 @@ async def test_v2_user_post(db: AsyncSession, ext_client: AsyncClient) -> None:
     assert "00:00:0a:11:11:11" == res_json.get("username")
 
     # It exists in db
-    assert (
-        await db.execute(
-            select(RadCheck).where(RadCheck.username == "00:00:0a:11:11:11")
-        )
+    db_user = (
+        await db.execute(select(User).where(User.username == "00:00:0a:11:11:11"))
     ).scalar_one_or_none()
 
-    db_replies = (
-        (
-            await db.execute(
-                select(RadReply).where(RadReply.username == "00:00:0a:11:11:11")
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    # Will create 3 reply objects.
-    assert len(db_replies) == 3
-
-    assert [
-        "Tunnel-Private-Group-Id",
-        "Tunnel-Medium-Type",
-        "Tunnel-Private-Group-Id",
-    ].sort() == [r.attribute for r in db_replies].sort()
+    assert db_user
+    assert db_user.enabled
+    assert db_user.vlan == 14
 
 
 async def test_v2_user_delete_name_not_found(
@@ -121,7 +103,7 @@ async def test_v2_user_delete_name_not_found(
 async def test_v2_user_delete_name(db: AsyncSession, ext_client: AsyncClient) -> None:
     local_username = "a1:3f:00:00:00:11"
     # Create entries in db
-    db.add(RadCheck(username=local_username, enabled=True, vlan=14))
+    db.add(User(username=local_username, enabled=True, vlan=14))
     db.add(
         NasPort(
             username=local_username,
@@ -133,14 +115,7 @@ async def test_v2_user_delete_name(db: AsyncSession, ext_client: AsyncClient) ->
         )
     )
     db.add(RadPostAuth(username=local_username))
-    db.add(
-        RadReply(
-            username=local_username,
-            attribute="Tunnel-Private-Group-Id",
-            op=":=",
-            value="14",
-        )
-    )
+
     await db.commit()
 
     with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
@@ -154,7 +129,7 @@ async def test_v2_user_delete_name(db: AsyncSession, ext_client: AsyncClient) ->
 
     # All relations should be deleted
     assert not (
-        await db.execute(select(RadCheck).where(RadCheck.username == local_username))
+        await db.execute(select(User).where(User.username == local_username))
     ).scalar_one_or_none()
 
     assert not (
@@ -167,16 +142,12 @@ async def test_v2_user_delete_name(db: AsyncSession, ext_client: AsyncClient) ->
         )
     ).scalar_one_or_none()
 
-    assert not (
-        await db.execute(select(RadReply).where(RadReply.username == local_username))
-    ).scalar_one_or_none()
-
 
 async def test_v2_user_post_existing_user(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     # Create entry in db
-    db.add(RadCheck(username="bc:fe:00:00:00:01", enabled=True, vlan=14))
+    db.add(User(username="bc:fe:00:00:00:01", enabled=True, vlan=14))
     await db.commit()
 
     response = await ext_client.post(
@@ -202,7 +173,7 @@ async def test_v2_user_put_name(
     ext_client: AsyncClient,
 ) -> None:
     # Create entry in db
-    db.add(RadCheck(username="00:00:00:00:bc:11", enabled=True, vlan=14))
+    db.add(User(username="00:00:00:00:bc:11", enabled=True, vlan=14))
     await db.commit()
 
     response = await ext_client.put(
@@ -211,9 +182,7 @@ async def test_v2_user_put_name(
 
     assert response.status_code == status.HTTP_200_OK
     db_user = (
-        await db.execute(
-            select(RadCheck).where(RadCheck.username == "00:00:00:00:bc:11")
-        )
+        await db.execute(select(User).where(User.username == "00:00:00:00:bc:11"))
     ).scalar_one_or_none()
 
     assert db_user
@@ -227,7 +196,7 @@ async def test_v2_user_put_name_issue_coa(
 ) -> None:
     """Make sure coa.send_packet runs"""
     # Create entry in db
-    db.add(RadCheck(username="00:00:00:aa:dd:11", enabled=True, vlan=14))
+    db.add(User(username="00:00:00:aa:dd:11", enabled=True, vlan=14))
     db.add(
         NasPort(
             username="00:00:00:aa:dd:11",
@@ -256,7 +225,7 @@ async def test_v2_user_delete_name_issue_coa(
 ) -> None:
     """Make sure coa.send_packet runs"""
     # Create entry in db
-    db.add(RadCheck(username="00:00:ee:aa:dd:11", enabled=True, vlan=14))
+    db.add(User(username="00:00:ee:aa:dd:11", enabled=True, vlan=14))
     db.add(
         NasPort(
             username="00:00:ee:aa:dd:11",

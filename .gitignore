@@ -103,5 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# containerlab
+# test-files
 test/clab-cnaas-nac-e2e
+test/client-cert/ca.pem
+test/client-cert/client*

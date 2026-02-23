@@ -8,8 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cnaas_nac.core.settings import settings
 
 from cnaas_nac.models.nas import NasPort
-from cnaas_nac.models.radcheck import RadCheck
-from cnaas_nac.models.radreply import RadReply
+from cnaas_nac.models.user import User
 from cnaas_nac.models.oui import DeviceOui
 from cnaas_nac.api_internal.schemas import InternalAuth
 
@@ -39,9 +38,9 @@ async def test_auth_authorized(db: AsyncSession, int_client: AsyncClient) -> Non
             "username": "cb:a9:87:65:43:21",
             "nas_identifier": "eos-a1",
             "nas_port_id": "Ethernet2",
-            "calling_station_id": "00:00:00:00:00:01",
-            "called_station_id": "00:00:00:00:00:01",
-            "nas_ip_address": "10.0.0.2",
+            "calling_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
         }
     )
 
@@ -52,19 +51,11 @@ async def test_auth_authorized(db: AsyncSession, int_client: AsyncClient) -> Non
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    # Enable user
+    # Enable user & set user vlan
     await db.execute(
-        update(RadCheck).where(RadCheck.username == auth.username).values(enabled=True)
-    )
-
-    # Set user vlan
-    await db.execute(
-        update(RadReply)
-        .where(
-            RadReply.username == auth.username,
-            RadReply.attribute == "Tunnel-Private-Group-Id",
-        )
-        .values(value="3013")
+        update(User)
+        .where(User.username == auth.username)
+        .values(enabled=True, vlan=3013)
     )
 
     await db.commit()
@@ -89,9 +80,9 @@ async def test_auth_port_lock_wrong_port(
             "username": "aa:bb:cc:dd:ee:ff",
             "nas_identifier": "eos-a1",
             "nas_port_id": "Ethernet1",
-            "calling_station_id": "00:00:00:00:00:01",
-            "called_station_id": "00:00:00:00:00:01",
-            "nas_ip_address": "10.0.0.2",
+            "calling_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
         }
     )
 
@@ -102,19 +93,11 @@ async def test_auth_port_lock_wrong_port(
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    # Enable user
+    # Enable user & set user vlan
     await db.execute(
-        update(RadCheck).where(RadCheck.username == auth.username).values(enabled=True)
-    )
-
-    # Set user vlan
-    await db.execute(
-        update(RadReply)
-        .where(
-            RadReply.username == auth.username,
-            RadReply.attribute == "Tunnel-Private-Group-Id",
-        )
-        .values(value="3131")
+        update(User)
+        .where(User.username == auth.username)
+        .values(enabled=True, vlan=3131)
     )
 
     await db.commit()
@@ -149,9 +132,9 @@ async def test_auth_port_update(
             "username": "aa:bb:cc:dd:ee:ff",
             "nas_identifier": "",
             "nas_port_id": "Ethernet1",
-            "calling_station_id": "00:00:00:00:00:01",
-            "called_station_id": "00:00:00:00:00:01",
-            "nas_ip_address": "10.0.0.2",
+            "calling_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
         }
     )
 
@@ -162,19 +145,11 @@ async def test_auth_port_update(
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    # Enable user
+    # Enable user & set user vlan
     await db.execute(
-        update(RadCheck).where(RadCheck.username == auth.username).values(enabled=True)
-    )
-
-    # Set user vlan
-    await db.execute(
-        update(RadReply)
-        .where(
-            RadReply.username == auth.username,
-            RadReply.attribute == "Tunnel-Private-Group-Id",
-        )
-        .values(value="3131")
+        update(User)
+        .where(User.username == auth.username)
+        .values(enabled=True, vlan=3131)
     )
 
     # Update updated_at to something in the past.
@@ -239,9 +214,9 @@ async def test_auth_oui(
             "username": "aa:bb:cc:dd:ee:ff",
             "nas_identifier": "a1",
             "nas_port_id": "Ethernet1",
-            "calling_station_id": "00:00:00:00:00:01",
-            "called_station_id": "00:00:00:00:00:01",
-            "nas_ip_address": "10.0.0.2",
+            "calling_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
         }
     )
 
@@ -269,16 +244,16 @@ async def test_auth_access_time(
             "username": "aa:bb:cc:dd:ee:ff",
             "nas_identifier": "a1",
             "nas_port_id": "Ethernet1",
-            "calling_station_id": "00:00:00:00:00:01",
-            "called_station_id": "00:00:00:00:00:01",
-            "nas_ip_address": "10.0.0.2",
+            "calling_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
+            "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
         }
     )
 
     # Set access_start and access_stop to valid times.
     await db.execute(
-        update(RadCheck)
-        .where(RadCheck.username == auth.username)
+        update(User)
+        .where(User.username == auth.username)
         .values(
             access_start=datetime.datetime.now() - datetime.timedelta(hours=1),
             access_stop=datetime.datetime.now() + datetime.timedelta(hours=1),
@@ -294,8 +269,8 @@ async def test_auth_access_time(
 
     # Update access_start to the future.
     await db.execute(
-        update(RadCheck)
-        .where(RadCheck.username == auth.username)
+        update(User)
+        .where(User.username == auth.username)
         .values(
             access_start=datetime.datetime.now() + datetime.timedelta(hours=1),
             access_stop=None,
@@ -311,8 +286,8 @@ async def test_auth_access_time(
 
     # Update access_stop to have already passed.
     await db.execute(
-        update(RadCheck)
-        .where(RadCheck.username == auth.username)
+        update(User)
+        .where(User.username == auth.username)
         .values(
             access_start=None,
             access_stop=datetime.datetime.now() - datetime.timedelta(hours=1),

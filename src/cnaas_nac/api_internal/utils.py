@@ -7,25 +7,19 @@ from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.oui import DeviceOui
-from cnaas_nac.models.radcheck import RadCheck
-from cnaas_nac.models.radreply import RadReply
+from cnaas_nac.models.user import User
 from cnaas_nac.api_internal.schemas import InternalAuth
 
 logger = get_logger()
 
 
-async def accept(db: AsyncSession, auth: InternalAuth) -> dict:
+async def accept(db: AsyncSession, auth: InternalAuth, vlan: int) -> dict:
     """Helper function to return a Access-Accept"""
-    replies_ret = await db.execute(
-        select(RadReply).where(RadReply.username == auth.username)
-    )
-    replies = replies_ret.scalars().all()
-
-    # for reply in replies:
-    #     logger.debug("reply:", reply)
 
     reply = {
-        reply.attribute: {"op": reply.op, "value": reply.value} for reply in replies
+        "Tunnel-Private-Group-Id": {"op": ":=", "value": str(vlan)},
+        "Tunnel-Type": {"op": ":=", "value": "VLAN"},
+        "Tunnel-Medium-Type": {"op": ":=", "value": "IEEE-802"},
     }
 
     return reply
@@ -55,7 +49,7 @@ async def reject(db: AsyncSession, auth: InternalAuth, reason: str) -> None:
     raise Unauthorized(reason)
 
 
-async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
+async def create_new_user(db: AsyncSession, auth: InternalAuth) -> User:
     vlan = None
     enabled = False
 
@@ -74,24 +68,10 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
         vlan = settings.RADIUS.DEFAULT_VLAN
 
     try:
-        user = RadCheck(
+        user = User(
             username=auth.username,
             enabled=enabled,
-        )
-        tunnel_id = RadReply(
-            username=auth.username,
-            attribute="Tunnel-Private-Group-Id",
-            op=":=",
-            value=str(vlan),
-        )
-        tunnel_type = RadReply(
-            username=auth.username, attribute="Tunnel-Type", op=":=", value="VLAN"
-        )
-        tunnel_medium = RadReply(
-            username=auth.username,
-            attribute="Tunnel-Medium-Type",
-            op=":=",
-            value="IEEE-802",
+            vlan=vlan,
         )
         nas_port = NasPort(
             username=auth.username,
@@ -103,14 +83,9 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> RadCheck:
         )
 
         db.add(user)
-        db.add(tunnel_id)
-        db.add(tunnel_type)
-        db.add(tunnel_medium)
         db.add(nas_port)
-        # db.add(userinfo)
         await db.commit()
-        # Update relationships
-        await db.refresh(user)
+
         return user
     except Exception as e:
         error_msg = str(e)
