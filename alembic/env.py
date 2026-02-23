@@ -27,13 +27,9 @@ if config.config_file_name is not None:
 from cnaas_nac.models.nas import *  # noqa: E402, F403
 from cnaas_nac.models.oui import *  # noqa: E402, F403
 from cnaas_nac.models.radacct import *  # noqa: E402, F403
-from cnaas_nac.models.radcheck import *  # noqa: E402, F403
-from cnaas_nac.models.radgroupcheck import *  # noqa: E402, F403
-from cnaas_nac.models.radgroupreply import *  # noqa: E402, F403
+from cnaas_nac.models.user import *  # noqa: E402, F403
 from cnaas_nac.models.radpostauth import *  # noqa: E402, F403
-from cnaas_nac.models.radreply import *  # noqa: E402, F403
-from cnaas_nac.models.radusergroup import *  # noqa: E402, F403
-# from cnaas_nac.models.raduserlog import *  # noqa: E402, F403
+from cnaas_nac.models.rbac import *  # noqa: E402, F403
 
 target_metadata = Base.metadata
 
