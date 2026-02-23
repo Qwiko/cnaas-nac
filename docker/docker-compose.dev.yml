@@ -64,8 +64,8 @@ services:
         # restart: true
     volumes:
       - type: volume
-        source: nac-freeradius-data
-        target: /etc/Freeradius/3.0/
+        source: nac-freeradius-certs
+        target: /etc/raddb/certs/
       - type: volume
         source: nac-var-data
         target: /var/
@@ -90,7 +90,7 @@ services:
 volumes:
   nac-postgres-data:
     external: false
-  nac-freeradius-data:
+  nac-freeradius-certs:
     external: false
   nac-var-data:
     external: false
