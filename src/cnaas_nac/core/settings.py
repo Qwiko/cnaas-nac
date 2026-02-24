@@ -2,7 +2,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import computed_field, BaseModel
+from pydantic import Field, computed_field, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,8 +34,8 @@ class RadiusSettings(BaseModel):
 
 
 class OIDCSettings(BaseModel):
-    CLIENT_ID: str = "cnaas-nac"
-    CLIENT_SECRET: str = ""
+    CLIENT_ID: str = Field(default="cnaas-nac", validation_alias="OIDC_CLIENT_ID")
+    CLIENT_SECRET: str = Field(default="", validation_alias="CLIENT_SECRET")
     DISCOVERY_URL: str = ""
     USERNAME_ATTRIBUTE: str = "preferred_username"
 
@@ -48,7 +48,7 @@ class EnvironmentOption(Enum):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_nested_delimiter="_", nested_model_default_partial_update=True
+        env_nested_delimiter="__", nested_model_default_partial_update=True
     )
 
     DB: DBSettings = DBSettings()

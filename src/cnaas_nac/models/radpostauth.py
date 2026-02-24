@@ -30,3 +30,5 @@ class RadPostAuth(Base):
 
     # Custom nac fields
     reply_message: Mapped[Optional[str]] = mapped_column(Text)
+    nasidentifier: Mapped[str] = mapped_column(Text, nullable=True)
+    nasportid: Mapped[Optional[str]] = mapped_column(Text)

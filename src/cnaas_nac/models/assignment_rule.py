@@ -46,6 +46,7 @@ class AssignmentRule(Base, TimestampsMixin):
     conditions: Mapped[List["RuleCondition"]] = relationship(
         "RuleCondition",
         back_populates="rule",
+        lazy="selectin",
         cascade="all, delete-orphan",  # Deleting a rule deletes its conditions
     )
 

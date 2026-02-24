@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from pydantic import AwareDatetime
 from cnaas_nac.core.settings import settings
 from cnaas_nac.schemas.generic import Username, VlanID
-
+from cnaas_nac.schemas.generic import TimestampSchema
 
 class AuthBase(BaseModel):
     enabled: bool = False
@@ -22,6 +22,6 @@ class AuthUpdate(AuthBase):
     pass
 
 
-class AuthResponse(AuthBase):
+class AuthResponse(AuthBase, TimestampSchema):
     id: int
     username: Username

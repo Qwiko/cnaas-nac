@@ -29,6 +29,9 @@ eap {
 		certificate_file = ${certdir}/server.pem
 		ca_file = ${cadir}/ca.pem
 		ca_path = ${cadir}
+
+		check_cert_cn = %{User-Name}
+
 		cipher_list = "DEFAULT"
 		cipher_server_preference = no
 #		disable_tlsv1_2 = yes

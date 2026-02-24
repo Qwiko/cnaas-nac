@@ -1,17 +1,20 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
-from sqlalchemy import select
+from fastapi_filter import FilterDepends
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.coa import CoA
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
+from cnaas_nac.core.pagination import PaginationParams
+from cnaas_nac.filters.user import UserFilter
 from cnaas_nac.models.nas import NasPort
 from cnaas_nac.models.user import User
-from cnaas_nac.schemas.auth import AuthCreate, AuthResponse, AuthUpdate
 from cnaas_nac.schemas.generic import Username
+from cnaas_nac.schemas.user import AuthCreate, AuthResponse, AuthUpdate
 
 logger = get_logger()
 
@@ -20,20 +23,28 @@ router = APIRouter(prefix="/user", tags=["user"])
 
 @router.get("", response_model=list[AuthResponse])
 async def read_user(
-    db: Annotated[AsyncSession, Depends(get_async_session)], response: Response
+    user_filter: Annotated[UserFilter, FilterDepends(UserFilter)],
+    pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    response: Response,
 ) -> Any:
     """
-    Retrieve user.
+    Get users.
     """
 
-    users = (await db.execute(select(User))).scalars().all()
+    query = select(User)
+    query = user_filter.filter(query)
+    query = user_filter.sort(query)
+    query = query.offset(pagination_params.offset).limit(pagination_params.size)
 
-    if not users:
-        raise NotFound()
+    count_query = select(func.count()).select_from(User)
+    count_query = user_filter.filter(count_query)
 
-    response.headers["X-Total-Count"] = str(len(users))
+    response.headers["X-Total-Count"] = str(
+        (await db.execute(count_query)).scalar_one()
+    )
 
-    return users
+    return (await db.execute(query)).scalars().all()
 
 
 @router.post("", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)

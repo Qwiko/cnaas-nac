@@ -23,12 +23,12 @@ topology:
       exec:
         - apk add wpa_supplicant
         - ip address add 192.168.1.2/24 dev eth1
-    # alpine-c2:
-    #   kind: linux
-    #   image: alpine:latest
-    #   exec:
-    #     - apk add wpa_supplicant
-    #     - ip address add 192.168.1.3/24 dev eth1
+    alpine-c2:
+      kind: linux
+      image: alpine:latest
+      exec:
+        - apk add wpa_supplicant
+        - ip address add 192.168.1.3/24 dev eth1
     # alpine-c3:
     #   kind: linux
     #   image: alpine:latest
@@ -50,7 +50,7 @@ topology:
 
   links:
     - endpoints: ["eos-a1:eth1", "alpine-c1:eth1"]
-    # - endpoints: ["eos-a1:eth2", "alpine-c2:eth1"]
+    - endpoints: ["eos-a1:eth2", "alpine-c2:eth1"]
     # - endpoints: ["eos-a1:eth3", "alpine-c3:eth1"]
     # - endpoints: ["eos-a1:eth4", "alpine-c4:eth1"]
     # - endpoints: ["eos-a1:eth5", "alpine-c5:eth1"]

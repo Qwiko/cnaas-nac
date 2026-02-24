@@ -10,10 +10,11 @@ pydantic==2.12.5
 pyrad==2.5.4
 sqlalchemy
 itsdangerous==2.2.0
-types-setuptools==82.0.0.20260210
+fastapi_filter==2.0.1
 
 # Dev
 httpx==0.28.1
 pytest==9.0.2
 pytest-cov==7.0.0
 mypy==1.19.1
+types-setuptools==82.0.0.20260210

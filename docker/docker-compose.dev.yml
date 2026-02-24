@@ -20,7 +20,8 @@ services:
       - DB_PASSWORD=cnaas
     command: ["external"]
     depends_on:
-      - nac_postgres
+      nac_postgres:
+        condition: service_healthy
 
   nac_api_internal:
     build:
@@ -46,7 +47,11 @@ services:
       # - DB_NAME=nac
     command: ["internal"]
     depends_on:
-      - nac_postgres
+      nac_postgres:
+        condition: service_healthy
+    # dns:
+    #   - 192.168.0.1
+    # dns_search: example.com
 
   nac_radius:
     build:
@@ -72,10 +77,18 @@ services:
       - type: volume
         source: nac-api-certs
         target: /opt/cnaas/certs/
+    # dns:
+    #   - 192.168.0.1
+    # dns_search: example.com
 
   nac_postgres:
     image: postgres:18
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - type: volume
         source: nac-postgres-data

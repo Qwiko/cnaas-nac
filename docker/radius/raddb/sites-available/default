@@ -54,18 +54,18 @@ listen {
 }
 
 authorize {
+	# If not EAP it is a MBA/MAB request that is handled by the REST API
 	if (!&EAP-Message) {
     	rest
 
-	  	if (!updated) {
-	    	reject
-	  	}
-    } else {
-		rest
-		if (!updated) {
+	  	if (updated) {
+			update control {
+                &Auth-Type := Accept
+            }
+		} else {
 			reject
-		}
-	}
+	  	}
+    }
 
 	filter_username
 #	filter_password
@@ -182,7 +182,7 @@ authorize {
 	#  is meant to mirror the "users" file.
 	#
 	#  See "Authorization Queries" in mods-available/sql
-	-sql
+	#-sql
 
 	#
 	#  If you are using /etc/smbpasswd, and are also doing
@@ -192,7 +192,7 @@ authorize {
 
 	#
 	#  The ldap module reads passwords from the LDAP database.
-	-ldap
+	#-ldap
 
 	#
 	#  Enforce daily limits on time spent logged in.
@@ -490,6 +490,17 @@ post-auth {
 		&reply: += &session-state:
 	}
 
+
+	if ((&EAP-Type == TLS) && (&TLS-Client-Cert-Common-Name)) {
+		# Assign the user to the correct vlan using our rest-api
+        rest
+
+
+        if (fail || notfound || !updated) {
+            reject
+        }
+    }
+
 	#  Get an address from the IP Pool.
 #	main_pool
 
@@ -606,6 +617,24 @@ post-auth {
 	#  The "session-state" attributes are not available here.
 	#
 	Post-Auth-Type REJECT {
+		if (&EAP-Type == TLS) {
+			update request {
+				&Tmp-String-0 := ""
+			}
+
+			# Loop through the array and build the newline-separated string
+			foreach &Module-Failure-Message {
+				if ("%{Tmp-String-0}" == "") {
+					update request {
+						&Tmp-String-0 := "%{Foreach-Variable-0}"
+					}
+				} else {
+					update request {
+						&Tmp-String-0 := "%{Tmp-String-0}\n%{Foreach-Variable-0}"
+					}
+				}
+			}
+		}
 		# log failed authentications in SQL, too.
 		-sql
 		attr_filter.access_reject

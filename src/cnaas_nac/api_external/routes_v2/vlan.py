@@ -9,13 +9,16 @@ from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.models.user import User
 from cnaas_nac.schemas.generic import VlanID, Username
+from cnaas_nac.core.security import get_current_user
 
 router = APIRouter(prefix="/vlan", tags=["vlan"])
 
 
 @router.get("", response_model=list[VlanID])
 async def get_vlans(
-    db: Annotated[AsyncSession, Depends(get_async_session)], response: Response
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    response: Response,
+    current_user=Depends(get_current_user),
 ) -> Any:
     """
     Get vlans.

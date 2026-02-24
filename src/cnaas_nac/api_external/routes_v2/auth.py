@@ -1,10 +1,10 @@
 import requests
 from authlib.integrations.starlette_client import OAuthError
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from starlette.responses import RedirectResponse
-
-from cnaas_nac.core.security import oauth_client
-from cnaas_nac.core.settings import settings
+from urllib.parse import urlencode
+from cnaas_nac.core.security import get_current_user, oauth_client
+from cnaas_nac.core.settings import settings, EnvironmentOption
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,43 +32,43 @@ async def callback(request: Request):
     access_token = token.get("access_token")
     refresh_token = token.get("refresh_token")
 
-    # Prepare the redirect
-    response = RedirectResponse(url=settings.FRONTEND_CALLBACK_URL)
+    params = {"access_token": access_token}
 
-    if access_token:
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=True if settings.ENVIRONMENT != "local" else False,
-            samesite="lax",
-            max_age=token.get("expires_in", 3600),
-        )
+    query_string = urlencode(params)
+
+    response = RedirectResponse(url=settings.FRONTEND_CALLBACK_URL + "?" + query_string)
 
     if refresh_token:
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=True if settings.ENVIRONMENT != "local" else False,
+            secure=True
+            if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION
+            else False,
             samesite="lax",
-            path="/api/v1.0/auth/refresh",
+            path="/api/v2/auth/refresh",
             max_age=60 * 60 * 24 * 14,
         )
 
     return response
 
 
-@router.get("/refresh")
+@router.post("/refresh")
 async def refresh(request: Request, response: Response):
     """Refresh access token using refresh token"""
     await oauth_client.load_server_metadata()
+
+    refresh_token = request.cookies.get("refresh_token")
+
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Missing refresh token")
 
     ret = requests.post(
         oauth_client.server_metadata["token_endpoint"],
         data={
             "grant_type": "refresh_token",
-            "refresh_token": request.cookies.get("refresh_token"),
+            "refresh_token": refresh_token,
             "client_id": oauth_client.client_id,
             "client_secret": oauth_client.client_secret,
         },
@@ -78,42 +78,49 @@ async def refresh(request: Request, response: Response):
     access_token = refresh_data.get("access_token")
     refresh_token = refresh_data.get("refresh_token")
 
-    if access_token:
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=True if settings.ENVIRONMENT != "local" else False,
-            samesite="lax",
-            max_age=refresh_data.get("expires_in", 3600),
-        )
+    print(refresh_data)
 
-    if refresh_token:
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            secure=True if settings.ENVIRONMENT != "local" else False,
-            samesite="lax",
-            path="/api/v1.0/auth/refresh",
-            max_age=60 * 60 * 24 * 14,
-        )
+    if not access_token or not refresh_token:
+        raise HTTPException(status_code=401, detail="Missing access token")
 
-    return {"message": "token updated"}
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=(
+            True if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION else False
+        ),
+        samesite="lax",
+        path="/api/v2/auth/refresh",
+        max_age=60 * 60 * 24 * 14,
+    )
+
+    return {"access_token": access_token}
 
 
-# @router.get('/logout')
-# async def logout(request: Request):
-#     # Retrieve the ID token you stored during login
-#     id_token = request.session.pop('id_token', None)
-#     redirect_uri = request.url_for('logged_out')
-#     return await oauth_client.logout_redirect(
-#         request,
-#         post_logout_redirect_uri=str(redirect_uri),
-#         id_token_hint=id_token,
-#     )
+@router.post("/logout")
+async def logout(request: Request, response: Response):
+    # Retrieve the ID token you stored during login
 
-# @router.get('/logged-out')
-# async def logged_out(request: Request):
-#     state_data = await oauth_client.validate_logout_response(request)
-#     return PlainTextResponse('You have been logged out.')
+    # TODO
+    # Remove internal session
+    # Logout session in oidc?
+
+    response.set_cookie(
+        key="refresh_token",
+        value="",
+        httponly=True,
+        secure=True if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION else False,
+        samesite="lax",
+        path="/api/v1.0/auth/refresh",
+        max_age=0,
+    )
+
+    return
+
+
+@router.get("/me")
+async def me(current_user=Depends(get_current_user)):
+    """Get current user information"""
+
+    return {"name": current_user.get(settings.OIDC.USERNAME_ATTRIBUTE)}
