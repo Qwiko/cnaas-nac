@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, foreign
 
-from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.models.radpostauth import RadPostAuth
 

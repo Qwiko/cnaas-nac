@@ -11,17 +11,17 @@ from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.pagination import PaginationParams
 from cnaas_nac.filters.user import UserFilter
-from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.user import User
 from cnaas_nac.schemas.generic import Username
-from cnaas_nac.schemas.user import AuthCreate, AuthResponse, AuthUpdate
+from cnaas_nac.schemas.user import UserCreate, UserResponse, UserUpdate
 
 logger = get_logger()
 
 router = APIRouter(prefix="/user", tags=["user"])
 
 
-@router.get("", response_model=list[AuthResponse])
+@router.get("", response_model=list[UserResponse])
 async def read_user(
     user_filter: Annotated[UserFilter, FilterDepends(UserFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
@@ -47,9 +47,9 @@ async def read_user(
     return (await db.execute(query)).scalars().all()
 
 
-@router.post("", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def post_user(
-    input_user: AuthCreate,
+    input_user: UserCreate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     response: Response,
 ) -> Any:
@@ -71,7 +71,7 @@ async def post_user(
     return user
 
 
-@router.get("/{username}", response_model=AuthResponse)
+@router.get("/{username}", response_model=UserResponse)
 async def read_username(
     username: Username,
     db: Annotated[AsyncSession, Depends(get_async_session)],
@@ -91,10 +91,10 @@ async def read_username(
     return user
 
 
-@router.put("/{username}", response_model=AuthResponse)
+@router.put("/{username}", response_model=UserResponse)
 async def put_user(
     username: Username,
-    input_user: AuthUpdate,
+    input_user: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     background_tasks: BackgroundTasks,
 ) -> Any:

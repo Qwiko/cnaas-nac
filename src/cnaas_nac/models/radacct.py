@@ -19,49 +19,49 @@ from .base import Base
 class RadAcct(Base):
     __tablename__ = "radacct"
     __table_args__ = (
-        PrimaryKeyConstraint("radacctid", name="radacct_pkey"),
-        UniqueConstraint("acctuniqueid", name="radacct_acctuniqueid_key"),
-        Index("radacct_active_session_idx", "acctuniqueid"),
-        Index("radacct_bulk_close", "nasipaddress", "acctstarttime"),
+        PrimaryKeyConstraint("id", name="radacct_pkey"),
+        UniqueConstraint("acct_unique_id", name="radacct_acct_unique_id_key"),
+        Index("radacct_active_session_idx", "acct_unique_id"),
+        Index("radacct_bulk_close", "nas_ip_address", "acct_start_time"),
         Index(
             "radacct_bulk_timeout",
-            Column("acctstoptime").nullsfirst(),
-            "acctupdatetime",
+            Column("acct_stop_time").nullsfirst(),
+            "acct_update_time",
         ),
-        Index("radacct_start_user_idx", "acctstarttime", "username"),
+        Index("radacct_start_user_idx", "acct_start_time", "username"),
     )
 
-    radacctid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    acctsessionid: Mapped[str] = mapped_column(Text, nullable=False)
-    acctuniqueid: Mapped[str] = mapped_column(Text, nullable=False)
-    nasipaddress: Mapped[Any] = mapped_column(INET, nullable=False)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    acct_session_id: Mapped[str] = mapped_column(Text, nullable=False)
+    acct_unique_id: Mapped[str] = mapped_column(Text, nullable=False)
+    nas_ip_address: Mapped[Any] = mapped_column(INET, nullable=False)
 
     # cnaas-nac specific
-    nasidentifier: Mapped[str] = mapped_column(Text, nullable=True)
+    nas_identifier: Mapped[str] = mapped_column(Text, nullable=True)
 
     username: Mapped[Optional[str]] = mapped_column(Text)
-    groupname: Mapped[Optional[str]] = mapped_column(Text)
+    group_name: Mapped[Optional[str]] = mapped_column(Text)
     realm: Mapped[Optional[str]] = mapped_column(Text)
-    nasportid: Mapped[Optional[str]] = mapped_column(Text)
-    nasporttype: Mapped[Optional[str]] = mapped_column(Text)
-    acctstarttime: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
-    acctupdatetime: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
-    acctstoptime: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
-    acctinterval: Mapped[Optional[int]] = mapped_column(BigInteger)
-    acctsessiontime: Mapped[Optional[int]] = mapped_column(BigInteger)
-    acctauthentic: Mapped[Optional[str]] = mapped_column(Text)
+    nas_port_id: Mapped[Optional[str]] = mapped_column(Text)
+    nas_port_type: Mapped[Optional[str]] = mapped_column(Text)
+    acct_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    acct_update_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    acct_stop_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    acct_interval: Mapped[Optional[int]] = mapped_column(BigInteger)
+    acct_session_time: Mapped[Optional[int]] = mapped_column(BigInteger)
+    acct_authentic: Mapped[Optional[str]] = mapped_column(Text)
     connectinfo_start: Mapped[Optional[str]] = mapped_column(Text)
     connectinfo_stop: Mapped[Optional[str]] = mapped_column(Text)
-    acctinputoctets: Mapped[Optional[int]] = mapped_column(BigInteger)
-    acctoutputoctets: Mapped[Optional[int]] = mapped_column(BigInteger)
-    calledstationid: Mapped[Optional[str]] = mapped_column(Text)
-    callingstationid: Mapped[Optional[str]] = mapped_column(Text)
-    acctterminatecause: Mapped[Optional[str]] = mapped_column(Text)
-    servicetype: Mapped[Optional[str]] = mapped_column(Text)
-    framedprotocol: Mapped[Optional[str]] = mapped_column(Text)
-    framedipaddress: Mapped[Optional[Any]] = mapped_column(INET)
-    framedipv6address: Mapped[Optional[Any]] = mapped_column(INET)
-    framedipv6prefix: Mapped[Optional[Any]] = mapped_column(INET)
-    framedinterfaceid: Mapped[Optional[str]] = mapped_column(Text)
-    delegatedipv6prefix: Mapped[Optional[Any]] = mapped_column(INET)
+    acct_input_octets: Mapped[Optional[int]] = mapped_column(BigInteger)
+    acct_output_octets: Mapped[Optional[int]] = mapped_column(BigInteger)
+    called_station_id: Mapped[Optional[str]] = mapped_column(Text)
+    calling_station_id: Mapped[Optional[str]] = mapped_column(Text)
+    acct_terminate_cause: Mapped[Optional[str]] = mapped_column(Text)
+    service_type: Mapped[Optional[str]] = mapped_column(Text)
+    framed_protocol: Mapped[Optional[str]] = mapped_column(Text)
+    framed_ip_address: Mapped[Optional[Any]] = mapped_column(INET)
+    framed_ipv6_address: Mapped[Optional[Any]] = mapped_column(INET)
+    framed_ipv6_prefix: Mapped[Optional[Any]] = mapped_column(INET)
+    framed_interface_id: Mapped[Optional[str]] = mapped_column(Text)
+    delegated_ipv6_prefix: Mapped[Optional[Any]] = mapped_column(INET)
     class_: Mapped[Optional[str]] = mapped_column("class", Text)

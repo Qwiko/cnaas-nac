@@ -11,7 +11,7 @@ from cnaas_nac.api_internal.utils import accept, create_new_user, reject
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
-from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.user import User
 from cnaas_nac.models.assignment_rule import AssignmentRule
 from cnaas_nac.core.rule_engine import evaluate_rule

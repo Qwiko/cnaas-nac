@@ -57,7 +57,7 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = "replace_this_with_a_secure_random_string"
 
-    FRONTEND_CALLBACK_URL: str = "/"
+    FRONTEND_CALLBACK_URL: str = "/#/auth-callback"
 
     ENVIRONMENT: EnvironmentOption = EnvironmentOption.LOCAL
 

@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 
-from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.nas_port import NasPort
 
 
 class NasPortFilter(Filter):

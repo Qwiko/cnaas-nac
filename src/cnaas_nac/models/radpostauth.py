@@ -19,16 +19,16 @@ class RadPostAuth(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     username: Mapped[str] = mapped_column(Text, nullable=False)
-    authdate: Mapped[datetime.datetime] = mapped_column(
+    auth_date: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")
     )
     pass_: Mapped[Optional[str]] = mapped_column("pass", Text)
     reply: Mapped[Optional[str]] = mapped_column(Text)
-    calledstationid: Mapped[Optional[str]] = mapped_column(Text)
-    callingstationid: Mapped[Optional[str]] = mapped_column(Text)
-    class_: Mapped[Optional[str]] = mapped_column("class", Text)
-
+    called_station_id: Mapped[Optional[str]] = mapped_column(Text)
+    calling_station_id: Mapped[Optional[str]] = mapped_column(Text)
     # Custom nac fields
     reply_message: Mapped[Optional[str]] = mapped_column(Text)
-    nasidentifier: Mapped[str] = mapped_column(Text, nullable=True)
-    nasportid: Mapped[Optional[str]] = mapped_column(Text)
+    nas_identifier: Mapped[str] = mapped_column(Text, nullable=True)
+    nas_port_id: Mapped[Optional[str]] = mapped_column(Text)
+
+    class_: Mapped[Optional[str]] = mapped_column("class", Text)

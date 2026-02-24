@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.user import User
 from cnaas_nac.models.radpostauth import RadPostAuth
 

@@ -4,7 +4,7 @@ from pyrad.packet import Packet, CoAACK, CoANAK  # type: ignore[import-untyped]
 
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
-from cnaas_nac.models.nas import NasPort
+from cnaas_nac.models.nas_port import NasPort
 
 logger = get_logger()
 

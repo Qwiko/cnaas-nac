@@ -13,7 +13,7 @@ class AccountingLogFilter(Filter):
     username__like: Optional[str] = None
     username__neq: Optional[str] = None
 
-    order_by: list[str] = ["acctstarttime"]
+    order_by: list[str] = ["acct_start_time"]
 
     q: Optional[str] = None
 
@@ -30,7 +30,7 @@ class RadPostLogFilter(Filter):
     username__like: Optional[str] = None
     username__neq: Optional[str] = None
 
-    order_by: list[str] = ["authdate"]
+    order_by: list[str] = ["auth_date"]
 
     q: Optional[str] = None
 
