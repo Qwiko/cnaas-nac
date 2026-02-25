@@ -340,6 +340,11 @@ preacct {
 	#
 #	acct_counters64
 
+	# Rewrite mac format
+	rewrite_mab_username
+	rewrite_called_station_id
+	rewrite_calling_station_id
+
 	#
 	#  Session start times are *implied* in RADIUS.
 	#  The NAS never sends a "start time".  Instead, it sends
@@ -476,7 +481,10 @@ post-auth {
 #			State := "0x%{randstr:16h}"
 #		}
 #	}
-
+	# Rewrite mac format
+	rewrite_mab_username
+	rewrite_called_station_id
+	rewrite_calling_station_id
 	#
 	#  For EAP-TTLS and PEAP, add the cached attributes to the reply.
 	#  The "session-state" attributes are automatically cached when

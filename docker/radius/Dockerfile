@@ -9,6 +9,8 @@ COPY docker/radius/raddb/sites-available/* /etc/raddb/sites-available/
 COPY docker/radius/raddb/mods-config/files/authorize /etc/raddb/mods-config/files/authorize
 COPY docker/radius/raddb/mods-config/sql/main/postgresql/queries.conf /etc/raddb/mods-config/sql/main/postgresql/queries.conf
 
+COPY docker/radius/raddb/policy.d/canonicalization /etc/raddb/policy.d/canonicalization
+
 COPY docker/radius/raddb/clients.conf /etc/raddb/clients.conf
 
 # Enable mods
