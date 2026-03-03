@@ -1,18 +1,22 @@
-from fastapi import FastAPI
+from typing import Annotated
 
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.exceptions import RequestValidationError
-from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import InterfaceError
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from cnaas_nac.api_external.routes_v2 import api_v2_router
-
-from cnaas_nac.core.settings import settings
+from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import (
-    validation_exception_handler,
     NotFound,
     notfound_exception_handler,
+    validation_exception_handler,
 )
-from cnaas_nac.schemas.generic import ValidationErrorResponse, ErrorResponse
+from cnaas_nac.core.settings import settings
+from cnaas_nac.schemas.generic import ErrorResponse, ValidationErrorResponse
 
 app = FastAPI(
     title="CNaaS NAC",
@@ -48,9 +52,14 @@ app.add_middleware(
 )
 
 
-@app.get("/health", status_code=200)
-async def health_check():
-    return {"status": "up"}
+@app.get("/api/v2/health")
+async def health_check(db: Annotated[AsyncSession, Depends(get_async_session)]):
+    try:
+        await db.execute(text("SELECT 1"))
+
+        return {"db": "up"}
+    except (ConnectionRefusedError, InterfaceError) as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 app.include_router(api_v2_router)

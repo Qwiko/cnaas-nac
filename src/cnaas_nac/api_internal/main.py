@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
+from typing import Annotated
+
+from alembic.config import Config
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy import text
+from sqlalchemy.exc import InterfaceError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from alembic import command
-from alembic.config import Config
-from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-
 from cnaas_nac.api_internal.auth import router as auth_router
 
 # from cnaas_nac.core.settings import settings
@@ -15,6 +19,7 @@ from cnaas_nac.api_internal.exceptions import (
 )
 from cnaas_nac.api_internal.scheduled_tasks import setup_scheduled_tasks
 from cnaas_nac.api_internal.schemas import AccessReject
+from cnaas_nac.core.db import get_async_session
 
 
 def run_alembic_migrations():
@@ -64,9 +69,14 @@ app = FastAPI(
 #     )
 
 
-@app.get("/health", status_code=200)
-async def health_check():
-    return {"status": "up"}
+@app.get("/api/v2/health")
+async def health_check(db: Annotated[AsyncSession, Depends(get_async_session)]):
+    try:
+        await db.execute(text("SELECT 1"))
+
+        return {"db": "up"}
+    except (ConnectionRefusedError, InterfaceError) as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 app.include_router(auth_router)
