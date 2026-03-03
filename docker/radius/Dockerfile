@@ -13,6 +13,9 @@ COPY docker/radius/raddb/policy.d/canonicalization /etc/raddb/policy.d/canonical
 
 COPY docker/radius/raddb/clients.conf /etc/raddb/clients.conf
 
+COPY docker/radius/raddb/dictionary /etc/raddb/dictionary
+COPY docker/radius/raddb/dictionary.local /etc/raddb/dictionary.local
+
 # Enable mods
 
 RUN ln -s /etc/raddb/mods-available/rest /etc/raddb/mods-enabled/rest && \

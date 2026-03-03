@@ -116,5 +116,5 @@ def create_test_token() -> str:
 
     # Encode the token using your secret key and the HS256 algorithm
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-    print(token)
+
     return token

@@ -15,7 +15,7 @@ from cnaas_nac.filters.nas_port import NasPortFilter
 router = APIRouter(prefix="/nas_port", tags=["nas_port"])
 
 
-@router.get("/", response_model=list[NasPortResponse])
+@router.get("", response_model=list[NasPortResponse])
 async def get_nas_ports(
     nas_port_filter: Annotated[NasPortFilter, FilterDepends(NasPortFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],

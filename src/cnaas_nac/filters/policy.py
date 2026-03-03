@@ -2,10 +2,10 @@ from typing import Optional
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 
-from cnaas_nac.models.assignment_rule import AssignmentRule
+from cnaas_nac.models.policy import Policy
 
 
-class AssignmentRuleFilter(Filter):
+class PolicyFilter(Filter):
     name: Optional[str] = None
     name__in: Optional[list[str]] = None
     name__ilike: Optional[str] = None
@@ -17,6 +17,6 @@ class AssignmentRuleFilter(Filter):
     q: Optional[str] = None
 
     class Constants(Filter.Constants):
-        model = AssignmentRule
+        model = Policy
         search_model_fields = ["name"]
         search_field_name = "q"

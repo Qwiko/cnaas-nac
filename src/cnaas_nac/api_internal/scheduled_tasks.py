@@ -2,7 +2,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[impo
 from datetime import datetime, timedelta
 from cnaas_nac.core.logging import get_logger
 from sqlalchemy import select, delete, func, and_
-from cnaas_nac.models.user import User
+from cnaas_nac.models.endpoint import Endpoint
 from cnaas_nac.models.radpostauth import RadPostAuth
 from cnaas_nac.core.db import async_session_factory
 
@@ -70,11 +70,11 @@ async def prune_inactive_user():
         )
 
         stmt = (
-            select(User.username)
+            select(Endpoint.username)
             .outerjoin(
-                last_activity_subq, User.username == last_activity_subq.c.username
+                last_activity_subq, Endpoint.username == last_activity_subq.c.username
             )
-            .where(last_activity_subq.c.last_seen < cutoff, not User.enabled)
+            .where(last_activity_subq.c.last_seen < cutoff, not Endpoint.enabled)
         )
 
         # Execute and get the list of usernames
@@ -88,10 +88,10 @@ async def prune_inactive_user():
 
         # Get all users without a radpostauth
         log_exists_stmt = (
-            select(1).where(RadPostAuth.username == User.username).exists()
+            select(1).where(RadPostAuth.username == Endpoint.username).exists()
         )
 
-        stmt = select(User.username).where(~log_exists_stmt, not User.enabled)
+        stmt = select(Endpoint.username).where(~log_exists_stmt, not Endpoint.enabled)
 
         # Execute and return list of usernames
         users_with_logs = (await db.execute(stmt)).scalars().all()

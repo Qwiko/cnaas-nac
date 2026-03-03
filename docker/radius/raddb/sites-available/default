@@ -54,6 +54,19 @@ listen {
 }
 
 authorize {
+	#
+	#  The preprocess module takes care of sanitizing some bizarre
+	#  attributes in the request, and turning them into attributes
+	#  which are more standard.
+	#
+	#  It takes care of processing the 'raddb/mods-config/preprocess/hints' 
+	#  and the 'raddb/mods-config/preprocess/huntgroups' files.
+	preprocess
+
+	rewrite_mab_username
+	rewrite_called_station_id
+	rewrite_calling_station_id
+	
 	# If not EAP it is a MBA/MAB request that is handled by the REST API
 	if (!&EAP-Message) {
     	rest
@@ -69,15 +82,6 @@ authorize {
 
 	filter_username
 #	filter_password
-
-	#
-	#  The preprocess module takes care of sanitizing some bizarre
-	#  attributes in the request, and turning them into attributes
-	#  which are more standard.
-	#
-	#  It takes care of processing the 'raddb/mods-config/preprocess/hints' 
-	#  and the 'raddb/mods-config/preprocess/huntgroups' files.
-	preprocess
 
 	#  If you intend to use CUI and you require that the Operator-Name
 	#  be set for CUI generation and you want to generate CUI also
@@ -481,10 +485,6 @@ post-auth {
 #			State := "0x%{randstr:16h}"
 #		}
 #	}
-	# Rewrite mac format
-	rewrite_mab_username
-	rewrite_called_station_id
-	rewrite_calling_station_id
 	#
 	#  For EAP-TTLS and PEAP, add the cached attributes to the reply.
 	#  The "session-state" attributes are automatically cached when
@@ -504,7 +504,7 @@ post-auth {
         rest
 
 
-        if (fail || notfound || !updated) {
+        if (fail || notfound || !updated || invalid) {
             reject
         }
     }

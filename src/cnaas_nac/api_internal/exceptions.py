@@ -2,7 +2,8 @@ from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from cnaas_nac.api_internal.schemas import AccessReject, AttributeDetail
+from cnaas_nac.api_internal.schemas import AccessReject, AttributeDetail, InternalAuth
+from cnaas_nac.models.policy import ClientType
 
 
 class BaseException(Exception):
@@ -13,14 +14,29 @@ class BaseException(Exception):
 class Unauthorized(BaseException):
     """Returns an Unauthorized 401"""
 
+    def __init__(self, error: str, policy_name: str | None = None):
+        self.error = error
+        self.policy_name = policy_name
+
     pass
 
 
-def unauthorized_exception_handler(request: Request, exc: Unauthorized):
-    error = AccessReject(reply_message=AttributeDetail(value=exc.error))
+async def unauthorized_exception_handler(request: Request, exc: Unauthorized):
+    error = AccessReject(
+        policy_name=AttributeDetail(value=exc.policy_name) if exc.policy_name else None,
+        error_message=AttributeDetail(value=exc.error),
+    )
+
+    auth = InternalAuth.model_construct(**(await request.json()))
+
+    # Fix to make eap-tls post-auth to actually process the json body
+    # to extract log information and save to postauth
+    mab_user_type = auth.client_type == ClientType.MAB
 
     return JSONResponse(
-        status_code=status.HTTP_401_UNAUTHORIZED,
+        status_code=status.HTTP_401_UNAUTHORIZED
+        if mab_user_type
+        else status.HTTP_200_OK,
         content=error.model_dump(by_alias=True),
     )
 
@@ -30,7 +46,7 @@ def validation_exception_handler(request, exc: RequestValidationError):
     for error in exc.errors():
         message += f"\nField: {error['loc']}, Error: {error['msg']}"
 
-    error = AccessReject(reply_message=AttributeDetail(value=message))
+    error = AccessReject(error_message=AttributeDetail(value=message))
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

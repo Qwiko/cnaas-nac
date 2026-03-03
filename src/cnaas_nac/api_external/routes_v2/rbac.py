@@ -33,7 +33,7 @@ class GroupResponse(GroupBase):
 router = APIRouter(prefix="/rbac", tags=["rbac"])
 
 
-@router.post("/", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
 async def create_group(
     request: Request,
     group_in: GroupCreate,
@@ -59,7 +59,7 @@ async def create_group(
     return db_group
 
 
-@router.get("/", response_model=list[GroupResponse])
+@router.get("", response_model=list[GroupResponse])
 async def read_groups(db: Annotated[AsyncSession, Depends(get_async_session)]):
     """Retrieve all groups with pagination."""
     groups = (await db.execute(select(Group))).scalars().all()

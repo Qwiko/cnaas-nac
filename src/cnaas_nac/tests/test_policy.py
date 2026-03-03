@@ -1,0 +1,109 @@
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from cnaas_nac.models.policy import (
+    Policy,
+    PolicyCondition,
+    MatchLogic,
+    ConditionOperator,
+)
+
+from cnaas_nac.core.rule_engine import evaluate_policy
+
+pytestmark = pytest.mark.anyio
+
+
+async def test_policy_and(db: AsyncSession) -> None:
+    # Add AssignmentRule
+    policy = Policy(name="test_policy", match_logic=MatchLogic.AND, enabled=True)
+
+    policy.conditions = [
+        PolicyCondition(**d)
+        for d in [
+            {
+                "attribute": "username",
+                "operator": ConditionOperator.ENDS_WITH,
+                "value": "@example.com",
+            },
+            {
+                "attribute": "called_station_id",
+                "operator": ConditionOperator.STARTS_WITH,
+                "value": "00:01:02",
+            },
+        ]
+    ]
+    db.add(policy)
+    await db.commit()
+    await db.refresh(policy, attribute_names=["conditions"])
+
+    assert evaluate_policy(
+        policy, {"username": "test@example.com", "called_station_id": "00:01:02"}, None
+    )
+    assert not evaluate_policy(
+        policy, {"username": "test@example.com", "called_station_id": "00:01:03"}, None
+    )
+    assert not evaluate_policy(policy, {"username": "test@other_domain.com"}, None)
+
+
+async def test_policy_or(db: AsyncSession) -> None:
+    # Add Policy
+    policy = Policy(name="test_policy", match_logic=MatchLogic.OR, enabled=True)
+
+    policy.conditions = [
+        PolicyCondition(**d)
+        for d in [
+            {
+                "attribute": "username",
+                "operator": ConditionOperator.ENDS_WITH,
+                "value": "@example.com",
+            },
+            {
+                "attribute": "called_station_id",
+                "operator": ConditionOperator.STARTS_WITH,
+                "value": "00:01:02",
+            },
+        ]
+    ]
+    db.add(policy)
+    await db.commit()
+    await db.refresh(policy, attribute_names=["conditions"])
+
+    assert evaluate_policy(
+        policy, {"username": "test@example.com", "called_station_id": "00:01:02"}, None
+    )
+    assert evaluate_policy(
+        policy, {"username": "test@example.com", "called_station_id": "00:01:03"}, None
+    )
+    assert evaluate_policy(
+        policy,
+        {"username": "test@other_domain.com", "called_station_id": "00:01:02"},
+        None,
+    )
+    assert not evaluate_policy(policy, {"username": "test@other_domain.com"}, None)
+
+
+async def test_policy_in_list(db: AsyncSession) -> None:
+    # Add Policy
+    # TODO Improve this test
+    policy = Policy(name="test_policy", match_logic=MatchLogic.AND, enabled=True)
+
+    policy.conditions = [
+        PolicyCondition(**d)
+        for d in [
+            {
+                "attribute": "username",
+                "operator": ConditionOperator.ENDS_WITH,
+                "value": "@example.com",
+            },
+            {
+                "attribute": "ldap_groups",
+                "operator": ConditionOperator.IN_LIST,
+                "value": "GROUP_1",
+            },
+        ]
+    ]
+    db.add(policy)
+    await db.commit()
+    await db.refresh(policy, attribute_names=["conditions"])
+
+    assert not evaluate_policy(policy, {"username": "test@example.com"}, None)

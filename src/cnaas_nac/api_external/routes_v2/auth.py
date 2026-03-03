@@ -78,8 +78,6 @@ async def refresh(request: Request, response: Response):
     access_token = refresh_data.get("access_token")
     refresh_token = refresh_data.get("refresh_token")
 
-    print(refresh_data)
-
     if not access_token or not refresh_token:
         raise HTTPException(status_code=401, detail="Missing access token")
 

@@ -1,32 +1,45 @@
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.api_internal.exceptions import Unauthorized
 from cnaas_nac.core.logging import get_logger
-from cnaas_nac.core.rule_engine import evaluate_rule
-from cnaas_nac.core.settings import settings
-from cnaas_nac.models.assignment_rule import AssignmentRule
+from cnaas_nac.models.policy import Policy
 from cnaas_nac.models.nas_port import NasPort
-from cnaas_nac.models.user import User
+from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.api_internal.schemas import InternalAuth
+from netutils.mac import is_valid_mac
 
 logger = get_logger()
 
 
-async def accept(db: AsyncSession, auth: InternalAuth, vlan: int) -> dict:
+async def accept(
+    db: AsyncSession,
+    auth: InternalAuth,
+    endpoint: Endpoint | None,
+    matched_policy: Policy,
+) -> dict[str, Any]:
     """Helper function to return a Access-Accept"""
 
-    reply = {
-        "Tunnel-Private-Group-Id": {"op": ":=", "value": str(vlan)},
-        "Tunnel-Type": {"op": ":=", "value": "VLAN"},
-        "Tunnel-Medium-Type": {"op": ":=", "value": "IEEE-802"},
+    await update_endpoint_state(db, auth, endpoint, EndpointState.AUTHORIZED)
+
+    reply: dict[str, dict[str, Any] | str] = {
+        reply.attribute: {"op": reply.operator, "value": reply.value}
+        for reply in matched_policy.replies
     }
+
+    # Add NAC-Policy-Id attribute
+    reply["NAC-Policy-Name"] = str(matched_policy.name)
 
     return reply
 
 
-async def reject(db: AsyncSession, auth: InternalAuth, reason: str) -> None:
+async def reject(
+    db: AsyncSession,
+    auth: InternalAuth,
+    endpoint: Endpoint | None,
+    error_message: str,
+    matched_policy: Policy | None,
+) -> None:
     """
     Reject the user with a 401.
 
@@ -47,41 +60,53 @@ async def reject(db: AsyncSession, auth: InternalAuth, reason: str) -> None:
     #  The status code is held in %{reply:REST-HTTP-Status-Code}.
     """
 
-    raise Unauthorized(reason)
+    await update_endpoint_state(db, auth, endpoint, EndpointState.REJECTED)
 
-
-async def create_new_user(db: AsyncSession, auth: InternalAuth) -> User:
-    vlan = None
-    enabled = False
-
-    # Handle reassignment rules.
-    stmt = (
-        select(AssignmentRule)
-        .where(
-            AssignmentRule.is_active,
-        )
-        .order_by(AssignmentRule.priority.asc())
-        .options(selectinload(AssignmentRule.conditions))
-        .execution_options(stream_results=True)
+    logger.debug(
+        f"User: {auth.username}({auth.calling_station_id}) rejected, reason: {error_message}"
     )
+    raise Unauthorized(error_message, matched_policy.name if matched_policy else None)
 
-    results = await db.stream_scalars(stmt)
-    async for rule in results:
-        if evaluate_rule(rule, dict(auth)):
-            # Match found, set new vlan if needed.
-            vlan = rule.target_vlan
-            enabled = True
-            logger.debug(f"User: {auth.username} is assigned to vlan: {vlan}")
-            break
+
+async def update_endpoint_state(
+    db: AsyncSession,
+    auth: InternalAuth,
+    endpoint: Endpoint | None,
+    endpoint_state: EndpointState,
+) -> None:
+
+    if not endpoint:
+        endpoint = Endpoint(
+            username=auth.username, calling_station_id=auth.calling_station_id
+        )
+        db.add(endpoint)
+
+    # Only update state if not equals to DISCOVERED.
+    if (
+        endpoint.state == EndpointState.DISCOVERED
+        and endpoint_state == EndpointState.REJECTED
+    ):
+        logger.debug(
+            f"User: {auth.username}({auth.calling_station_id}) is discovered, state kept as discovered."
+        )
     else:
-        # Default to DEFAULT_VLAN
-        vlan = settings.RADIUS.DEFAULT_VLAN
+        logger.debug(
+            f"User: {auth.username}({auth.calling_station_id}) update state: {endpoint_state}"
+        )
+        endpoint.state = endpoint_state
+
+    await db.commit()
+
+
+async def create_new_endpoint(db: AsyncSession, auth: InternalAuth) -> Endpoint:
 
     try:
-        user = User(
+        endpoint = Endpoint(
             username=auth.username,
-            enabled=enabled,
-            vlan=vlan,
+            calling_station_id=auth.calling_station_id,
+            state=EndpointState.DISCOVERED
+            if is_valid_mac(auth.username)
+            else EndpointState.REJECTED,
         )
         nas_port = NasPort(
             username=auth.username,
@@ -92,11 +117,10 @@ async def create_new_user(db: AsyncSession, auth: InternalAuth) -> User:
             called_station_id=auth.called_station_id,
         )
 
-        db.add(user)
+        db.add(endpoint)
         db.add(nas_port)
         await db.commit()
-
-        return user
+        return endpoint
     except Exception as e:
         error_msg = str(e)
         logger.error(error_msg)

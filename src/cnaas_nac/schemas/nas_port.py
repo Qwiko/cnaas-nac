@@ -1,8 +1,9 @@
 from typing import Optional
 
-from pydantic import BaseModel, IPvAnyAddress
+from pydantic import IPvAnyAddress
 from cnaas_nac.schemas.generic import Username
 from cnaas_nac.schemas.generic import TimestampSchema
+
 
 class NasPortResponse(TimestampSchema):
     id: int

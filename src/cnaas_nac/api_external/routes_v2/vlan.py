@@ -7,14 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.db import get_async_session
-from cnaas_nac.models.user import User
-from cnaas_nac.schemas.generic import VlanID, Username
+from cnaas_nac.models.policy import PolicyReply
+from cnaas_nac.schemas.vlan import VlanResponse
 from cnaas_nac.core.security import get_current_user
 
 router = APIRouter(prefix="/vlan", tags=["vlan"])
 
 
-@router.get("", response_model=list[VlanID])
+@router.get("", response_model=list[VlanResponse])
 async def get_vlans(
     db: Annotated[AsyncSession, Depends(get_async_session)],
     response: Response,
@@ -24,41 +24,45 @@ async def get_vlans(
     Get vlans.
     """
 
-    vlans = (await db.execute(select(User.vlan).distinct())).scalars().all()
-
-    if not vlans:
-        raise NotFound()
-
-    response.headers["X-Total-Count"] = str(len(vlans))
-
-    return vlans
-
-
-@router.get("/{vlan_id}", response_model=list[Username])
-async def get_vlans_name(
-    vlan_id: int,
-    db: Annotated[AsyncSession, Depends(get_async_session)],
-    response: Response,
-) -> Any:
-    """
-    Get vlans.
-    """
-
-    users = (
+    vlans = (
         (
             await db.execute(
-                select(User.username).where(
-                    User.vlan == vlan_id,
-                )
+                select(PolicyReply.value)
+                .where(PolicyReply.attribute == "Tunnel-Private-Group-Id")
+                .distinct()
             )
         )
         .scalars()
         .all()
     )
 
-    if not users:
+    if not vlans:
         raise NotFound()
 
-    response.headers["X-Total-Count"] = str(len(users))
+    response.headers["X-Total-Count"] = str(len(vlans))
 
-    return users
+    return [{"vlan": int(vlan)} for vlan in vlans]
+
+
+@router.get("/{vlan_id}", response_model=VlanResponse)
+async def get_vlans_id(
+    vlan_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    response: Response,
+) -> Any:
+    """
+    Get vlan.
+    """
+
+    vlan = (
+        await db.execute(
+            select(PolicyReply.value)
+            .where(PolicyReply.attribute == "Tunnel-Private-Group-Id")
+            .distinct()
+        )
+    ).scalar_one_or_none()
+
+    if not vlan:
+        raise NotFound()
+
+    return {"vlan": int(vlan)}

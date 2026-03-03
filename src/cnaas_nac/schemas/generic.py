@@ -9,10 +9,24 @@ class ErrorResponse(BaseModel):
     message: str
 
 
+class Error(BaseModel):
+    root: dict
+    field: str
+
+
+class ErrorBody(BaseModel):
+    errors: Error
+
+
+class ValidationErrorResponse(BaseModel):
+    body: ErrorBody
+
+
 def format_mac(v: str) -> str:
     if is_valid_mac(v):
         return mac_to_format(v, "MAC_COLON_TWO")
     return v
+
 
 class TimestampSchema(BaseModel):
     created_at: AwareDatetime

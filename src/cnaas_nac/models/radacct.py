@@ -19,8 +19,8 @@ from .base import Base
 class RadAcct(Base):
     __tablename__ = "radacct"
     __table_args__ = (
-        PrimaryKeyConstraint("id", name="radacct_pkey"),
-        UniqueConstraint("acct_unique_id", name="radacct_acct_unique_id_key"),
+        PrimaryKeyConstraint("id"),
+        UniqueConstraint("acct_unique_id"),
         Index("radacct_active_session_idx", "acct_unique_id"),
         Index("radacct_bulk_close", "nas_ip_address", "acct_start_time"),
         Index(
@@ -39,13 +39,17 @@ class RadAcct(Base):
     # cnaas-nac specific
     nas_identifier: Mapped[str] = mapped_column(Text, nullable=True)
 
-    username: Mapped[Optional[str]] = mapped_column(Text)
+    username: Mapped[str] = mapped_column(Text)
+    calling_station_id: Mapped[str] = mapped_column(Text)
+
     group_name: Mapped[Optional[str]] = mapped_column(Text)
     realm: Mapped[Optional[str]] = mapped_column(Text)
     nas_port_id: Mapped[Optional[str]] = mapped_column(Text)
     nas_port_type: Mapped[Optional[str]] = mapped_column(Text)
     acct_start_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
-    acct_update_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    acct_update_time: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime(True)
+    )
     acct_stop_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     acct_interval: Mapped[Optional[int]] = mapped_column(BigInteger)
     acct_session_time: Mapped[Optional[int]] = mapped_column(BigInteger)
@@ -55,7 +59,6 @@ class RadAcct(Base):
     acct_input_octets: Mapped[Optional[int]] = mapped_column(BigInteger)
     acct_output_octets: Mapped[Optional[int]] = mapped_column(BigInteger)
     called_station_id: Mapped[Optional[str]] = mapped_column(Text)
-    calling_station_id: Mapped[Optional[str]] = mapped_column(Text)
     acct_terminate_cause: Mapped[Optional[str]] = mapped_column(Text)
     service_type: Mapped[Optional[str]] = mapped_column(Text)
     framed_protocol: Mapped[Optional[str]] = mapped_column(Text)
