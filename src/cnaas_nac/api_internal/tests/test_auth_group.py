@@ -21,6 +21,12 @@ async def test_auth_endpoint_group(
     db: AsyncSession,
     int_client: AsyncClient,
 ) -> None:
+    await db.execute(delete(PolicyCondition))
+    await db.execute(delete(PolicyReply))
+    await db.execute(delete(Policy))
+    await db.execute(delete(Endpoint))
+    await db.execute(delete(EndpointGroup))
+
     mac = "aa:bb:cc:dd:ee:ff"
 
     # Add Endpoint group
