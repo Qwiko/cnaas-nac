@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.pagination import PaginationParams
+from cnaas_nac.core.security import get_current_user
 from cnaas_nac.filters.endpoint_group import EndpointGroupFilter
 from cnaas_nac.models.endpoint import EndpointGroup
 from cnaas_nac.schemas.endpoint_group import EndpointGroupBase, EndpointGroupResponse
@@ -23,6 +24,7 @@ async def get_endpoint_groups(
     ],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -53,6 +55,7 @@ async def get_endpoint_groups(
 async def post_endpoint_group(
     db: Annotated[AsyncSession, Depends(get_async_session)],
     input_group: EndpointGroupBase,
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
     """
     Post endpoint groups.
@@ -78,7 +81,9 @@ async def post_endpoint_group(
 
 @router.get("/{group_id}", response_model=EndpointGroupResponse)
 async def get_endpoint_group(
-    group_id: int, db: Annotated[AsyncSession, Depends(get_async_session)]
+    group_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
     """
     Get group.
@@ -99,6 +104,7 @@ async def put_endpoint_group(
     group_id: int,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     input_group: EndpointGroupBase,
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
     """
     Put group.
@@ -124,6 +130,7 @@ async def put_endpoint_group(
 async def delete_endpoint_group(
     group_id: int,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """
     Delete group.

@@ -12,6 +12,7 @@ from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.pagination import PaginationParams
+from cnaas_nac.core.security import get_current_user
 from cnaas_nac.filters.endpoint import EndpointFilter
 from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.endpoint import Endpoint, EndpointState
@@ -28,6 +29,7 @@ async def get_endpoints(
     endpoint_filter: Annotated[EndpointFilter, FilterDepends(EndpointFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -53,6 +55,7 @@ async def get_endpoints(
 async def post_endpoint(
     input_endpoint: EndpointCreate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -87,6 +90,7 @@ async def post_endpoint(
 async def read_username(
     endpoint_id: int,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -108,6 +112,7 @@ async def put_user(
     endpoint_id: int,
     input_endpoint: EndpointUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     background_tasks: BackgroundTasks,
 ) -> Any:
     """
@@ -178,6 +183,7 @@ async def put_user(
 async def delete_user(
     endpoint_id: int,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     background_tasks: BackgroundTasks,
 ) -> None:
     """

@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.db import get_async_session
+from cnaas_nac.core.security import get_current_user
 from cnaas_nac.models.rbac import Group, GroupPermission
 
 
@@ -38,6 +39,7 @@ async def create_group(
     request: Request,
     group_in: GroupCreate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
     """Create a new group."""
     stmt = select(Group).where(Group.name == group_in.name)
@@ -60,7 +62,10 @@ async def create_group(
 
 
 @router.get("", response_model=list[GroupResponse])
-async def read_groups(db: Annotated[AsyncSession, Depends(get_async_session)]):
+async def read_groups(
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
     """Retrieve all groups with pagination."""
     groups = (await db.execute(select(Group))).scalars().all()
     return groups
@@ -68,7 +73,9 @@ async def read_groups(db: Annotated[AsyncSession, Depends(get_async_session)]):
 
 @router.get("/{group_id}", response_model=GroupResponse)
 async def read_group(
-    group_id: int, db: Annotated[AsyncSession, Depends(get_async_session)]
+    group_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
     """Get a specific group by ID."""
     db_group = (
@@ -84,6 +91,7 @@ async def update_group(
     group_id: int,
     group_in: GroupCreate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
     """Update a group's details."""
     db_group = (
@@ -106,7 +114,9 @@ async def update_group(
 
 @router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_group(
-    group_id: int, db: Annotated[AsyncSession, Depends(get_async_session)]
+    group_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
 ):
     """Delete a group."""
     db_group = (

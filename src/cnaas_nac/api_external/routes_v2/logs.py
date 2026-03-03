@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.pagination import PaginationParams
+from cnaas_nac.core.security import get_current_user
 from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.models.radpostauth import RadPostAuth
 from cnaas_nac.schemas.logs import RadAcctLog, RadPostAuthLog
@@ -21,6 +22,7 @@ async def get_accounting_logs(
     acct_log_filter: Annotated[AccountingLogFilter, FilterDepends(AccountingLogFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -46,6 +48,7 @@ async def get_post_auth_logs(
     post_auth_log_filter: Annotated[RadPostLogFilter, FilterDepends(RadPostLogFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
