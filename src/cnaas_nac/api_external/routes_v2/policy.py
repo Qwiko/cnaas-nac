@@ -1,6 +1,7 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
+from fastapi.exceptions import RequestValidationError
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,7 +65,14 @@ async def post_policy(
         await db.execute(select(Policy).where(Policy.name == input_policy.name))
     ).scalar_one_or_none()
     if existing_rule:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        raise RequestValidationError(
+            [
+                {
+                    "loc": ["body", "name"],
+                    "msg": "A Policy with that name already exists.",
+                }
+            ]
+        )
 
     policy = Policy(
         **{

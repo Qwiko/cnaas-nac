@@ -6,8 +6,8 @@ from httpx import AsyncClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from cnaas_nac.models.endpoint import Endpoint, EndpointGroup, EndpointState
 from cnaas_nac.models.nas_port import NasPort
-from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.models.radpostauth import RadPostAuth
 
 pytestmark = pytest.mark.anyio
@@ -22,7 +22,8 @@ async def test_v2_endpoint_get_none(db: AsyncSession, ext_client: AsyncClient) -
         "/api/v2/endpoint",
     )
 
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
 
 
 async def test_v2_endpoint_get(db: AsyncSession, ext_client: AsyncClient) -> None:
@@ -167,7 +168,7 @@ async def test_v2_endpoint_post_existing_user(
         json={"username": mac},
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 async def test_v2_endpoint_put_name_not_found(
@@ -223,10 +224,13 @@ async def test_v2_endpoint_put_name_issue_coa(
             called_station_id="00:00:00:00:00:00",
         )
     )
+    db.add(EndpointGroup(id=999999, name="Test"))
     await db.commit()
 
     with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
-        response = await ext_client.put(f"/api/v2/endpoint/{endpoint.id}", json={})
+        response = await ext_client.put(
+            f"/api/v2/endpoint/{endpoint.id}", json={"group_id": 999999}
+        )
 
         assert response.status_code == status.HTTP_200_OK
 

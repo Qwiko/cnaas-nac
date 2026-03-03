@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, status
+from fastapi.exceptions import RequestValidationError
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +16,7 @@ from cnaas_nac.filters.endpoint import EndpointFilter
 from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.schemas.endpoint import EndpointCreate, EndpointUpdate, EndpointResponse
+from netutils.mac import is_valid_mac
 
 logger = get_logger()
 
@@ -44,9 +46,6 @@ async def get_endpoints(
 
     response.headers["X-Total-Count"] = str(total_count)
 
-    if total_count == 0:
-        response.status_code = status.HTTP_404_NOT_FOUND
-
     return (await db.execute(query)).scalars().all()
 
 
@@ -70,8 +69,8 @@ async def post_endpoint(
         )
     ).scalar_one_or_none()
     if existing_endpoint:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Endpoint already exists."
+        raise RequestValidationError(
+            [{"loc": ["body", "username"], "msg": "Endpoint already exists."}]
         )
 
     endpoint = Endpoint(**input_endpoint.model_dump(), state=EndpointState.PENDING)
@@ -79,6 +78,8 @@ async def post_endpoint(
     db.add(endpoint)
 
     await db.commit()
+    await db.refresh(endpoint)
+
     return endpoint
 
 
@@ -116,11 +117,27 @@ async def put_user(
     existing_endpoint = (
         await db.execute(select(Endpoint).where(Endpoint.id == endpoint_id))
     ).scalar_one_or_none()
+
     if not existing_endpoint:
         raise NotFound()
 
+    # EAP users cannot be set to a Endpoint group.
+
+    if not is_valid_mac(existing_endpoint.username) and input_endpoint.group_id:
+        raise RequestValidationError(
+            [
+                {
+                    "loc": ["body", "group_id"],
+                    "msg": "EAP users cannot be set to an endpoint group.",
+                }
+            ]
+        )
+
+    changed_attributes = []
+
     for k, v in input_endpoint.model_dump().items():
         if getattr(existing_endpoint, k) != v:
+            changed_attributes.append(k)
             setattr(existing_endpoint, k, v)
 
     if inspect(existing_endpoint).modified:
@@ -149,7 +166,7 @@ async def put_user(
     # TODO: Check if another endpoint have connected on this port after this endpoint.
     # Then we should not bounce the port and assume the endpoint is already disconnected.
 
-    if recent_nasport:
+    if recent_nasport and "group_id" in changed_attributes:
         coa = CoA(recent_nasport)
 
         background_tasks.add_task(coa.send_packet)

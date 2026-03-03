@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 from netutils.mac import get_oui
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 from cnaas_nac.schemas.generic import TimestampSchema, Username
 from cnaas_nac.models.endpoint import EndpointState
@@ -31,7 +31,14 @@ class EndpointResponse(EndpointBase, TimestampSchema):
     username: Username
 
     calling_station_id: MacAddress
-    state: Optional[EndpointState]
+    state: EndpointState
+
+    nas_identifier: Annotated[
+        Optional[str], Field(description="Latest nas_identifier for this endpoint")
+    ] = None
+    nas_port_id: Annotated[
+        Optional[str], Field(description="Latest nas_port_id for this endpoint")
+    ] = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property

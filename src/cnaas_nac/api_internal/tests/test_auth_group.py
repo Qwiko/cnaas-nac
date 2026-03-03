@@ -97,6 +97,10 @@ async def test_auth_many_endpoint_groups(
     db: AsyncSession,
     int_client: AsyncClient,
 ) -> None:
+    await db.execute(delete(PolicyCondition))
+    await db.execute(delete(PolicyReply))
+    await db.execute(delete(Policy))
+    await db.execute(delete(Endpoint))
     await db.execute(delete(EndpointGroup))
 
     # Add alot of groups and policies

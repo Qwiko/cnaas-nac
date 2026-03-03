@@ -19,4 +19,5 @@ async def test_v2_vlans_get_notfound(db: AsyncSession, ext_client: AsyncClient) 
         "/api/v2/vlan",
     )
 
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []

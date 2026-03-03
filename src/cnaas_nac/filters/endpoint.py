@@ -31,6 +31,18 @@ class EndpointFilter(Filter):
     state__like: Optional[str] = None
     state__neq: Optional[str] = None
 
+    nas_identifier: Optional[str] = None
+    nas_identifier__in: Optional[list[str]] = None
+    nas_identifier__ilike: Optional[str] = None
+    nas_identifier__like: Optional[str] = None
+    nas_identifier__neq: Optional[str] = None
+
+    nas_port_id: Optional[str] = None
+    nas_port_id__in: Optional[list[str]] = None
+    nas_port_id__ilike: Optional[str] = None
+    nas_port_id__like: Optional[str] = None
+    nas_port_id__neq: Optional[str] = None
+
     order_by: list[str] = ["username"]
 
     q: Optional[str] = None
