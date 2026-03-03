@@ -1,5 +1,7 @@
-from typing import AsyncGenerator
 from datetime import datetime, timedelta, timezone
+from typing import AsyncGenerator
+
+import jwt
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -10,11 +12,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import jwt
 from cnaas_nac.api_external.main import app as external_app
 from cnaas_nac.api_internal.main import app as internal_app
 from cnaas_nac.core.db import get_async_session
-from cnaas_nac.core.settings import settings
+from cnaas_nac.core.settings import EnvironmentOption, settings
 
 async_engine = create_async_engine(
     settings.DB.ASYNC_PREFIX + settings.DB.URI, future=True
@@ -101,6 +102,15 @@ async def int_client(
         yield ac
 
     internal_app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def mock_pydantic_settings(monkeypatch):
+    """
+    Automatically mock specific Pydantic settings for all tests.
+    """
+    # Make sure ENVIRONMENT is set to Local for tests.
+    monkeypatch.setattr(settings, "ENVIRONMENT", EnvironmentOption.LOCAL)
 
 
 def create_test_token() -> str:
