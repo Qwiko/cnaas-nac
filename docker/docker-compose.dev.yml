@@ -4,7 +4,7 @@ services:
       context: ..
       dockerfile: docker/api/Dockerfile
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').getcode()"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v2/health').getcode()"]
       interval: 10s
       retries: 5
       start_period: 3s
@@ -28,7 +28,7 @@ services:
       context: ..
       dockerfile: docker/api/Dockerfile
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').getcode()"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v2/health').getcode()"]
       interval: 10s
       retries: 5
       start_period: 3s
