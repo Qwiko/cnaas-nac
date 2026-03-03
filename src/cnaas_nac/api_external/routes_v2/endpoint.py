@@ -145,7 +145,8 @@ async def put_user(
             changed_attributes.append(k)
             setattr(existing_endpoint, k, v)
 
-    if inspect(existing_endpoint).modified:
+    # Only set to pending when changing group_id.
+    if inspect(existing_endpoint).modified and "group_id" in changed_attributes:
         existing_endpoint.state = EndpointState.PENDING
     else:
         existing_endpoint.updated_at = datetime.now(timezone.utc)
