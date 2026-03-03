@@ -73,7 +73,7 @@ async def get_current_user(
     if not access_token:
         raise HTTPException(
             status_code=401,
-            detail="Missing access_token cookie.",
+            detail="Missing access_token.",
         )
 
     try:
