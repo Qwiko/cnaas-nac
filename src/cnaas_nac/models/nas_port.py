@@ -17,7 +17,6 @@ class NasPort(Base, TimestampsMixin):
     __table_args__ = (
         None,
         UniqueConstraint("id"),
-        UniqueConstraint("username", "calling_station_id"),
         UniqueConstraint(
             "username",
             "calling_station_id",
