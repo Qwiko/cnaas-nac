@@ -119,9 +119,9 @@ def create_test_token() -> str:
     payload = {
         "sub": "test_user_123",
         "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
-        # You can inject any other claims your API expects below:
         "email": "test@example.com",
-        "roles": ["admin"],
+        "preferred_username": "test@example.com",
+        "groups": ["admin"],
     }
 
     # Encode the token using your secret key and the HS256 algorithm
