@@ -1,4 +1,5 @@
 import datetime
+from ipaddress import IPv4Address, IPv6Address, IPv6Network
 from typing import Any, Optional
 
 from sqlalchemy import (
@@ -62,9 +63,9 @@ class RadAcct(Base):
     acct_terminate_cause: Mapped[Optional[str]] = mapped_column(Text)
     service_type: Mapped[Optional[str]] = mapped_column(Text)
     framed_protocol: Mapped[Optional[str]] = mapped_column(Text)
-    framed_ip_address: Mapped[Optional[Any]] = mapped_column(INET)
-    framed_ipv6_address: Mapped[Optional[Any]] = mapped_column(INET)
-    framed_ipv6_prefix: Mapped[Optional[Any]] = mapped_column(INET)
+    framed_ip_address: Mapped[Optional[IPv4Address]] = mapped_column(INET)
+    framed_ipv6_address: Mapped[Optional[IPv6Address]] = mapped_column(INET)
+    framed_ipv6_prefix: Mapped[Optional[IPv6Network]] = mapped_column(INET)
     framed_interface_id: Mapped[Optional[str]] = mapped_column(Text)
-    delegated_ipv6_prefix: Mapped[Optional[Any]] = mapped_column(INET)
+    delegated_ipv6_prefix: Mapped[Optional[IPv6Network]] = mapped_column(INET)
     class_: Mapped[Optional[str]] = mapped_column("class", Text)

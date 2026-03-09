@@ -7,17 +7,18 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.db import get_async_session
+from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
 from cnaas_nac.core.security import get_current_user
 from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.models.radpostauth import RadPostAuth
-from cnaas_nac.schemas.logs import RadAcctLog, RadPostAuthLog
+from cnaas_nac.schemas.logs import RadAcctLog, RadAcctLogFull, RadPostAuthLog
 from cnaas_nac.filters.logs import AccountingLogFilter, RadPostLogFilter
 
-router = APIRouter(prefix="/logs", tags=["logs"])
+router = APIRouter(prefix="", tags=["logs"])
 
 
-@router.get("/accounting", response_model=list[RadAcctLog])
+@router.get("/accounting_log", response_model=list[RadAcctLog])
 async def get_accounting_logs(
     acct_log_filter: Annotated[AccountingLogFilter, FilterDepends(AccountingLogFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
@@ -43,8 +44,28 @@ async def get_accounting_logs(
     return (await db.execute(query)).scalars().all()
 
 
-@router.get("/post_auth", response_model=list[RadPostAuthLog])
-async def get_post_auth_logs(
+@router.get("/accounting_log/{accounting_log_id}", response_model=RadAcctLogFull)
+async def get_accounting_log(
+    accounting_log_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> Any:
+    """
+    Get accounting log.
+    """
+
+    accounting_log = (
+        await db.execute(select(RadAcct).where(RadAcct.id == accounting_log_id))
+    ).scalar_one_or_none()
+
+    if not accounting_log:
+        raise NotFound()
+
+    return accounting_log
+
+
+@router.get("/authentication_log", response_model=list[RadPostAuthLog])
+async def get_authentication_logs(
     post_auth_log_filter: Annotated[RadPostLogFilter, FilterDepends(RadPostLogFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
@@ -52,7 +73,7 @@ async def get_post_auth_logs(
     response: Response,
 ) -> Any:
     """
-    Get post-authentication logs.
+    Get authentication logs.
     """
 
     query = select(RadPostAuth)
@@ -68,3 +89,25 @@ async def get_post_auth_logs(
     )
 
     return (await db.execute(query)).scalars().all()
+
+
+@router.get(
+    "/authentication_log/{authentication_log_id}", response_model=RadPostAuthLog
+)
+async def get_authentication_log(
+    authentication_log_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> Any:
+    """
+    Get accounting log.
+    """
+
+    authentication_log = (
+        await db.execute(select(RadAcct).where(RadAcct.id == authentication_log_id))
+    ).scalar_one_or_none()
+
+    if not authentication_log:
+        raise NotFound()
+
+    return authentication_log

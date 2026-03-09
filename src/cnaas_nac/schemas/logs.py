@@ -1,4 +1,5 @@
 from datetime import datetime
+from ipaddress import IPv4Address, IPv6Address, IPv6Network
 from typing import Optional
 
 from pydantic import BaseModel, IPvAnyAddress
@@ -13,10 +14,22 @@ class RadAcctLog(BaseModel):
     nas_port_id: str
     nas_identifier: Optional[str] = None
     acct_start_time: datetime
+    acct_update_time: Optional[datetime] = None
     acct_stop_time: Optional[datetime] = None
     acct_session_time: Optional[int] = None
     acct_input_octets: Optional[int] = None
     acct_output_octets: Optional[int] = None
+
+
+class RadAcctLogFull(RadAcctLog):
+    acct_terminate_cause: Optional[str] = None
+    service_type: Optional[str] = None
+    framed_protocol: Optional[str] = None
+    framed_ip_address: Optional[IPv4Address] = None
+    framed_ipv6_address: Optional[IPv6Address] = None
+    framed_ipv6_prefix: Optional[IPv6Network] = None
+    framed_interface_id: Optional[str] = None
+    delegated_ipv6_prefix: Optional[IPv6Network] = None
 
 
 class RadPostAuthLog(BaseModel):
@@ -28,13 +41,3 @@ class RadPostAuthLog(BaseModel):
     reply: str
     matched_policy_id: Optional[int] = None
     error_message: Optional[str] = None
-
-    # @field_validator("error_message", mode="after")
-    # def validate_reply_message(cls, v):
-    #     if not v:
-    #         return v
-
-    #     decoded_bytes = quopri.decodestring(v)
-    #     decoded_str = decoded_bytes.decode("utf-8")
-
-    #     return decoded_str
