@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import (
     BigInteger,
     DateTime,
+    ForeignKey,
     PrimaryKeyConstraint,
     Text,
     text,
@@ -29,7 +30,10 @@ class RadPostAuth(Base):
     called_station_id: Mapped[Optional[str]] = mapped_column(Text)
 
     # Custom nac fields
-    matched_policy: Mapped[Optional[str]] = mapped_column(Text)
+    matched_policy_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("policy.id", name="fk_policy_id"), nullable=True
+    )
+
     error_message: Mapped[Optional[str]] = mapped_column(Text)
     nas_identifier: Mapped[str] = mapped_column(Text, nullable=True)
     nas_port_id: Mapped[Optional[str]] = mapped_column(Text)

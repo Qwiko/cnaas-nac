@@ -26,7 +26,7 @@ class RadPostAuthLog(BaseModel):
     nas_port_id: Optional[str] = None
     auth_date: datetime
     reply: str
-    matched_policy: Optional[str] = None
+    matched_policy_id: Optional[int] = None
     error_message: Optional[str] = None
 
     # @field_validator("error_message", mode="after")

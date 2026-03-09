@@ -14,16 +14,16 @@ class BaseException(Exception):
 class Unauthorized(BaseException):
     """Returns an Unauthorized 401"""
 
-    def __init__(self, error: str, policy_name: str | None = None):
+    def __init__(self, error: str, policy_id: str | None = None):
         self.error = error
-        self.policy_name = policy_name
+        self.policy_id = policy_id
 
     pass
 
 
 async def unauthorized_exception_handler(request: Request, exc: Unauthorized):
     error = AccessReject(
-        policy_name=AttributeDetail(value=exc.policy_name) if exc.policy_name else None,
+        policy_id=AttributeDetail(value=exc.policy_id) if exc.policy_id else None,
         error_message=AttributeDetail(value=exc.error),
     )
 

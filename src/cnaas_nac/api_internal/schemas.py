@@ -70,8 +70,8 @@ class AccessReject(BaseModel):
             value="Reject",
         )
     )
-    policy_name: Annotated[
-        Optional[AttributeDetail], Field(..., alias="NAC-Policy-Name")
+    policy_id: Annotated[
+        Optional[AttributeDetail], Field(..., alias="NAC-Policy-Id")
     ] = None
 
     error_message: Annotated[AttributeDetail, Field(..., alias="NAC-Error-Message")] = (

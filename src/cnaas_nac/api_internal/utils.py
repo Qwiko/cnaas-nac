@@ -28,7 +28,7 @@ async def accept(
     }
 
     # Add NAC-Policy-Id attribute
-    reply["NAC-Policy-Name"] = str(matched_policy.name)
+    reply["NAC-Policy-Id"] = str(matched_policy.id)
 
     return reply
 
