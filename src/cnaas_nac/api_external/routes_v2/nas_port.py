@@ -1,17 +1,17 @@
 from typing import Annotated, Any
-from fastapi import Response
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.db import get_async_session
+from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
 from cnaas_nac.core.security import get_current_user
+from cnaas_nac.filters.nas_port import NasPortFilter
 from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.schemas.nas_port import NasPortResponse
-from cnaas_nac.filters.nas_port import NasPortFilter
 
 router = APIRouter(prefix="/nas_port", tags=["nas_port"])
 
@@ -40,3 +40,27 @@ async def get_nas_ports(
     )
 
     return (await db.execute(query)).scalars().all()
+
+
+@router.delete("/{nas_port_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_nas_port(
+    nas_port_id: int,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> None:
+    """
+    Delete nas_port.
+    """
+
+    nas_port = (
+        await db.execute(select(NasPort).where(NasPort.id == nas_port_id))
+    ).scalar_one_or_none()
+
+    if not nas_port:
+        raise NotFound()
+
+    await db.delete(nas_port)
+
+    await db.commit()
+
+    return None
