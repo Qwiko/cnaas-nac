@@ -13,6 +13,7 @@ from cnaas_nac.models.policy import (
     PolicyReply,
     ReplyOperator,
 )
+from cnaas_nac.models.radpostauth import RadPostAuth
 
 pytestmark = pytest.mark.anyio
 
@@ -21,6 +22,7 @@ async def test_auth_endpoint_group(
     db: AsyncSession,
     int_client: AsyncClient,
 ) -> None:
+    await db.execute(delete(RadPostAuth))
     await db.execute(delete(PolicyCondition))
     await db.execute(delete(PolicyReply))
     await db.execute(delete(Policy))
@@ -103,6 +105,7 @@ async def test_auth_many_endpoint_groups(
     db: AsyncSession,
     int_client: AsyncClient,
 ) -> None:
+    await db.execute(delete(RadPostAuth))
     await db.execute(delete(PolicyCondition))
     await db.execute(delete(PolicyReply))
     await db.execute(delete(Policy))

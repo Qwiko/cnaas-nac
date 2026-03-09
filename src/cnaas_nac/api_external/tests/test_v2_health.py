@@ -10,7 +10,7 @@ async def test_v2_health(ext_client: AsyncClient) -> None:
     # Delete all entries from the db.
 
     response = await ext_client.get(
-        "/health",
+        "/api/v2/health",
     )
 
     assert response.status_code == status.HTTP_200_OK

@@ -18,7 +18,7 @@ from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.settings import EnvironmentOption, settings
 
 async_engine = create_async_engine(
-    settings.DB.ASYNC_PREFIX + settings.DB.URI, future=True
+    settings.POSTGRES_ASYNC_PREFIX + settings.POSTGRES_URI, future=True
 )
 async_session_factory = async_sessionmaker(bind=async_engine, expire_on_commit=False)
 

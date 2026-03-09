@@ -2,42 +2,8 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import Field, computed_field, BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-class DBSettings(BaseModel):
-    USER: str = "cnaas"
-    PASSWORD: str = "cnaas"
-    SERVER: str = "nac_postgres"
-    PORT: int = 5432
-    DB: str = "nac"
-
-    SYNC_PREFIX: str = "postgresql://"
-    ASYNC_PREFIX: str = "postgresql+asyncpg://"
-
-    URL: Optional[str] = None
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def URI(self) -> str:
-        return f"{self.USER}:{self.PASSWORD}@{self.SERVER}:{self.PORT}/{self.DB}"
-
-
-class RadiusSettings(BaseModel):
-    SLAVE: bool = False
-    LOCK_VLANS: list[int] = []
-    DEFAULT_VLAN: int = 13
-
-    COA_ENABLED: bool = True
-    COA_SECRET: str = "testing123"
-
-
-class OIDCSettings(BaseModel):
-    CLIENT_ID: str = Field(default="cnaas-nac", validation_alias="OIDC_CLIENT_ID")
-    CLIENT_SECRET: str = Field(default="", validation_alias="CLIENT_SECRET")
-    DISCOVERY_URL: str = ""
-    USERNAME_ATTRIBUTE: str = "preferred_username"
+from pydantic import computed_field
+from pydantic_settings import BaseSettings
 
 
 class EnvironmentOption(Enum):
@@ -47,13 +13,29 @@ class EnvironmentOption(Enum):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_nested_delimiter="__", nested_model_default_partial_update=True
-    )
+    POSTGRES_USER: str = "cnaas"
+    POSTGRES_PASSWORD: str = "cnaas"
+    POSTGRES_SERVER: str = "nac_postgres"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "nac"
 
-    DB: DBSettings = DBSettings()
-    RADIUS: RadiusSettings = RadiusSettings()
-    OIDC: OIDCSettings = OIDCSettings()
+    POSTGRES_SYNC_PREFIX: str = "postgresql://"
+    POSTGRES_ASYNC_PREFIX: str = "postgresql+asyncpg://"
+
+    POSTGRES_URL: Optional[str] = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def POSTGRES_URI(self) -> str:
+        return f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    RADIUS_COA_ENABLED: bool = True
+    RADIUS_COA_SECRET: str = "testing123"
+
+    OIDC_CLIENT_ID: str = "cnaas-nac"
+    OIDC_CLIENT_SECRET: str = ""
+    OIDC_DISCOVERY_URL: str = ""
+    OIDC_USERNAME_ATTRIBUTE: str = "preferred_username"
 
     SECRET_KEY: str = "replace_this_with_a_secure_random_string"
 

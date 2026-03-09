@@ -16,14 +16,14 @@ class CoA:
         self.client = Client(
             self.nasport.nas_ip_address,
             coaport=3799,
-            secret=str.encode(settings.RADIUS.COA_SECRET),
+            secret=str.encode(settings.RADIUS_COA_SECRET),
             dict=Dictionary("src/cnaas_nac/core/coa_dicts/dictionary"),
         )
 
         self.client.timeout = 10
 
     def send_packet(self) -> None:
-        if not settings.RADIUS.COA_ENABLED:
+        if not settings.RADIUS_COA_ENABLED:
             logger.debug("CoA is disabled, not sending CoA packet.")
             return
         logger.debug(

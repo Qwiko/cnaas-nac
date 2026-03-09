@@ -12,12 +12,9 @@ services:
     ports:
       - 8000:8000
     environment:
-      - RADIUS_SLAVE=no
       - RADIUS_COA_SECRET=testing123
-      - RADIUS_NO_PORT_LOCK=no
-      - RADIUS_DEFAULT_VLAN=13
-      - DB_USER=cnaas
-      - DB_PASSWORD=cnaas
+      - POSTGRES_USER=cnaas
+      - POSTGRES_PASSWORD=cnaas
     command: ["external"]
     depends_on:
       nac_postgres:
@@ -36,15 +33,10 @@ services:
     expose:
       - 8000
     ports:
-      - 8001:8000
+      - 8001:8000 # For local testing
     environment:
-      - RADIUS_SLAVE=no
-      - RADIUS_COA_SECRET=testing123
-      - RADIUS_NO_PORT_LOCK=no
-      - RADIUS_DEFAULT_VLAN=13
-      - DB_USER=cnaas
-      - DB_PASSWORD=cnaas
-      # - DB_NAME=nac
+      - POSTGRES_USER=cnaas
+      - POSTGRES_PASSWORD=cnaas
     command: ["internal"]
     depends_on:
       nac_postgres:

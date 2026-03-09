@@ -10,7 +10,6 @@ from cnaas_nac.api_internal.schemas import InternalAuth
 from cnaas_nac.api_internal.utils import accept, create_new_endpoint, reject
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.logging import get_logger
-from cnaas_nac.core.settings import settings
 from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.endpoint import Endpoint
 from cnaas_nac.models.policy import MatchLogic, Policy, PolicyCondition, PortLocking
@@ -98,7 +97,7 @@ async def post_auth(
     else:
         logger.debug(f"No policy matched for user: {auth.username}")
 
-        if not endpoint and not settings.RADIUS.SLAVE:
+        if not endpoint:
             logger.debug("Adding new endpoint")
             endpoint = await create_new_endpoint(db, auth)
 

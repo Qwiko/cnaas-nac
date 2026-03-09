@@ -12,7 +12,7 @@ config = context.config
 
 config.set_main_option(
     "sqlalchemy.url",
-    f"{settings.DB.SYNC_PREFIX}{settings.DB.URI}",
+    f"{settings.POSTGRES_SYNC_PREFIX}{settings.POSTGRES_URI}",
 )
 
 # Interpret the config file for Python logging.

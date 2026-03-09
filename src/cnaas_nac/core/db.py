@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from cnaas_nac.core.settings import settings
 
-DATABASE_URI = settings.DB.URI
-DATABASE_PREFIX = settings.DB.ASYNC_PREFIX
+DATABASE_URI = settings.POSTGRES_URI
+DATABASE_PREFIX = settings.POSTGRES_ASYNC_PREFIX
 DATABASE_URL = f"{DATABASE_PREFIX}{DATABASE_URI}"
 
 async_engine = create_async_engine(DATABASE_URL, echo=False, future=True)

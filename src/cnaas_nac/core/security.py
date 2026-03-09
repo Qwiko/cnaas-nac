@@ -16,9 +16,9 @@ oauth = OAuth()
 
 oauth.register(
     "oidc",
-    client_id=settings.OIDC.CLIENT_ID,
-    client_secret=settings.OIDC.CLIENT_SECRET,
-    server_metadata_url=settings.OIDC.DISCOVERY_URL,
+    client_id=settings.OIDC_CLIENT_ID,
+    client_secret=settings.OIDC_CLIENT_SECRET,
+    server_metadata_url=settings.OIDC_DISCOVERY_URL,
     client_kwargs={"scope": "openid profile email"},
 )
 

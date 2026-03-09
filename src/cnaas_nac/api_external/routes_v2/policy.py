@@ -171,6 +171,9 @@ async def delete_policy(
     Delete policy.
     """
 
+    # TODO:
+    # Handle rad_post_auth policy id references.
+
     policy = (
         await db.execute(select(Policy).where(Policy.id == policy_id))
     ).scalar_one_or_none()
