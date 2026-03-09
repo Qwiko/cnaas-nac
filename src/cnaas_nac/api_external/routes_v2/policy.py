@@ -48,9 +48,6 @@ async def read_policies(
 
     response.headers["X-Total-Count"] = str(total_count)
 
-    if total_count == 0:
-        response.status_code = status.HTTP_404_NOT_FOUND
-
     return (await db.execute(query)).scalars().all()
 
 
