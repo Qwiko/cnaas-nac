@@ -121,4 +121,4 @@ async def logout(request: Request, response: Response):
 async def me(current_user=Depends(get_current_user)):
     """Get current user information"""
 
-    return {"name": current_user.get(settings.OIDC.USERNAME_ATTRIBUTE)}
+    return {"name": current_user.get(settings.OIDC_USERNAME_ATTRIBUTE)}
