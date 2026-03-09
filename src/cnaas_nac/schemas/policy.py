@@ -1,6 +1,12 @@
-from typing import Annotated, List, Optional, Self
+from typing import Annotated, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+)
 
 from cnaas_nac.models.policy import (
     ClientType,
@@ -10,6 +16,7 @@ from cnaas_nac.models.policy import (
     PortType,
     ReplyOperator,
 )
+from cnaas_nac.schemas.generic import TimestampSchema
 
 
 class PolicyReplyBase(BaseModel):
@@ -19,6 +26,17 @@ class PolicyReplyBase(BaseModel):
     operator: ReplyOperator
     value: str = Field(..., max_length=255)
 
+    @field_validator("value", mode="after")
+    @classmethod
+    def validate_vlan_is_integer(cls, value: str, info: ValidationInfo) -> str:
+        target_attr = info.data.get("attribute")
+        if target_attr == "Tunnel-Private-Group-Id":
+            if not value.isnumeric():
+                raise ValueError("must be a number.")
+            if int(value) < 1 or int(value) > 4094:
+                raise ValueError("must be between 1 and 4094.")
+        return value
+
 
 class PolicyConditionBase(BaseModel):
     """Shared properties for Policy Conditions."""
@@ -27,12 +45,16 @@ class PolicyConditionBase(BaseModel):
     operator: ConditionOperator
     value: str | int
 
-    @model_validator(mode="after")
-    def validate_group_id_operator(self) -> Self:
-        if self.attribute == "group_id" and self.operator != ConditionOperator.EQUALS:
-            raise ValueError("Attribute group_id must be used with operator EQUALS.")
+    @field_validator("operator", mode="after")
+    @classmethod
+    def validate_group_id_operator(
+        cls, operator: ConditionOperator, info: ValidationInfo
+    ) -> ConditionOperator:
+        target_attr = info.data.get("attribute")
+        if target_attr == "group_id" and operator != ConditionOperator.EQUALS:
+            raise ValueError("attribute group_id must be used with operator EQUALS.")
 
-        return self
+        return operator
 
 
 class PolicyConditionCreate(PolicyConditionBase):
@@ -78,5 +100,5 @@ class PolicyUpdate(PolicyBase):
     pass
 
 
-class PolicyResponse(PolicyBase):
+class PolicyResponse(PolicyBase, TimestampSchema):
     id: int
