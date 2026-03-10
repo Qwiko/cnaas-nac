@@ -11,7 +11,8 @@ class Group(Base):
 
     name: Mapped[str] = mapped_column(String, unique=True, index=True)
 
-    allowed_vlans: Mapped[list[str]] = mapped_column(JSON, default=list)
+    # TODO change to a relation to group_ids array
+    allowed_groups: Mapped[list[str]] = mapped_column(JSON, default=list)
 
     permissions: Mapped[list["GroupPermission"]] = relationship(
         back_populates="group", lazy="selectin", cascade="all, delete-orphan"

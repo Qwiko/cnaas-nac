@@ -4,7 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, BackgroundTasks, Depends, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi_filter import FilterDepends
-from sqlalchemy import func, inspect, select
+from sqlalchemy import func, inspect, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.coa import CoA
@@ -40,9 +40,15 @@ async def get_endpoints(
     query = endpoint_filter.filter(query)
     query = endpoint_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
+    
+    # Add group filtering
+    # TODO groups -> None all groups should be visible
+    # group_filter = or_(Endpoint.group_id.in_([46]), Endpoint.state == EndpointState.DISCOVERED)
+    # query = query.where(group_filter)
 
     count_query = select(func.count()).select_from(Endpoint)
     count_query = endpoint_filter.filter(count_query)
+    # count_query = count_query.where(group_filter)
 
     total_count = (await db.execute(count_query)).scalar_one()
 
