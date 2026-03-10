@@ -3,6 +3,7 @@ from authlib.integrations.starlette_client import OAuthError
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from starlette.responses import RedirectResponse
 from urllib.parse import urlencode
+from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.security import get_current_user, oauth_client
 from cnaas_nac.core.settings import settings, EnvironmentOption
 
@@ -122,3 +123,19 @@ async def me(current_user=Depends(get_current_user)):
     """Get current user information"""
 
     return {"name": current_user.get(settings.OIDC_USERNAME_ATTRIBUTE)}
+
+
+@router.get("/permissions")
+async def get_permissions(current_user=Depends(get_current_user)):
+    """Get user permissions"""
+    # TODO actually map to rbac roles here.
+    
+    return {
+        "endpoint": ["GET", "POST", "PUT", "DELETE"],
+        "endpoint_group": ["GET", "POST", "PUT", "DELETE"],
+        "policy": ["GET", "POST", "PUT", "DELETE"],
+        "nas_port": ["GET", "POST", "PUT", "DELETE"],
+        "accounting": ["GET", "POST", "PUT", "DELETE"],
+        "authentication": ["GET", "POST", "PUT", "DELETE"],
+        "vlan": ["GET", "POST", "PUT", "DELETE"],
+    }
