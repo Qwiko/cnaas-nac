@@ -3,6 +3,7 @@ from ipaddress import IPv4Address, IPv6Address, IPv6Network
 from typing import Optional
 
 from pydantic import BaseModel, IPvAnyAddress
+from pydantic_extra_types.mac_address import MacAddress
 
 from cnaas_nac.schemas.generic import Username
 
@@ -10,6 +11,7 @@ from cnaas_nac.schemas.generic import Username
 class RadAcctLog(BaseModel):
     id: int
     username: Username
+    calling_station_id: MacAddress
     nas_ip_address: IPvAnyAddress
     nas_port_id: str
     nas_identifier: Optional[str] = None
@@ -35,6 +37,7 @@ class RadAcctLogFull(RadAcctLog):
 class RadPostAuthLog(BaseModel):
     id: int
     username: Username
+    calling_station_id: MacAddress
     nas_identifier: Optional[str] = None
     nas_port_id: Optional[str] = None
     auth_date: datetime

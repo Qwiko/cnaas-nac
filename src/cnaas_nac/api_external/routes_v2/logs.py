@@ -13,29 +13,29 @@ from cnaas_nac.core.security import get_current_user
 from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.models.radpostauth import RadPostAuth
 from cnaas_nac.schemas.logs import RadAcctLog, RadAcctLogFull, RadPostAuthLog
-from cnaas_nac.filters.logs import AccountingLogFilter, RadPostLogFilter
+from cnaas_nac.filters.logs import AccountingFilter, AuthenticationFilter
 
 router = APIRouter(prefix="", tags=["logs"])
 
 
-@router.get("/accounting_log", response_model=list[RadAcctLog])
-async def get_accounting_logs(
-    acct_log_filter: Annotated[AccountingLogFilter, FilterDepends(AccountingLogFilter)],
+@router.get("/accounting", response_model=list[RadAcctLog])
+async def get_accountings(
+    accounting_filter: Annotated[AccountingFilter, FilterDepends(AccountingFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
-    Get accounting logs.
+    Get accountings.
     """
     query = select(RadAcct)
-    query = acct_log_filter.filter(query)
-    query = acct_log_filter.sort(query)
+    query = accounting_filter.filter(query)
+    query = accounting_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
 
     count_query = select(func.count()).select_from(RadAcct)
-    count_query = acct_log_filter.filter(count_query)
+    count_query = accounting_filter.filter(count_query)
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -44,45 +44,45 @@ async def get_accounting_logs(
     return (await db.execute(query)).scalars().all()
 
 
-@router.get("/accounting_log/{accounting_log_id}", response_model=RadAcctLogFull)
-async def get_accounting_log(
-    accounting_log_id: int,
+@router.get("/accounting/{accounting_id}", response_model=RadAcctLogFull)
+async def get_accounting(
+    accounting_id: int,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
     """
-    Get accounting log.
+    Get accounting.
     """
 
-    accounting_log = (
-        await db.execute(select(RadAcct).where(RadAcct.id == accounting_log_id))
+    accounting = (
+        await db.execute(select(RadAcct).where(RadAcct.id == accounting_id))
     ).scalar_one_or_none()
 
-    if not accounting_log:
+    if not accounting:
         raise NotFound()
 
-    return accounting_log
+    return accounting
 
 
-@router.get("/authentication_log", response_model=list[RadPostAuthLog])
-async def get_authentication_logs(
-    post_auth_log_filter: Annotated[RadPostLogFilter, FilterDepends(RadPostLogFilter)],
+@router.get("/authentication", response_model=list[RadPostAuthLog])
+async def get_authentications(
+    authentication_filter: Annotated[AuthenticationFilter, FilterDepends(AuthenticationFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
-    Get authentication logs.
+    Get authentications.
     """
 
     query = select(RadPostAuth)
-    query = post_auth_log_filter.filter(query)
-    query = post_auth_log_filter.sort(query)
+    query = authentication_filter.filter(query)
+    query = authentication_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
 
     count_query = select(func.count()).select_from(RadPostAuth)
-    count_query = post_auth_log_filter.filter(count_query)
+    count_query = authentication_filter.filter(count_query)
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -92,22 +92,22 @@ async def get_authentication_logs(
 
 
 @router.get(
-    "/authentication_log/{authentication_log_id}", response_model=RadPostAuthLog
+    "/authentication/{authentication_id}", response_model=RadPostAuthLog
 )
-async def get_authentication_log(
-    authentication_log_id: int,
+async def get_authentication(
+    authentication_id: int,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
     """
-    Get accounting log.
+    Get authentication.
     """
 
-    authentication_log = (
-        await db.execute(select(RadAcct).where(RadAcct.id == authentication_log_id))
+    authentication = (
+        await db.execute(select(RadPostAuth).where(RadPostAuth.id == authentication_id))
     ).scalar_one_or_none()
 
-    if not authentication_log:
+    if not authentication:
         raise NotFound()
 
-    return authentication_log
+    return authentication
