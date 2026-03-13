@@ -66,7 +66,7 @@ async def get_authentication(
     return authentication
 
 
-@router.get("/authentication/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/authentication/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_authentication(
     authentication_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],

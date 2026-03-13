@@ -632,13 +632,13 @@ post-auth {
 
 			# Loop through the array and build the newline-separated string
 			foreach &Module-Failure-Message {
-				if ("%{Tmp-String-0}" == "") {
+				if ("&Tmp-String-0" == "") {
 					update request {
 						&Tmp-String-0 := "%{Foreach-Variable-0}"
 					}
 				} else {
 					update request {
-						&Tmp-String-0 := "%{Tmp-String-0}\n%{Foreach-Variable-0}"
+						&Tmp-String-0 := "&Tmp-String-0\n%{Foreach-Variable-0}"
 					}
 				}
 			}

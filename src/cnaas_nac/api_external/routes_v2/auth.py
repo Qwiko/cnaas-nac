@@ -136,5 +136,6 @@ async def get_permissions(current_user=Depends(get_current_user)):
         "nas_port": ["GET", "POST", "PUT", "DELETE"],
         "accounting": ["GET", "POST", "PUT", "DELETE"],
         "authentication": ["GET", "POST", "PUT", "DELETE"],
+        "radius_client": ["GET", "POST", "PUT", "DELETE"],
         "vlan": ["GET", "POST", "PUT", "DELETE"],
     }

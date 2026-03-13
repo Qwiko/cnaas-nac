@@ -188,6 +188,19 @@ RadAcct.endpoint_group_id = column_property(
     .scalar_subquery()
 )
 
+RadPostAuth.endpoint_id = column_property(
+    select(Endpoint.id)
+    .where(
+        and_(
+            Endpoint.username == RadPostAuth.username,
+            Endpoint.calling_station_id == RadPostAuth.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
 RadPostAuth.endpoint_group_id = column_property(
     select(Endpoint.group_id)
     .where(

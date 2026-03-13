@@ -20,10 +20,10 @@ COPY docker/radius/raddb/dictionary.local /etc/raddb/dictionary.local
 
 RUN ln -s /etc/raddb/mods-available/rest /etc/raddb/mods-enabled/rest && \
     ln -s /etc/raddb/mods-available/sql /etc/raddb/mods-enabled/sql
+
 # RUN ln -s /etc/raddb/mods-available/ldap /etc/raddb/mods-enabled/ldap
-
-RUN ln -s ./etc/raddb/sites-available/control-socket /etc/raddb/sites-enabled/control-socket
-
+RUN ln -s ./etc/raddb/sites-available/control-socket /etc/raddb/sites-enabled/control-socket && \
+    ln -s /etc/raddb/sites-available/dynamic-clients /etc/raddb/sites-enabled/dynamic-clients
 
 COPY docker/radius/pre-start.sh /docker-entrypoint.d/pre-start.sh
 RUN chmod u+x /docker-entrypoint.d/pre-start.sh
