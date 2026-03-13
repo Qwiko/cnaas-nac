@@ -1,6 +1,7 @@
 import datetime
 from typing import Optional
 
+from pydantic import IPvAnyAddress
 from sqlalchemy import (
     BigInteger,
     DateTime,
@@ -9,6 +10,7 @@ from sqlalchemy import (
     Text,
     text,
 )
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -28,8 +30,8 @@ class RadPostAuth(Base):
     pass_: Mapped[Optional[str]] = mapped_column("pass", Text)
     reply: Mapped[Optional[str]] = mapped_column(Text)
     called_station_id: Mapped[Optional[str]] = mapped_column(Text)
+    nas_ip_address: Mapped[IPvAnyAddress] = mapped_column(INET, nullable=False)
 
-    # Custom nac fields
     matched_policy_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("policy.id", name="fk_policy_id"), nullable=True
     )

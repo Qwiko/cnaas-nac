@@ -28,5 +28,5 @@ class NasFilter(Filter):
 
     class Constants(Filter.Constants):
         model = Nas
-        search_model_fields = ["name", "network"]
+        search_model_fields = ["name"]
         search_field_name = "q"
