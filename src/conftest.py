@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from alembic.config import Config
+from alembic import command
 
 from cnaas_nac.api_external.main import app as external_app
 from cnaas_nac.api_internal.main import app as internal_app
@@ -102,6 +104,12 @@ async def int_client(
         yield ac
 
     internal_app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def apply_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
 
 @pytest.fixture(autouse=True)
