@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Path, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi_filter import FilterDepends
-from sqlalchemy import func, inspect, or_, select
+from sqlalchemy import func, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.coa import CoA
@@ -40,7 +40,7 @@ async def get_endpoints(
     query = endpoint_filter.filter(query)
     query = endpoint_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    
+
     # Add group filtering
     # TODO groups -> None all groups should be visible
     # group_filter = or_(Endpoint.group_id.in_([46]), Endpoint.state == EndpointState.DISCOVERED)
@@ -92,9 +92,9 @@ async def post_endpoint(
     return endpoint
 
 
-@router.get("/{endpoint_id}", response_model=EndpointResponse)
+@router.get("/{id}", response_model=EndpointResponse)
 async def read_username(
-    endpoint_id: int,
+    endpoint_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
     response: Response,
@@ -113,9 +113,9 @@ async def read_username(
     return endpoint
 
 
-@router.put("/{endpoint_id}", response_model=EndpointResponse)
+@router.put("/{id}", response_model=EndpointResponse)
 async def put_user(
-    endpoint_id: int,
+    endpoint_id: Annotated[int, Path(alias="id")],
     input_endpoint: EndpointUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -186,9 +186,9 @@ async def put_user(
     return existing_endpoint
 
 
-@router.delete("/{endpoint_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    endpoint_id: int,
+    endpoint_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
     background_tasks: BackgroundTasks,

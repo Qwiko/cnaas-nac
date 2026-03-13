@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Path, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select
@@ -99,9 +99,9 @@ async def post_policy(
     return policy
 
 
-@router.get("/{policy_id}", response_model=PolicyResponse)
+@router.get("/{id}", response_model=PolicyResponse)
 async def read_policy(
-    policy_id: int,
+    policy_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
@@ -119,9 +119,9 @@ async def read_policy(
     return policy
 
 
-@router.put("/{policy_id}", response_model=PolicyResponse)
+@router.put("/{id}", response_model=PolicyResponse)
 async def put_policy(
-    policy_id: int,
+    policy_id: Annotated[int, Path(alias="id")],
     input_policy: PolicyUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -158,9 +158,9 @@ async def put_policy(
     return existing_policy
 
 
-@router.delete("/{policy_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_policy(
-    policy_id: int,
+    policy_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:

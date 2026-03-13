@@ -10,6 +10,8 @@ from cnaas_nac.schemas.generic import Username
 
 class RadAcctLog(BaseModel):
     id: int
+    endpoint_id: Optional[int] = None
+
     username: Username
     calling_station_id: MacAddress
     nas_ip_address: IPvAnyAddress
@@ -36,6 +38,8 @@ class RadAcctLogFull(RadAcctLog):
 
 class RadPostAuthLog(BaseModel):
     id: int
+    endpoint_id: Optional[int] = None
+
     username: Username
     calling_station_id: MacAddress
     nas_identifier: Optional[str] = None

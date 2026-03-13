@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Path, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,9 +40,9 @@ async def get_vlans(
     return [{"vlan": int(vlan)} for vlan in vlans]
 
 
-@router.get("/{vlan_id}", response_model=VlanResponse)
+@router.get("/{id}", response_model=VlanResponse)
 async def get_vlans_id(
-    vlan_id: int,
+    vlan_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user=Depends(get_current_user),
 ) -> Any:

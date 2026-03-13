@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Path, Response, status
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,9 +42,9 @@ async def get_nas_ports(
     return (await db.execute(query)).scalars().all()
 
 
-@router.delete("/{nas_port_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_nas_port(
-    nas_port_id: int,
+    nas_port_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:

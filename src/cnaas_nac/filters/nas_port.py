@@ -6,6 +6,14 @@ from cnaas_nac.models.nas_port import NasPort
 
 
 class NasPortFilter(Filter):
+    id: Optional[int] = None
+    id__in: Optional[list[int]] = None
+    id__neq: Optional[str] = None
+
+    endpoint_id: Optional[int] = None
+    endpoint_id__in: Optional[list[int]] = None
+    endpoint_id__neq: Optional[str] = None
+
     username: Optional[str] = None
     username__in: Optional[list[str]] = None
     username__ilike: Optional[str] = None

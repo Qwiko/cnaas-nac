@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -71,9 +71,9 @@ async def read_groups(
     return groups
 
 
-@router.get("/{group_id}", response_model=GroupResponse)
+@router.get("/{id}", response_model=GroupResponse)
 async def read_group(
-    group_id: int,
+    group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):
@@ -86,9 +86,9 @@ async def read_group(
     return db_group
 
 
-@router.put("/{group_id}", response_model=GroupResponse)
+@router.put("/{id}", response_model=GroupResponse)
 async def update_group(
-    group_id: int,
+    group_id: Annotated[int, Path(alias="id")],
     group_in: GroupCreate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -112,9 +112,9 @@ async def update_group(
     return db_group
 
 
-@router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_group(
-    group_id: int,
+    group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ):

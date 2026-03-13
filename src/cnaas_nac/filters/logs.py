@@ -8,6 +8,14 @@ from cnaas_nac.models.radpostauth import RadPostAuth
 
 
 class AccountingFilter(Filter):
+    id: Optional[int] = None
+    id__in: Optional[list[int]] = None
+    id__neq: Optional[str] = None
+
+    endpoint_id: Optional[int] = None
+    endpoint_id__in: Optional[list[int]] = None
+    endpoint_id__neq: Optional[str] = None
+
     username: Optional[str] = None
     username__in: Optional[list[str]] = None
     username__ilike: Optional[str] = None
@@ -34,22 +42,22 @@ class AccountingFilter(Filter):
 
     acct_start_time: Optional[datetime] = None
     acct_start_time__isnull: Optional[bool] = None
-    acct_start_time__gt: Optional[list[datetime]] = None
-    acct_start_time__gte: Optional[list[datetime]] = None
+    acct_start_time__gt: Optional[datetime] = None
+    acct_start_time__gte: Optional[datetime] = None
     acct_start_time__lt: Optional[datetime] = None
     acct_start_time__lte: Optional[datetime] = None
 
     acct_update_time: Optional[datetime] = None
     acct_update_time__isnull: Optional[bool] = None
-    acct_update_time__gt: Optional[list[datetime]] = None
-    acct_update_time__gte: Optional[list[datetime]] = None
+    acct_update_time__gt: Optional[datetime] = None
+    acct_update_time__gte: Optional[datetime] = None
     acct_update_time__lt: Optional[datetime] = None
     acct_update_time__lte: Optional[datetime] = None
 
     acct_stop_time: Optional[datetime] = None
     acct_stop_time__isnull: Optional[bool] = None
-    acct_stop_time__gt: Optional[list[datetime]] = None
-    acct_stop_time__gte: Optional[list[datetime]] = None
+    acct_stop_time__gt: Optional[datetime] = None
+    acct_stop_time__gte: Optional[datetime] = None
     acct_stop_time__lt: Optional[datetime] = None
     acct_stop_time__lte: Optional[datetime] = None
 
@@ -64,6 +72,14 @@ class AccountingFilter(Filter):
 
 
 class AuthenticationFilter(Filter):
+    id: Optional[int] = None
+    id__in: Optional[list[int]] = None
+    id__neq: Optional[str] = None
+
+    endpoint_id: Optional[int] = None
+    endpoint_id__in: Optional[list[int]] = None
+    endpoint_id__neq: Optional[str] = None
+
     username: Optional[str] = None
     username__in: Optional[list[str]] = None
     username__ilike: Optional[str] = None
@@ -99,6 +115,12 @@ class AuthenticationFilter(Filter):
     reply__ilike: Optional[str] = None
     reply__like: Optional[str] = None
     reply__neq: Optional[str] = None
+
+    auth_date: Optional[datetime] = None
+    auth_date__gt: Optional[datetime] = None
+    auth_date__gte: Optional[datetime] = None
+    auth_date__lt: Optional[datetime] = None
+    auth_date__lte: Optional[datetime] = None
 
     order_by: list[str] = ["auth_date"]
 

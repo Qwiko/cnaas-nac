@@ -9,9 +9,10 @@ from sqlalchemy import (
     Enum,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
 
 from cnaas_nac.models.endpoint import EndpointGroup
+from cnaas_nac.models.radpostauth import RadPostAuth
 
 from .base import Base, TimestampsMixin
 
@@ -58,7 +59,7 @@ class Policy(Base, TimestampsMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(100), unique=True)
 
-    description: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
+    description: Mapped[Optional[str]] = mapped_column(String(255))
 
     # Priority: Lower number = evaluated first
     priority: Mapped[int] = mapped_column(Integer, default=100, index=True)
@@ -92,6 +93,12 @@ class Policy(Base, TimestampsMixin):
         back_populates="policy",
         lazy="selectin",
         cascade="all, delete-orphan",  # Deleting a rule deletes its replies
+    )
+
+    radpostauths: Mapped[list["RadPostAuth"]] = relationship(
+        primaryjoin=id == foreign(RadPostAuth.matched_policy_id),
+        foreign_keys="[RadPostAuth.matched_policy_id]",
+        cascade="all, delete-orphan",
     )
 
 

@@ -7,6 +7,8 @@ from cnaas_nac.schemas.generic import TimestampSchema
 
 class NasPortResponse(TimestampSchema):
     id: int
+    endpoint_id: int
+
     username: Username
     nas_identifier: Optional[str] = None
     nas_port_id: Optional[str] = None

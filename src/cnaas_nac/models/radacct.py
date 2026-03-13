@@ -1,7 +1,6 @@
 import datetime
 from ipaddress import IPv4Address, IPv6Address, IPv6Network
 from typing import Any, Optional
-
 from sqlalchemy import (
     BigInteger,
     Column,

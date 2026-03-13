@@ -1,5 +1,5 @@
 from typing import Annotated, Any
-from fastapi import HTTPException, status, Response
+from fastapi import HTTPException, Path, status, Response
 
 from fastapi import APIRouter, Depends
 from fastapi_filter import FilterDepends
@@ -76,9 +76,9 @@ async def post_endpoint_group(
     return group
 
 
-@router.get("/{group_id}", response_model=EndpointGroupResponse)
+@router.get("/{id}", response_model=EndpointGroupResponse)
 async def get_endpoint_group(
-    group_id: int,
+    group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> Any:
@@ -96,9 +96,9 @@ async def get_endpoint_group(
     return endpoint_group
 
 
-@router.put("/{group_id}", response_model=EndpointGroupResponse)
+@router.put("/{id}", response_model=EndpointGroupResponse)
 async def put_endpoint_group(
-    group_id: int,
+    group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     input_group: EndpointGroupBase,
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -123,9 +123,9 @@ async def put_endpoint_group(
     return existing_group
 
 
-@router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_endpoint_group(
-    group_id: int,
+    group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:

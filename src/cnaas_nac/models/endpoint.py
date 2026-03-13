@@ -15,10 +15,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, column_property, foreign, mapped_column, relationship
 
 from cnaas_nac.models.nas_port import NasPort
-from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.models.radpostauth import RadPostAuth
 
 from .base import Base, TimestampsMixin
+
+from cnaas_nac.models.radacct import RadAcct
 
 
 class EndpointState(str, enum.Enum):
@@ -132,3 +133,70 @@ class Endpoint(Base, TimestampsMixin):
         foreign_keys="[RadPostAuth.username, RadPostAuth.calling_station_id]",
         cascade="all, delete-orphan",
     )
+
+
+# Attact endpoint_id column_property
+NasPort.endpoint_id = column_property(
+    select(Endpoint.id)
+    .where(
+        and_(
+            Endpoint.username == NasPort.username,
+            Endpoint.calling_station_id == NasPort.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
+NasPort.endpoint_group_id = column_property(
+    select(Endpoint.group_id)
+    .where(
+        and_(
+            Endpoint.username == NasPort.username,
+            Endpoint.calling_station_id == NasPort.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
+RadAcct.endpoint_id = column_property(
+    select(Endpoint.id)
+    .where(
+        and_(
+            Endpoint.username == RadAcct.username,
+            Endpoint.calling_station_id == RadAcct.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
+RadAcct.endpoint_group_id = column_property(
+    select(Endpoint.group_id)
+    .where(
+        and_(
+            Endpoint.username == RadAcct.username,
+            Endpoint.calling_station_id == RadAcct.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
+RadPostAuth.endpoint_group_id = column_property(
+    select(Endpoint.group_id)
+    .where(
+        and_(
+            Endpoint.username == RadPostAuth.username,
+            Endpoint.calling_station_id == RadPostAuth.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
