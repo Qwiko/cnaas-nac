@@ -4,14 +4,12 @@ from httpx import AsyncClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.models.endpoint import Endpoint, EndpointGroup
+from cnaas_nac.models.endpoint import EndpointGroup
 from cnaas_nac.models.policy import (
     ConditionOperator,
     Policy,
     PolicyCondition,
-    PolicyReply,
 )
-from cnaas_nac.models.radpostauth import RadPostAuth
 
 pytestmark = pytest.mark.anyio
 

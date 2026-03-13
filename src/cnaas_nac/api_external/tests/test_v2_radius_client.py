@@ -5,13 +5,6 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.models.nas import Nas
-from cnaas_nac.models.policy import (
-    ConditionOperator,
-    Policy,
-    PolicyCondition,
-    PolicyReply,
-)
-from cnaas_nac.models.radpostauth import RadPostAuth
 
 pytestmark = pytest.mark.anyio
 
@@ -116,7 +109,7 @@ async def test_v2_radius_client_put_name(
     await db.refresh(nas)
     response = await ext_client.put(
         f"/api/v2/radius_client/{nas.id}",
-        json={"name": "TestClient2", "network":"10.0.0.0/24", "secret": "testing123"},
+        json={"name": "TestClient2", "network": "10.0.0.0/24", "secret": "testing123"},
     )
 
     res_json = response.json()
