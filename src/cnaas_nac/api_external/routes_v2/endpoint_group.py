@@ -12,6 +12,7 @@ from cnaas_nac.core.pagination import PaginationParams
 from cnaas_nac.core.security import get_current_user
 from cnaas_nac.filters.endpoint_group import EndpointGroupFilter
 from cnaas_nac.models.endpoint import EndpointGroup
+from cnaas_nac.models.policy import PolicyCondition
 from cnaas_nac.schemas.endpoint_group import EndpointGroupBase, EndpointGroupResponse
 
 router = APIRouter(prefix="/endpoint_group", tags=["endpoint"])
@@ -119,6 +120,7 @@ async def put_endpoint_group(
             setattr(existing_group, k, v)
 
     await db.commit()
+    await db.refresh(existing_group)
 
     return existing_group
 
@@ -139,6 +141,18 @@ async def delete_endpoint_group(
 
     if not endpoint_group:
         raise NotFound()
+
+    policy_conditions = (
+        await db.execute(
+            select(PolicyCondition).where(PolicyCondition.group_id == group_id)
+        )
+    ).scalar_one_or_none()
+
+    if policy_conditions:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="This group is used in a policy.",
+        )
 
     await db.delete(endpoint_group)
 

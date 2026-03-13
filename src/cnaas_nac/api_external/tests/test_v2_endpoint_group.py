@@ -4,8 +4,14 @@ from httpx import AsyncClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.models.endpoint import EndpointGroup
-
+from cnaas_nac.models.endpoint import Endpoint, EndpointGroup
+from cnaas_nac.models.policy import (
+    ConditionOperator,
+    Policy,
+    PolicyCondition,
+    PolicyReply,
+)
+from cnaas_nac.models.radpostauth import RadPostAuth
 
 pytestmark = pytest.mark.anyio
 
@@ -50,6 +56,7 @@ async def test_v2_endpoint_group_notfound(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     await db.execute(delete(EndpointGroup))
+
     response = await ext_client.get(
         "/api/v2/endpoint_group",
     )
@@ -129,3 +136,32 @@ async def test_v2_endpoint_group_delete_name(
     assert (
         await db.execute(select(EndpointGroup).where(EndpointGroup.name == "group01"))
     ).scalar_one_or_none() is None
+
+
+async def test_v2_endpoint_group_delete_when_used(
+    db: AsyncSession, ext_client: AsyncClient
+) -> None:
+    # Create entry in db
+    group = EndpointGroup(id=1, name="group01")
+
+    policy = Policy(name="Test")
+
+    policy.conditions = [
+        PolicyCondition(
+            policy=policy,
+            attribute="Whatever",
+            operator=ConditionOperator.EQUALS,
+            group_id=1,
+        )
+    ]
+
+    db.add(group)
+    db.add(policy)
+
+    await db.commit()
+    await db.refresh(group)
+    response = await ext_client.delete(
+        f"/api/v2/endpoint_group/{group.id}",
+    )
+
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
