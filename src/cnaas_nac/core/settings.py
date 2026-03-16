@@ -1,9 +1,11 @@
 # from enum import Enum
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import computed_field
+from pydantic import computed_field, field_validator
 from pydantic_settings import BaseSettings
+
+import logging
 
 
 class EnvironmentOption(Enum):
@@ -42,6 +44,17 @@ class Settings(BaseSettings):
     FRONTEND_CALLBACK_URL: str = "/#/auth-callback"
 
     ENVIRONMENT: EnvironmentOption = EnvironmentOption.LOCAL
+
+    LOGGING: str | int = logging.INFO
+
+    @field_validator("LOGGING", mode="before")
+    @classmethod
+    def setup_logging(cls, v: Any) -> int:
+        if not v:
+            return logging.INFO
+        if v not in logging._nameToLevel:
+            return logging.INFO
+        return logging._nameToLevel.get(v, logging.INFO)
 
 
 settings = Settings()

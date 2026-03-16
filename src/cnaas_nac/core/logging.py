@@ -1,5 +1,7 @@
 import logging
 
+from cnaas_nac.core.settings import settings
+
 
 def get_logger() -> logging.Logger:
     logger = logging.getLogger("cnaas-nac")
@@ -10,5 +12,5 @@ def get_logger() -> logging.Logger:
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(settings.LOGGING)
     return logger
