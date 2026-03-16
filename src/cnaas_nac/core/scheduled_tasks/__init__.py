@@ -23,15 +23,15 @@ scheduler = AsyncIOScheduler()
 def setup_scheduled_tasks() -> AsyncIOScheduler:
     logger.info("Setting up scheduled tasks")
 
-    scheduler.add_job(prune_eap_authorized_endpoints, "interval", days=1)
-    scheduler.add_job(prune_eap_rejected_endpoints, "interval", days=1)
+    scheduler.add_job(prune_eap_authorized_endpoints, "cron", hour=1, minute=0)
+    scheduler.add_job(prune_eap_rejected_endpoints, "cron", hour=1, minute=0)
 
-    scheduler.add_job(prune_mab_authorized_endpoints, "interval", days=1)
-    scheduler.add_job(prune_mab_discovered_endpoints, "interval", days=1)
-    scheduler.add_job(prune_mab_pending_endpoints, "interval", days=1)
-    scheduler.add_job(prune_mab_rejected_endpoints, "interval", days=1)
+    scheduler.add_job(prune_mab_authorized_endpoints, "cron", hour=1, minute=0)
+    scheduler.add_job(prune_mab_discovered_endpoints, "cron", hour=1, minute=0)
+    scheduler.add_job(prune_mab_pending_endpoints, "cron", hour=1, minute=0)
+    scheduler.add_job(prune_mab_rejected_endpoints, "cron", hour=1, minute=0)
 
-    scheduler.add_job(prune_postauth, "interval", days=1)
-    scheduler.add_job(prune_radacct, "interval", days=1)
+    scheduler.add_job(prune_postauth, "cron", hour=2, minute=0)
+    scheduler.add_job(prune_radacct, "cron", hour=2, minute=0)
 
     return scheduler
