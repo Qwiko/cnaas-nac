@@ -1,8 +1,8 @@
 # from enum import Enum
 from enum import Enum
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
-from pydantic import computed_field, field_validator
+from pydantic import Field, computed_field, field_validator
 from pydantic_settings import BaseSettings
 
 import logging
@@ -47,17 +47,17 @@ class Settings(BaseSettings):
 
     PRUNING_DISABLED: bool = False
 
-    ENDPOINT_MAB_DISCOVERED_RETENTION_DAYS: int = 30
-    ENDPOINT_MAB_PENDING_RETENTION_DAYS: int = 30
+    ENDPOINT_MAB_DISCOVERED_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 30
+    ENDPOINT_MAB_PENDING_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 30
 
-    ENDPOINT_MAB_REJECTED_RETENTION_DAYS: int = 30
-    ENDPOINT_EAP_REJECTED_RETENTION_DAYS: int = 30
+    ENDPOINT_MAB_REJECTED_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 30
+    ENDPOINT_EAP_REJECTED_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 30
 
-    ENDPOINT_MAB_AUTHORIZED_RETENTION_DAYS: int = 90
-    ENDPOINT_EAP_AUTHORIZED_RETENTION_DAYS: int = 90
+    ENDPOINT_MAB_AUTHORIZED_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 90
+    ENDPOINT_EAP_AUTHORIZED_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 90
 
-    RADACCT_RETENTION_DAYS: int = 90
-    RADPOSTAUTH_RETENTION_DAYS: int = 90
+    RADACCT_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 90
+    RADPOSTAUTH_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 90
 
     LOGGING: str | int = logging.INFO
 
