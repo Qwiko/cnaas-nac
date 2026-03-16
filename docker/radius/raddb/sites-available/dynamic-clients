@@ -99,7 +99,7 @@ server dynamic_clients {
 
 				&FreeRADIUS-Client-NAS-Type = "%{sql: SELECT type FROM nas WHERE '%{Packet-Src-IP-Address}'::inet <<= network}"
 
-				&FreeRADIUS-Client-Virtual-Server = "default" #"%{sql: SELECT name FROM nas WHERE '%{Packet-Src-IP-Address}'::inet <<= network}"
+				&FreeRADIUS-Client-Virtual-Server = "%{sql: SELECT server FROM nas WHERE '%{Packet-Src-IP-Address}'::inet <<= network}"
 			}
 
 		}
