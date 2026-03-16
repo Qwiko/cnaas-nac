@@ -126,7 +126,13 @@ async def test_v2_endpoint_delete_name(
             called_station_id="00:00:00:00:00:00",
         )
     )
-    db.add(RadPostAuth(username=local_username, calling_station_id=local_username))
+    db.add(
+        RadPostAuth(
+            username=local_username,
+            calling_station_id=local_username,
+            nas_ip_address="192.168.1.1",
+        )
+    )
 
     await db.commit()
 
