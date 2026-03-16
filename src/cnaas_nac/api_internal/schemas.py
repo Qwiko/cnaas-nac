@@ -27,14 +27,14 @@ class InternalAuth(BaseModel):
     nas_ip_address: Annotated[IPvAnyAddress, Field(examples=["1.1.1.1"])]
     ldap_groups: Annotated[list[str], Field(examples=[["admins", "employees"]])] = []
 
-    @field_validator('ldap_groups', mode='before')
+    @field_validator("ldap_groups", mode="before")
     @classmethod
     def parse_radius_groups(cls, value):
         if isinstance(value, str):
             if not value.strip():
                 return []
-            return [group.strip() for group in value.split(',') if group.strip()]
-        
+            return [group.strip() for group in value.split(",") if group.strip()]
+
         return value
 
     @field_validator("nas_ip_address", mode="after")

@@ -2,7 +2,6 @@ import re
 from typing import Dict, Any, Optional
 
 
-from cnaas_nac.models.endpoint import Endpoint
 from cnaas_nac.models.policy import (
     Policy,
     PolicyCondition,
