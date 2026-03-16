@@ -107,3 +107,7 @@ async def test_policy_in_list(db: AsyncSession) -> None:
     await db.refresh(policy, attribute_names=["conditions"])
 
     assert not evaluate_policy(policy, {"username": "test@example.com"}, None)
+
+    assert evaluate_policy(
+        policy, {"username": "test@example.com", "ldap_groups": ["GROUP_1"]}, None
+    )

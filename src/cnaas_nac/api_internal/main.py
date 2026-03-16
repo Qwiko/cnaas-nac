@@ -17,7 +17,7 @@ from cnaas_nac.api_internal.exceptions import (
     unauthorized_exception_handler,
     validation_exception_handler,
 )
-from cnaas_nac.api_internal.scheduled_tasks import setup_scheduled_tasks
+from cnaas_nac.core.scheduled_tasks import setup_scheduled_tasks
 from cnaas_nac.api_internal.schemas import AccessReject
 from cnaas_nac.core.db import get_async_session
 
