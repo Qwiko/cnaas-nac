@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
 from sqlalchemy.exc import InterfaceError
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from cnaas_nac.core.settings import settings
 from alembic import command
 from cnaas_nac.api_internal.auth import router as auth_router
 
@@ -31,10 +31,11 @@ def run_alembic_migrations():
 async def lifespan(app_: FastAPI):
     run_alembic_migrations()
 
-    scheduler = setup_scheduled_tasks()
-    scheduler.start()
-    yield
-    scheduler.shutdown()
+    if not settings.PRUNING_DISABLED:
+        scheduler = setup_scheduled_tasks()
+        scheduler.start()
+        yield
+        scheduler.shutdown()
 
 
 app = FastAPI(

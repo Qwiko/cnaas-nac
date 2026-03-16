@@ -45,6 +45,20 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: EnvironmentOption = EnvironmentOption.LOCAL
 
+    PRUNING_DISABLED: bool = False
+
+    ENDPOINT_MAB_DISCOVERED_RETENTION_DAYS: int = 30
+    ENDPOINT_MAB_PENDING_RETENTION_DAYS: int = 30
+
+    ENDPOINT_MAB_REJECTED_RETENTION_DAYS: int = 30
+    ENDPOINT_EAP_REJECTED_RETENTION_DAYS: int = 30
+
+    ENDPOINT_MAB_AUTHORIZED_RETENTION_DAYS: int = 90
+    ENDPOINT_EAP_AUTHORIZED_RETENTION_DAYS: int = 90
+
+    RADACCT_RETENTION_DAYS: int = 90
+    RADPOSTAUTH_RETENTION_DAYS: int = 90
+
     LOGGING: str | int = logging.INFO
 
     @field_validator("LOGGING", mode="before")

@@ -5,6 +5,7 @@ from sqlalchemy import delete
 from cnaas_nac.core.db import async_session_factory
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.models.radacct import RadAcct
+from cnaas_nac.core.settings import settings
 
 logger = get_logger()
 
@@ -12,7 +13,9 @@ logger = get_logger()
 async def prune_radacct():
     async with async_session_factory() as db:
         logger.info("Starting task: prune_acct")
-        threshold_date = datetime.now() - timedelta(days=90)
+        threshold_date = datetime.now() - timedelta(
+            days=settings.RADACCT_RETENTION_DAYS
+        )
 
         delete_stmt = delete(RadAcct).where(RadAcct.acct_stop_time < threshold_date)
 

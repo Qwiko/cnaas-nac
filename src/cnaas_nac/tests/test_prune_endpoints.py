@@ -2,18 +2,20 @@ from datetime import datetime, timedelta
 from typing import Callable
 from unittest.mock import patch
 
-from fastapi.concurrency import asynccontextmanager
 import pytest
+from fastapi.concurrency import asynccontextmanager
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.core.scheduled_tasks.prune_endpoints import (
-    prune_discovered_endpoints,
-    prune_rejected_endpoints,
-    prune_pending_endpoints,
-    prune_authorized_endpoints,
+    prune_eap_authorized_endpoints,
+    prune_eap_rejected_endpoints,
+    prune_mab_authorized_endpoints,
+    prune_mab_discovered_endpoints,
+    prune_mab_pending_endpoints,
+    prune_mab_rejected_endpoints,
 )
+from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.models.radpostauth import RadPostAuth
 
 pytestmark = pytest.mark.anyio
@@ -25,16 +27,23 @@ async def create_endpoints(
     start: int,
     stop: int,
     prune_func: Callable,
+    is_mac: bool = True,
 ) -> tuple[int, int]:
     now = datetime.now()
     for i in range(start, stop):
         mac = f"AA:BB:{i * 1 % 256:02X}:{(i * 2) % 256:02X}:{(i * 3) % 256:02X}:{(i * 4) % 256:02X}".lower()
 
+        if is_mac:
+            username = mac
+        else:
+            username = f"some_user_{i}"
         auth_date = now - timedelta(days=i)
 
-        endpoint = Endpoint(username=mac, calling_station_id=mac, state=endpoint_state)
+        endpoint = Endpoint(
+            username=username, calling_station_id=mac, state=endpoint_state
+        )
         rad_post = RadPostAuth(
-            username=mac,
+            username=username,
             calling_station_id=mac,
             nas_ip_address="127.0.0.1",
             auth_date=auth_date,
@@ -65,33 +74,49 @@ async def create_endpoints(
     return pre_count, post_count
 
 
-async def test_prune_discovered_endpoints(db: AsyncSession) -> None:
+async def test_prune_mab_discovered_endpoints(db: AsyncSession) -> None:
     pre_count, post_count = await create_endpoints(
-        db, EndpointState.DISCOVERED, 0, 60, prune_discovered_endpoints
+        db, EndpointState.DISCOVERED, 0, 60, prune_mab_discovered_endpoints
     )
 
     assert pre_count - post_count == 30
 
 
-async def test_prune_rejected_endpoints(db: AsyncSession) -> None:
+async def test_prune_mab_rejected_endpoints(db: AsyncSession) -> None:
     pre_count, post_count = await create_endpoints(
-        db, EndpointState.REJECTED, 0, 60, prune_rejected_endpoints
+        db, EndpointState.REJECTED, 0, 60, prune_mab_rejected_endpoints
     )
 
     assert pre_count - post_count == 30
 
 
-async def test_prune_pending_endpoints(db: AsyncSession) -> None:
+async def test_prune_mab_pending_endpoints(db: AsyncSession) -> None:
     pre_count, post_count = await create_endpoints(
-        db, EndpointState.PENDING, 0, 60, prune_pending_endpoints
+        db, EndpointState.PENDING, 0, 60, prune_mab_pending_endpoints
     )
 
     assert pre_count - post_count == 30
 
 
-async def test_prune_authorized_endpoints(db: AsyncSession) -> None:
+async def test_prune_mab_authorized_endpoints(db: AsyncSession) -> None:
     pre_count, post_count = await create_endpoints(
-        db, EndpointState.AUTHORIZED, 0, 60, prune_authorized_endpoints
+        db, EndpointState.AUTHORIZED, 0, 91, prune_mab_authorized_endpoints
+    )
+
+    assert pre_count - post_count == 1
+
+
+async def test_prune_eap_rejected_endpoints(db: AsyncSession) -> None:
+    pre_count, post_count = await create_endpoints(
+        db, EndpointState.REJECTED, 0, 60, prune_eap_rejected_endpoints, False
     )
 
     assert pre_count - post_count == 30
+
+
+async def test_prune_eap_authorized_endpoints(db: AsyncSession) -> None:
+    pre_count, post_count = await create_endpoints(
+        db, EndpointState.AUTHORIZED, 0, 91, prune_eap_authorized_endpoints, False
+    )
+
+    assert pre_count - post_count == 1

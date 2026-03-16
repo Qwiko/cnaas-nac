@@ -4,16 +4,18 @@ from sqlalchemy import and_, func, select
 
 from cnaas_nac.core.db import async_session_factory
 from cnaas_nac.core.logging import get_logger
-
+from cnaas_nac.core.settings import settings
 from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.models.radpostauth import RadPostAuth
 
 logger = get_logger()
 
+mac_regex = r"^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$"
 
-async def prune_endpoints(endpoint_state: EndpointState, cutoff_days: int):
+
+async def prune_endpoints(filter, cutoff_days: int):
     async with async_session_factory() as db:
-        logger.info(f"Starting task: prune_endpoints for state: {endpoint_state}")
+        logger.info(f"Starting task: prune_endpoints for state: {filter}")
 
         cutoff = datetime.now() - timedelta(days=cutoff_days)
 
@@ -42,35 +44,78 @@ async def prune_endpoints(endpoint_state: EndpointState, cutoff_days: int):
                     == last_activity_subq.c.calling_station_id,
                 ),
             )
-            .where(
-                last_activity_subq.c.last_seen < cutoff,
-                Endpoint.state == endpoint_state,
-            )
+            .where(last_activity_subq.c.last_seen < cutoff, filter)
         )
 
         endpoints = (await db.execute(stmt)).scalars().all()
 
         for endpoint in endpoints:
             logger.info(
-                f"Deleting endpoint id={endpoint.id}, {endpoint.username}({endpoint.calling_station_id}), have not been seen for { cutoff_days } days."
+                f"Deleting endpoint id={endpoint.id}, {endpoint.username}({endpoint.calling_station_id}), have not been seen for {cutoff_days} days."
             )
             await db.delete(endpoint)
 
         await db.commit()
-        logger.info(f"Completed task: prune_endpoints for state: {endpoint_state}, deleted: {len(endpoints)} endpoints")
+        logger.info(
+            f"Completed task: prune_endpoints for {filter}, deleted: {len(endpoints)} endpoints"
+        )
 
 
-async def prune_discovered_endpoints():
-    await prune_endpoints(EndpointState.DISCOVERED, 30)
+async def prune_mab_discovered_endpoints():
+    await prune_endpoints(
+        and_(
+            Endpoint.state == EndpointState.DISCOVERED,
+            Endpoint.username.op("~")(mac_regex),
+        ),
+        settings.ENDPOINT_MAB_DISCOVERED_RETENTION_DAYS,
+    )
 
 
-async def prune_rejected_endpoints():
-    await prune_endpoints(EndpointState.REJECTED, 30)
+async def prune_mab_pending_endpoints():
+    await prune_endpoints(
+        and_(
+            Endpoint.state == EndpointState.PENDING,
+            Endpoint.username.op("~")(mac_regex),
+        ),
+        settings.ENDPOINT_MAB_PENDING_RETENTION_DAYS,
+    )
 
 
-async def prune_pending_endpoints():
-    await prune_endpoints(EndpointState.PENDING, 30)
+async def prune_mab_rejected_endpoints():
+    await prune_endpoints(
+        and_(
+            Endpoint.state == EndpointState.REJECTED,
+            Endpoint.username.op("~")(mac_regex),
+        ),
+        settings.ENDPOINT_MAB_REJECTED_RETENTION_DAYS,
+    )
 
 
-async def prune_authorized_endpoints():
-    await prune_endpoints(EndpointState.AUTHORIZED, 30)
+async def prune_mab_authorized_endpoints():
+    await prune_endpoints(
+        and_(
+            Endpoint.state == EndpointState.AUTHORIZED,
+            Endpoint.username.op("~")(mac_regex),
+        ),
+        settings.ENDPOINT_MAB_AUTHORIZED_RETENTION_DAYS,
+    )
+
+
+async def prune_eap_rejected_endpoints():
+    await prune_endpoints(
+        and_(
+            Endpoint.state == EndpointState.REJECTED,
+            Endpoint.username.op("!~")(mac_regex),
+        ),
+        settings.ENDPOINT_EAP_REJECTED_RETENTION_DAYS,
+    )
+
+
+async def prune_eap_authorized_endpoints():
+    await prune_endpoints(
+        and_(
+            Endpoint.state == EndpointState.AUTHORIZED,
+            Endpoint.username.op("!~")(mac_regex),
+        ),
+        settings.ENDPOINT_EAP_AUTHORIZED_RETENTION_DAYS,
+    )
