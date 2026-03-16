@@ -7,7 +7,7 @@
 #
 {% if AD_DOMAIN and AD_DOMAIN != "" %}
 ldap {
-	server = 'ldap://{{ AD_SERVER_URL | default(AD_DOMAIN) }}'
+	server = 'ldap://{{ AD_SERVER | default(AD_DOMAIN) }}'
 	port = 389
 	identity = "cn={{ AD_USERNAME }},{{ AD_BASE_DN }}"
 	password = "{{ AD_PASSWORD }}"
@@ -18,7 +18,7 @@ ldap {
 	
 
 	update {
-		control:Password-With-Header	+= 'userPassword'
+		# control:Password-With-Header	+= 'userPassword'
 		# control:NT-Password		:= 'ntPassword'
 		# reply:Reply-Message		:= 'radiusReplyMessage'
 		# reply:Tunnel-Type		:= 'radiusTunnelType'
@@ -28,9 +28,9 @@ ldap {
 		#  Where only a list is specified as the RADIUS attribute,
 		#  the value of the LDAP attribute is parsed as a valuepair
 		#  in the same format as the 'valuepair_attribute' (above).
-		control:			+= 'radiusControlAttribute'
-		request:			+= 'radiusRequestAttribute'
-		reply:				+= 'radiusReplyAttribute'
+		# control:			+= 'radiusControlAttribute'
+		# request:			+= 'radiusRequestAttribute'
+		# reply:				+= 'radiusReplyAttribute'
 	}
 
 	edir = no

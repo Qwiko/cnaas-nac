@@ -78,13 +78,13 @@ server default {
 			ok = return
 		}
 
-		{% for instance in radius_eap_configs %}
+		{%- for instance in radius_eap_configs %}
 		{% if loop.first %}if{% else %}elsif{% endif %} (Realm == "{{ instance.domain }}") {
 			{{ instance.name }} {
 				ok = return
 			}
 		}
-		{% endfor %}
+		{%- endfor %}
 
 		# If not EAP it is a MBA/MAB request that is handled by the REST API
 		if (!&EAP-Message) {
@@ -98,7 +98,13 @@ server default {
 				reject
 			}
 		} else {
-			-ldap
+			{%- if AD_DOMAIN and AD_DOMAIN != "" %}
+			if (&User-Name =~ /@{{ AD_DOMAIN | replace(".", "\.") }}$/i) {
+				-ldap
+			}
+			{%- else %}
+			noop
+			{%- endif %}
 		}
 		
 

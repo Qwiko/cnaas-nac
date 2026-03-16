@@ -3,7 +3,7 @@
 import sys
 from typing import List, Optional
 
-from jinja2 import DictLoader, Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings
 
@@ -35,8 +35,6 @@ class EapInstance(BaseModel):
     crl_url: str
 
 
-    
-
 class Settings(BaseSettings):
     pre_start_base_folder: str = "/etc/raddb"
 
@@ -45,11 +43,11 @@ class Settings(BaseSettings):
 
     AD_USERNAME_ATTR: str = "sAMAccountName"
     AD_MEMBER_ATTR: str = "memberOf"
-    AD_DOMAIN : str = ""
-    AD_SERVER: str = "" # Optional hostname other than the domain name
-    AD_USERNAME : str = ""
-    AD_PASSWORD : str = ""
-    AD_BASE_DN : str = ""
+    AD_DOMAIN: str = ""
+    AD_SERVER: str = ""  # Optional hostname other than the domain name
+    AD_USERNAME: str = ""
+    AD_PASSWORD: str = ""
+    AD_BASE_DN: str = ""
 
 
 if __name__ == "__main__":
