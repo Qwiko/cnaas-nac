@@ -29,6 +29,7 @@ class Nas(Base, TimestampsMixin):
         Text, nullable=False, server_default=text("'other'::text")
     )
     secret: Mapped[str] = mapped_column(Text, nullable=False)
+    server: Mapped[Optional[str]] = mapped_column(Text)
     require_ma: Mapped[str] = mapped_column(
         Text, nullable=False, server_default=text("'auto'::text")
     )
