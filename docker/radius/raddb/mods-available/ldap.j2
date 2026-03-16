@@ -5,22 +5,25 @@
 #
 #  Lightweight Directory Access Protocol (LDAP)
 #
+{% if AD_DOMAIN and AD_DOMAIN != "" %}
 ldap {
-	server = 'ldap://AD_DOMAIN'
+	server = 'ldap://{{ AD_SERVER_URL | default(AD_DOMAIN) }}'
 	port = 389
-	identity = "AD_USERNAME@AD_DOMAIN"
-	password = "AD_PASSWORD"
-	base_dn = "AD_BASE_DN"
+	identity = "cn={{ AD_USERNAME }},{{ AD_BASE_DN }}"
+	password = "{{ AD_PASSWORD }}"
+	base_dn = "{{ AD_BASE_DN }}"
 	sasl {
 	}
 
+	
+
 	update {
 		control:Password-With-Header	+= 'userPassword'
-		control:NT-Password		:= 'ntPassword'
-		reply:Reply-Message		:= 'radiusReplyMessage'
-		reply:Tunnel-Type		:= 'radiusTunnelType'
-		reply:Tunnel-Medium-Type	:= 'radiusTunnelMediumType'
-		reply:Tunnel-Private-Group-ID	:= 'radiusTunnelPrivategroupId'
+		# control:NT-Password		:= 'ntPassword'
+		# reply:Reply-Message		:= 'radiusReplyMessage'
+		# reply:Tunnel-Type		:= 'radiusTunnelType'
+		# reply:Tunnel-Medium-Type	:= 'radiusTunnelMediumType'
+		# reply:Tunnel-Private-Group-ID	:= 'radiusTunnelPrivategroupId'
 
 		#  Where only a list is specified as the RADIUS attribute,
 		#  the value of the LDAP attribute is parsed as a valuepair
@@ -34,60 +37,27 @@ ldap {
 
 	user {
 		base_dn = "${..base_dn}"
-		filter = "(sAMAccountName=%{%{Stripped-User-Name}:-%{mschap:User-Name}})"
+		filter = "({{ AD_USERNAME_ATTR }}={{ "%{%{Stripped-User-Name}:-%{mschap:User-Name}}" }})"
 		sasl {
 		}
 	}
 
 	group {
+		cacheable_name = yes
+		# cache_attribute = "LDAP-Group"
+
 		base_dn = "${..base_dn}"
 		name_attribute = "CN"
 		filter = '(objectClass=posixGroup)'
-		membership_attribute = 'memberOf'
+		membership_attribute = '{{ AD_MEMBER_ATTR }}'
 	}
 
 	profile {
 	}
 
-	client {
-		base_dn = "${..base_dn}"
-		filter = '(objectClass=radiusClient)'
-		template {
-		}
-
-		attribute {
-			ipaddr				= 'radiusClientIdentifier'
-			secret				= 'radiusClientSecret'
-		}
-	}
-
-	accounting {
-		reference = "%{tolower:type.%{Acct-Status-Type}}"
-
-		type {
-			start {
-				update {
-					description := "Online at %S"
-				}
-			}
-
-			interim-update {
-				update {
-					description := "Last seen at %S"
-				}
-			}
-
-			stop {
-				update {
-					description := "Offline at %S"
-				}
-			}
-		}
-	}
-
 	post-auth {
 		update {
-			description := "Authenticated at %S"
+			
 		}
 	}
 
@@ -120,3 +90,4 @@ ldap {
 		idle_timeout = 60
 	}
 }
+{% endif %}

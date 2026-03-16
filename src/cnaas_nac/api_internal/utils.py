@@ -62,7 +62,7 @@ async def reject(
 
     await update_endpoint_state(db, auth, endpoint, EndpointState.REJECTED)
 
-    logger.debug(
+    logger.info(
         f"User: {auth.username}({auth.calling_station_id}) rejected, reason: {error_message}"
     )
     raise Unauthorized(error_message, matched_policy.name if matched_policy else None)

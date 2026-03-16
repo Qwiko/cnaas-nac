@@ -1,0 +1,115 @@
+# ==========================================
+# Auto-generated eap
+# ==========================================
+eap {
+	default_eap_type = tls
+	timer_expire = 60
+#	dedup_key = "%{Calling-Station-Id}"
+	ignore_unknown_eap_types = no
+	cisco_accounting_username_bug = no
+	max_sessions = ${max_requests}
+	md5 {
+	}
+	gtc {
+		auth_type = PAP
+	}
+	tls-config tls-common {
+		private_key_password = whatever
+		private_key_file = ${certdir}/server.pem
+		certificate_file = ${certdir}/server.pem
+		ca_file = ${cadir}/ca.pem
+		ca_path = ${cadir}
+
+		check_cert_cn = %{User-Name}
+
+		cipher_list = "DEFAULT"
+		cipher_server_preference = no
+#		disable_tlsv1_2 = yes
+#		disable_tlsv1_1 = yes
+#		disable_tlsv1 = yes
+		tls_min_version = "1.2"
+		tls_max_version = "1.2"
+		ecdh_curve = ""
+		cache {
+			enable = no
+			lifetime = 24 # hours
+			store {
+				Tunnel-Private-Group-Id
+			}
+		}
+		verify {
+		}
+
+		ocsp {
+			enable = no
+			override_cert_url = yes
+			url = "http://127.0.0.1/ocsp/"
+		}
+	}
+
+
+	tls {
+		tls = tls-common
+#		configurable_client_cert = no
+	}
+}
+
+{%- for eap_config in radius_eap_configs %}
+# Auto-generated EAP configuration for {{ eap_config.name }}
+eap {{ eap_config.name }} {
+	default_eap_type = tls
+	timer_expire = 60
+#	dedup_key = "%{Calling-Station-Id}"
+	ignore_unknown_eap_types = no
+	cisco_accounting_username_bug = no
+	max_sessions = ${max_requests}
+	md5 {
+	}
+	gtc {
+		auth_type = PAP
+	}
+	tls-config tls-common {
+		private_key_password = whatever
+		private_key_file = ${certdir}/server.pem
+		certificate_file = ${certdir}/server.pem
+		ca_file = ${cadir}/ca.pem
+		ca_path = ${cadir}
+
+        check_crl = {{ 'yes' if eap_config.check_crl else 'no' }}
+
+		check_cert_cn = %{User-Name}
+
+		cipher_list = "DEFAULT"
+		cipher_server_preference = no
+#		disable_tlsv1_2 = yes
+#		disable_tlsv1_1 = yes
+#		disable_tlsv1 = yes
+		tls_min_version = "1.2"
+		tls_max_version = "1.2"
+		ecdh_curve = ""
+		cache {
+			enable = no
+			lifetime = 24 # hours
+			store {
+				Tunnel-Private-Group-Id
+			}
+		}
+		verify {
+		}
+
+		ocsp {
+			enable = no
+			override_cert_url = yes
+			url = "http://127.0.0.1/ocsp/"
+		}
+	}
+
+
+	tls {
+		tls = tls-common
+#		configurable_client_cert = no
+	}
+
+
+}
+{%- endfor %}

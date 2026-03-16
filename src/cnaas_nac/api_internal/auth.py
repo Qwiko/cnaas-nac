@@ -91,7 +91,7 @@ async def post_auth(
     matched_policy: Policy | None = None
     results = await db.stream_scalars(stmt)
     async for policy in results:
-        if evaluate_policy(policy, dict(auth), endpoint):
+        if evaluate_policy(policy, dict(auth), endpoint.group_id if endpoint else None):
             matched_policy = policy
             break
     else:

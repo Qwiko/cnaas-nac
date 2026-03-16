@@ -1,0 +1,29 @@
+# ==========================================
+# Auto-generated proxy.conf
+# ==========================================
+{%- for proxy in radius_proxy_configs %}
+# --- Configuration for Realm: {{ proxy.realm }} ---
+
+{%- for server in proxy.servers %}
+home_server {{ server.name }}_{{proxy.realm | replace(".", "_")}} {
+    type = auth
+    ipaddr = {{ server.ipaddr }}
+    port = {{ server.port }}
+    secret = {{ server.secret }}
+}
+{%- endfor %}
+
+{%- set current_pool_name = proxy.pool_name or (proxy.realm | replace(".", "_") ~ "_pool") %}
+home_server_pool {{ current_pool_name }} {
+    type = {{ proxy.pool_type }}
+    {%- for server in proxy.servers %}
+    home_server = {{ server.name }}_{{proxy.realm | replace(".", "_")}}
+    {%- endfor %}
+}
+
+realm {{ proxy.realm }} {
+    auth_pool = {{ current_pool_name }}
+    nostrip
+}
+
+{%- endfor %}

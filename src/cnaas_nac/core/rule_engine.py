@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 from cnaas_nac.models.endpoint import Endpoint
@@ -15,18 +15,16 @@ logger = get_logger()
 
 
 def evaluate_condition(
-    condition: PolicyCondition, data: Dict[str, Any], endpoint: Endpoint | None
+    condition: PolicyCondition, data: Dict[str, Any], group_id: Optional[int]
 ) -> bool:
     """Evaluates a single condition against the request data."""
     if condition.attribute == "group_id":
         # group_id is always EQUALS.
-        if not endpoint:
+        if not group_id:
             return False
-        if not endpoint.group_id:
-            return False
-        return condition.value == endpoint.group_id
+        return condition.value == group_id
     else:
-        request_value = str(data.get(condition.attribute))
+        request_value = data.get(condition.attribute)
     logger.debug(
         f"Policy: {condition.policy.name}({condition.policy_id}), attribute: {condition.attribute}, real_value: {request_value}, operator: {condition.operator}, expected_value: {condition.value}"
     )
@@ -44,6 +42,8 @@ def evaluate_condition(
             return target_value in request_value
         return False
 
+    # Make sure request_value is a string past this point.
+    request_value = str(request_value)
     target_value = str(target_value)
 
     if condition.operator == ConditionOperator.EQUALS:
@@ -66,7 +66,7 @@ def evaluate_condition(
 
 
 def evaluate_policy(
-    rule: Policy, data: Dict[str, Any], endpoint: Endpoint | None
+    rule: Policy, data: Dict[str, Any], group_id: Optional[int]
 ) -> bool:
     """Evaluates a full rule based on its MatchLogic (AND/OR)."""
     if not rule.conditions:
@@ -74,7 +74,7 @@ def evaluate_policy(
 
     if rule.match_logic == MatchLogic.AND:
         # AND logic: all conditions must be True
-        return all(evaluate_condition(c, data, endpoint) for c in rule.conditions)
+        return all(evaluate_condition(c, data, group_id) for c in rule.conditions)
     else:
         # OR logic: at least one condition must be True
-        return any(evaluate_condition(c, data, endpoint) for c in rule.conditions)
+        return any(evaluate_condition(c, data, group_id) for c in rule.conditions)

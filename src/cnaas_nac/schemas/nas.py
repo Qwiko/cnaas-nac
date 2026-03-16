@@ -8,6 +8,7 @@ class NasBase(BaseModel):
     name: str
     network: IPvAnyNetwork
     description: Optional[str] = None
+    server: Optional[str] = "default"
 
     @field_validator("network", mode="after")
     @classmethod

@@ -14,7 +14,15 @@ rest {
 		method = 'post'
 		tls = ${..tls}
 		body = json
-		data = '{"username": "%{User-Name}", "nas_identifier": "%{NAS-Identifier}", "nas_port_id": "%{NAS-Port-Id}", "nas_port_type": "%{NAS-Port-Type}", "calling_station_id": "%{Calling-Station-Id}", "called_station_id": "%{Called-Station-Id}", "nas_ip_address": "%{NAS-IP-Address}"}'
+		data = '{ \
+			"username": "%{User-Name}", \
+			"nas_identifier": "%{NAS-Identifier}", \
+			"nas_port_id": "%{NAS-Port-Id}", \
+			"nas_port_type": "%{NAS-Port-Type}", \
+			"calling_station_id": "%{Calling-Station-Id}", \
+			"called_station_id": "%{Called-Station-Id}", \
+			"nas_ip_address": "%{NAS-IP-Address}" \
+		}'
 	}
 
 	# For eap-tls we will call the REST API in post-auth
@@ -25,7 +33,19 @@ rest {
 		method = 'post'
 		tls = ${..tls}
 		body = json
-		data = '{"username": "%{User-Name}", "nas_identifier": "%{NAS-Identifier}", "nas_port_id": "%{NAS-Port-Id}", "nas_port_type": "%{NAS-Port-Type}", "calling_station_id": "%{Calling-Station-Id}", "called_station_id": "%{Called-Station-Id}", "nas_ip_address": "%{NAS-IP-Address}"}'
+		data = '{ \
+			"username": "%{User-Name}", \
+			"nas_identifier": "%{NAS-Identifier}", \
+			"nas_port_id": "%{NAS-Port-Id}", \
+			"nas_port_type": "%{NAS-Port-Type}", \
+			"calling_station_id": "%{Calling-Station-Id}", \
+			"called_station_id": "%{Called-Station-Id}", \
+			{#- Dont send ldap_groups if we do not have ldap integration enabled #}
+			{%- if AD_DOMAIN and AD_DOMAIN != "" %}
+			"ldap_groups": "%{control:LDAP-Group[*]}", \
+			{%- endif %}
+			"nas_ip_address": "%{NAS-IP-Address}" \
+		}'
 	}
 
 	pool {
