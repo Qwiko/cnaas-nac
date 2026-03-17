@@ -27,12 +27,12 @@ RUN ln -s /etc/raddb/sites-available/control-socket /etc/raddb/sites-enabled/con
     ln -s /etc/raddb/sites-available/dynamic-clients /etc/raddb/sites-enabled/dynamic-clients && \
     ln -s /etc/raddb/mods-available/ldap /etc/raddb/mods-enabled/ldap
 
-COPY docker/radius/render_config.py /docker-entrypoint.d/render_config.py
+COPY docker/radius/render_config.py /docker-entrypoint.d/00_render_config.py
 COPY docker/radius/entrypoint.sh /docker-entrypoint.sh
 
 
 RUN chmod +x \ 
-        /docker-entrypoint.d/render_config.py \
+        /docker-entrypoint.d/00_render_config.py \
         /docker-entrypoint.sh
 
 RUN mkdir -p /opt/var/run/radiusd && \
