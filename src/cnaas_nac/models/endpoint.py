@@ -80,30 +80,30 @@ class Endpoint(Base, TimestampsMixin):
     group: Mapped[Optional["EndpointGroup"]] = relationship(back_populates="endpoints")
 
     nas_identifier: Mapped[Optional[str]] = column_property(
-        select(NasPort.nas_identifier)
+        select(RadPostAuth.nas_identifier)
         .where(
             and_(
-                NasPort.username == username,
-                NasPort.calling_station_id == calling_station_id,
+                RadPostAuth.username == username,
+                RadPostAuth.calling_station_id == calling_station_id,
             )
         )
-        .order_by(desc(NasPort.updated_at))
+        .order_by(desc(RadPostAuth.auth_date))
         .limit(1)
-        .correlate_except(NasPort)
+        .correlate_except(RadPostAuth)
         .scalar_subquery()
     )
 
     nas_port_id: Mapped[Optional[str]] = column_property(
-        select(NasPort.nas_port_id)
+        select(RadPostAuth.nas_port_id)
         .where(
             and_(
-                NasPort.username == username,
-                NasPort.calling_station_id == calling_station_id,
+                RadPostAuth.username == username,
+                RadPostAuth.calling_station_id == calling_station_id,
             )
         )
-        .order_by(desc(NasPort.updated_at))
+        .order_by(desc(RadPostAuth.auth_date))
         .limit(1)
-        .correlate_except(NasPort)
+        .correlate_except(RadPostAuth)
         .scalar_subquery()
     )
 
