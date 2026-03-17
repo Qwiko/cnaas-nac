@@ -5,13 +5,13 @@
 #
 #  Lightweight Directory Access Protocol (LDAP)
 #
-{% if AD_DOMAIN and AD_DOMAIN != "" %}
-ldap {
-	server = 'ldap://{{ AD_SERVER | default(AD_DOMAIN) }}'
+{% for ldap_instance in ldap_configs %}
+ldap ldap_{{ ldap_instance.ad_domain | replace(".", "_") }} {
+	server = 'ldap://{{ ldap_instance.ad_server | default(ldap_instance.ad_domain) }}'
 	port = 389
-	identity = "cn={{ AD_USERNAME }},{{ AD_BASE_DN }}"
-	password = "{{ AD_PASSWORD }}"
-	base_dn = "{{ AD_BASE_DN }}"
+	identity = "{{ ldap_instance.ad_username }}"
+	password = "{{ ldap_instance.ad_password }}"
+	base_dn = "{{ ldap_instance.ad_base_dn }}"
 	sasl {
 	}
 
@@ -37,7 +37,7 @@ ldap {
 
 	user {
 		base_dn = "${..base_dn}"
-		filter = "({{ AD_USERNAME_ATTR }}={{ "%{%{Stripped-User-Name}:-%{mschap:User-Name}}" }})"
+		filter = "({{ ldap_instance.ad_username_attr }}={{ "%{%{Stripped-User-Name}:-%{mschap:User-Name}}" }})"
 		sasl {
 		}
 	}
@@ -49,7 +49,11 @@ ldap {
 		base_dn = "${..base_dn}"
 		name_attribute = "CN"
 		filter = '(objectClass=posixGroup)'
-		membership_attribute = '{{ AD_MEMBER_ATTR }}'
+		{% if ldap_instance.ad_member_filter and ldap_instance.ad_member_filter != "" %}
+		membership_filter = '{{ ldap_instance.ad_member_filter }}'
+		{% else %}
+		membership_attribute = '{{ ldap_instance.ad_member_attr }}'
+		{% endif %}
 	}
 
 	profile {
@@ -90,4 +94,4 @@ ldap {
 		idle_timeout = 60
 	}
 }
-{% endif %}
+{% endfor %}

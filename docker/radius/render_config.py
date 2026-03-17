@@ -35,19 +35,24 @@ class EapInstance(BaseModel):
     crl_url: str
 
 
+class LdapInstance(BaseModel):
+    ad_username_attr: str = "sAMAccountName"
+    ad_member_attr: str = "memberOf"
+    ad_member_filter: str = ""  # Optionally used instead of MEMBER_ATTR
+    ad_domain: str = ""
+    ad_server: str = ""  # Optional hostname other than the domain name
+    ad_username: str = ""
+    ad_password: str = ""
+    ad_base_dn: str = ""
+
+
 class Settings(BaseSettings):
     pre_start_base_folder: str = "/etc/raddb"
 
     radius_proxy_configs: List[ProxyRealm] = []
     radius_eap_configs: List[EapInstance] = []
 
-    AD_USERNAME_ATTR: str = "sAMAccountName"
-    AD_MEMBER_ATTR: str = "memberOf"
-    AD_DOMAIN: str = ""
-    AD_SERVER: str = ""  # Optional hostname other than the domain name
-    AD_USERNAME: str = ""
-    AD_PASSWORD: str = ""
-    AD_BASE_DN: str = ""
+    ldap_configs: List[LdapInstance] = []
 
 
 if __name__ == "__main__":
@@ -78,5 +83,3 @@ if __name__ == "__main__":
 
         with open(f"{base_folder}/{render_filename}", "w", encoding="utf-8") as f:
             f.write(rendered_template)
-
-    # print(rendered_templates)

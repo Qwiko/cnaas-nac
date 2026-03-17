@@ -75,7 +75,7 @@ class AttributeDetail(BaseModel):
 
 class AccessReject(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    auth_type: Annotated[AttributeDetail, Field(..., alias="control:Auth-Type")] = (
+    auth_type: Annotated[AttributeDetail, Field(..., alias="Auth-Type")] = (
         AttributeDetail(
             op=":=",
             value="Reject",

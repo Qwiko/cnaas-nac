@@ -1,3 +1,15 @@
+{%- set ns = namespace(ldap_unlang="%{") %}
+{%- for lc in ldap_configs -%}
+	{%- if not loop.first %}
+		{%- set ns.ldap_unlang = ns.ldap_unlang ~ "%{" %}
+	{%- endif %}
+	{%- set ns.ldap_unlang = ns.ldap_unlang ~ "%{control:ldap_" ~ lc.ad_domain | replace(".", "_") ~ "-LDAP-Group[*]}:-" %}
+{%- endfor %}
+{%- set ns.ldap_unlang = ns.ldap_unlang ~ "" %}
+{%- for lc in ldap_configs -%}
+	{% set ns.ldap_unlang = ns.ldap_unlang ~ '}' %}
+{%- endfor %}
+
 rest {
 	tls {
 		check_cert = no
@@ -41,8 +53,8 @@ rest {
 			"calling_station_id": "%{Calling-Station-Id}", \
 			"called_station_id": "%{Called-Station-Id}", \
 			{#- Dont send ldap_groups if we do not have ldap integration enabled #}
-			{%- if AD_DOMAIN and AD_DOMAIN != "" %}
-			"ldap_groups": "%{control:LDAP-Group[*]}", \
+			{%- if ldap_configs | default([]) | length != 0 %}
+			"ldap_groups": "{{ ns.ldap_unlang }}", \
 			{%- endif %}
 			"nas_ip_address": "%{NAS-IP-Address}" \
 		}'

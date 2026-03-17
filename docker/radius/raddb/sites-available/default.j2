@@ -69,7 +69,7 @@ server default {
 
 		filter_username
 
-		auth_log
+		#auth_log
 
 		
 		suffix
@@ -98,11 +98,13 @@ server default {
 				reject
 			}
 		} else {
-			{%- if AD_DOMAIN and AD_DOMAIN != "" %}
-			if (&User-Name =~ /@{{ AD_DOMAIN | replace(".", "\.") }}$/i) {
-				-ldap
+			
+			{%- for ldap_instance in ldap_configs %}
+			{% if loop.first %}if{% else %}elsif{% endif %} (&User-Name =~ /@{{ ldap_instance.ad_domain | replace(".", "\.") }}$/i) {
+				ldap_{{ ldap_instance.ad_domain | replace(".", "_") }}
 			}
-			{%- else %}
+			{%- endfor %}
+			{%- if not ldap_configs or (ldap_configs | default([]) | length == 0) %}
 			noop
 			{%- endif %}
 		}
@@ -333,13 +335,14 @@ server default {
 			&reply: += &session-state:
 		}
 
-
-		if ((&EAP-Type == TLS) && (&TLS-Client-Cert-Common-Name)) {
-			# Assign the user to the correct vlan using our rest-api
+		# EAP is valid -> query the rest api to check against policies
+		if (&EAP-Type == TLS && &reply:Packet-Type == Access-Accept) {
+			# Assign the user to the correct vlan using the rest-api
 			rest
 
-
-			if (fail || notfound || !updated || invalid) {
+			# The rest api send Auth-Type := Reject when client does not pass
+			# So we can check that here and reject the user even though eap/proxy have passed
+			if (fail || notfound || !updated || invalid || &reply:Auth-Type == Reject) {
 				reject
 			}
 		}
