@@ -1,5 +1,5 @@
-from apscheduler.schedulers.asyncio import (
-    AsyncIOScheduler,  # type: ignore[import-untyped]
+from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
+    AsyncIOScheduler,
 )
 
 from cnaas_nac.core.logging import get_logger
