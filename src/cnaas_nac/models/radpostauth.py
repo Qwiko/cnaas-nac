@@ -6,6 +6,7 @@ from sqlalchemy import (
     BigInteger,
     DateTime,
     ForeignKey,
+    Index,
     PrimaryKeyConstraint,
     Text,
     text,
@@ -18,11 +19,14 @@ from .base import Base
 
 class RadPostAuth(Base):
     __tablename__ = "radpostauth"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
+    __table_args__ = (
+        PrimaryKeyConstraint("id"),
+        Index("ix_radpostauth_username_calling_station_id", "username", "calling_station_id"),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    username: Mapped[str] = mapped_column(Text, nullable=False, index=True)
-    calling_station_id: Mapped[str] = mapped_column(Text, index=True)
+    username: Mapped[str] = mapped_column(Text, nullable=False)
+    calling_station_id: Mapped[str] = mapped_column(Text)
 
     auth_date: Mapped[datetime.datetime] = mapped_column(
         DateTime(True), nullable=False, server_default=text("now()")

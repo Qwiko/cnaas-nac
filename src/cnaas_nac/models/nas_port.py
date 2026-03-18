@@ -2,6 +2,7 @@ import datetime
 from typing import Optional
 
 from sqlalchemy import (
+    Index,
     Integer,
     Unicode,
     UniqueConstraint,
@@ -30,11 +31,12 @@ class NasPort(Base, TimestampsMixin):
             "nas_port_id",
             name="uq_user_called_station_port",
         ),
+        Index("ix_nasport_username_calling_station_id", "username", "calling_station_id"),
     )
 
     id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(Unicode(64), nullable=False, index=True)
-    calling_station_id: Mapped[str] = mapped_column(Unicode(64), index=True)
+    username: Mapped[str] = mapped_column(Unicode(64), nullable=False)
+    calling_station_id: Mapped[str] = mapped_column(Unicode(64))
 
     nas_identifier: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
     nas_port_id: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)

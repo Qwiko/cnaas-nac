@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy import (
     Enum,
     ForeignKey,
+    Index,
     Integer,
     Text,
     UniqueConstraint,
@@ -53,17 +54,20 @@ class EndpointGroup(Base, TimestampsMixin):
 
 class Endpoint(Base, TimestampsMixin):
     __tablename__ = "endpoint"
-    __table_args__ = (UniqueConstraint("username", "calling_station_id"),)
+    __table_args__ = (
+        UniqueConstraint("username", "calling_station_id"),
+        Index("ix_endpoint_username_calling_station_id", "username", "calling_station_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
     # These two fields together are the unique identifier.
     # One EAP username could have multiple devices(calling_stations_ids).
     username: Mapped[str] = mapped_column(
-        Text, nullable=False, server_default=text("''::text"), index=True
+        Text, nullable=False, server_default=text("''::text")
     )
     calling_station_id: Mapped[str] = mapped_column(
-        Text, nullable=False, server_default=text("''::text"), index=True
+        Text, nullable=False, server_default=text("''::text")
     )
 
     state: Mapped[EndpointState] = mapped_column(Enum(EndpointState))
