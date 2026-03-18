@@ -31,10 +31,14 @@ class NasPort(Base, TimestampsMixin):
             "nas_port_id",
             name="uq_user_called_station_port",
         ),
-        Index("ix_nasport_username_calling_station_id", "username", "calling_station_id"),
+        Index(
+            "ix_nasport_username_calling_station_id", "username", "calling_station_id"
+        ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(
+        Integer, autoincrement=True, primary_key=True, index=True
+    )
     username: Mapped[str] = mapped_column(Unicode(64), nullable=False)
     calling_station_id: Mapped[str] = mapped_column(Unicode(64))
 

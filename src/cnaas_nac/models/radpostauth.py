@@ -21,7 +21,11 @@ class RadPostAuth(Base):
     __tablename__ = "radpostauth"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
-        Index("ix_radpostauth_username_calling_station_id", "username", "calling_station_id"),
+        Index(
+            "ix_radpostauth_username_calling_station_id",
+            "username",
+            "calling_station_id",
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

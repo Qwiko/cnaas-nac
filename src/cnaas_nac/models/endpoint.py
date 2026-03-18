@@ -56,7 +56,9 @@ class Endpoint(Base, TimestampsMixin):
     __tablename__ = "endpoint"
     __table_args__ = (
         UniqueConstraint("username", "calling_station_id"),
-        Index("ix_endpoint_username_calling_station_id", "username", "calling_station_id"),
+        Index(
+            "ix_endpoint_username_calling_station_id", "username", "calling_station_id"
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

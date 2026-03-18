@@ -29,7 +29,9 @@ class RadAcct(Base):
             "acct_update_time",
         ),
         Index("radacct_start_user_idx", "acct_start_time"),
-        Index("ix_radacct_username_calling_station_id", "username", "calling_station_id"),
+        Index(
+            "ix_radacct_username_calling_station_id", "username", "calling_station_id"
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
