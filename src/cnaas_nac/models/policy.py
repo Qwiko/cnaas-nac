@@ -56,7 +56,7 @@ class Policy(Base, TimestampsMixin):
     __tablename__ = "policy"
     __table_args__ = (UniqueConstraint("name"),)
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), unique=True)
 
     description: Mapped[Optional[str]] = mapped_column(String(255))
@@ -113,7 +113,7 @@ class PolicyCondition(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    policy_id: Mapped[int] = mapped_column(ForeignKey("policy.id"))
+    policy_id: Mapped[int] = mapped_column(ForeignKey("policy.id"), index=True)
 
     attribute: Mapped[str] = mapped_column(String(100))
 
@@ -155,7 +155,7 @@ class PolicyReply(Base):
     __tablename__ = "policy_reply"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    policy_id: Mapped[int] = mapped_column(ForeignKey("policy.id"))
+    policy_id: Mapped[int] = mapped_column(ForeignKey("policy.id"), index=True)
 
     attribute: Mapped[str] = mapped_column(String(100))
 

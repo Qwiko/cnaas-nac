@@ -32,9 +32,9 @@ class NasPort(Base, TimestampsMixin):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(Unicode(64), nullable=False, index=True)
-    calling_station_id: Mapped[str] = mapped_column(Unicode(64))
+    calling_station_id: Mapped[str] = mapped_column(Unicode(64), index=True)
 
     nas_identifier: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)
     nas_port_id: Mapped[Optional[str]] = mapped_column(Unicode(64), nullable=False)

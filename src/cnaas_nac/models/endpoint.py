@@ -55,7 +55,7 @@ class Endpoint(Base, TimestampsMixin):
     __tablename__ = "endpoint"
     __table_args__ = (UniqueConstraint("username", "calling_station_id"),)
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
     # These two fields together are the unique identifier.
     # One EAP username could have multiple devices(calling_stations_ids).

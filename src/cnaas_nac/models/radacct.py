@@ -28,10 +28,10 @@ class RadAcct(Base):
             Column("acct_stop_time").nullsfirst(),
             "acct_update_time",
         ),
-        Index("radacct_start_user_idx", "acct_start_time", "username"),
+        Index("radacct_start_user_idx", "acct_start_time"),
     )
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     acct_session_id: Mapped[str] = mapped_column(Text, nullable=False)
     acct_unique_id: Mapped[str] = mapped_column(Text, nullable=False)
     nas_ip_address: Mapped[Any] = mapped_column(INET, nullable=False)
@@ -39,8 +39,8 @@ class RadAcct(Base):
     # cnaas-nac specific
     nas_identifier: Mapped[str] = mapped_column(Text, nullable=True)
 
-    username: Mapped[str] = mapped_column(Text)
-    calling_station_id: Mapped[str] = mapped_column(Text)
+    username: Mapped[str] = mapped_column(Text, index=True)
+    calling_station_id: Mapped[str] = mapped_column(Text, index=True)
 
     group_name: Mapped[Optional[str]] = mapped_column(Text)
     realm: Mapped[Optional[str]] = mapped_column(Text)
