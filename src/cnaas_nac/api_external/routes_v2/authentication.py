@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
-from cnaas_nac.core.security import get_current_user
+from cnaas_nac.core.rbac_filter import apply_group_filter
+from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.models.radpostauth import RadPostAuth
 from cnaas_nac.schemas.radportauth import RadPostAuthLog
 from cnaas_nac.filters.logs import AuthenticationFilter
@@ -24,7 +25,7 @@ async def get_authentications(
     ],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -35,9 +36,11 @@ async def get_authentications(
     query = authentication_filter.filter(query)
     query = authentication_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
+    query = apply_group_filter(query, RadPostAuth, current_user.group_ids)
 
     count_query = select(func.count()).select_from(RadPostAuth)
     count_query = authentication_filter.filter(count_query)
+    count_query = apply_group_filter(count_query, RadPostAuth, current_user.group_ids)
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -50,15 +53,16 @@ async def get_authentications(
 async def get_authentication(
     authentication_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Get authentication.
     """
 
-    authentication = (
-        await db.execute(select(RadPostAuth).where(RadPostAuth.id == authentication_id))
-    ).scalar_one_or_none()
+    stmt = select(RadPostAuth).where(RadPostAuth.id == authentication_id)
+    stmt = apply_group_filter(stmt, RadPostAuth, current_user.group_ids)
+
+    authentication = (await db.execute(stmt)).scalar_one_or_none()
 
     if not authentication:
         raise NotFound()
@@ -70,15 +74,16 @@ async def get_authentication(
 async def delete_authentication(
     authentication_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     """
     Delete authentication.
     """
 
-    authentication = (
-        await db.execute(select(RadPostAuth).where(RadPostAuth.id == authentication_id))
-    ).scalar_one_or_none()
+    stmt = select(RadPostAuth).where(RadPostAuth.id == authentication_id)
+    stmt = apply_group_filter(stmt, RadPostAuth, current_user.group_ids)
+
+    authentication = (await db.execute(stmt)).scalar_one_or_none()
 
     if not authentication:
         raise NotFound()

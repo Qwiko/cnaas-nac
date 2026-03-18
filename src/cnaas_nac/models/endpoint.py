@@ -168,6 +168,19 @@ NasPort.endpoint_group_id = column_property(
     .scalar_subquery()
 )
 
+NasPort.endpoint_state = column_property(
+    select(Endpoint.state)
+    .where(
+        and_(
+            Endpoint.username == NasPort.username,
+            Endpoint.calling_station_id == NasPort.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
 RadAcct.endpoint_id = column_property(
     select(Endpoint.id)
     .where(
@@ -194,6 +207,19 @@ RadAcct.endpoint_group_id = column_property(
     .scalar_subquery()
 )
 
+RadAcct.endpoint_state = column_property(
+    select(Endpoint.state)
+    .where(
+        and_(
+            Endpoint.username == RadAcct.username,
+            Endpoint.calling_station_id == RadAcct.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
 RadPostAuth.endpoint_id = column_property(
     select(Endpoint.id)
     .where(
@@ -209,6 +235,19 @@ RadPostAuth.endpoint_id = column_property(
 
 RadPostAuth.endpoint_group_id = column_property(
     select(Endpoint.group_id)
+    .where(
+        and_(
+            Endpoint.username == RadPostAuth.username,
+            Endpoint.calling_station_id == RadPostAuth.calling_station_id,
+        )
+    )
+    .limit(1)
+    .correlate_except(Endpoint)
+    .scalar_subquery()
+)
+
+RadPostAuth.endpoint_state = column_property(
+    select(Endpoint.state)
     .where(
         and_(
             Endpoint.username == RadPostAuth.username,

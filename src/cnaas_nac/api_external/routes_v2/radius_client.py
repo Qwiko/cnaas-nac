@@ -4,16 +4,16 @@ from fastapi import APIRouter, Depends, Path, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, literal, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
-from cnaas_nac.core.security import get_current_user
+from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.filters.nas import NasFilter
 from cnaas_nac.models.nas import Nas
-from cnaas_nac.schemas.nas import NasCreateUpdate, NasResponse, NasOne
+from cnaas_nac.schemas.nas import NasCreateUpdate, NasOne, NasResponse
 
 router = APIRouter(prefix="/radius_client", tags=["radius_client"])
 
@@ -23,7 +23,7 @@ async def get_radius_client(
     nas_filter: Annotated[NasFilter, FilterDepends(NasFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -48,7 +48,7 @@ async def get_radius_client(
 async def post_radius_client(
     input_radius_client: NasCreateUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -95,7 +95,7 @@ async def post_radius_client(
 async def read_radius_client(
     nas_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Retrieve individual radius client.
@@ -114,7 +114,7 @@ async def put_radius_client(
     nas_id: Annotated[int, Path(alias="id")],
     input_nas: NasCreateUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Put radius client.
@@ -141,7 +141,7 @@ async def put_radius_client(
 async def delete_radius_client(
     nas_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     """
     Delete nas.

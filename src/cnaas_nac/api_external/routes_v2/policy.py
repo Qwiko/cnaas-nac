@@ -10,7 +10,7 @@ from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.pagination import PaginationParams
-from cnaas_nac.core.security import get_current_user
+from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.filters.policy import PolicyFilter
 from cnaas_nac.models.policy import Policy, PolicyCondition, PolicyReply
 from cnaas_nac.schemas.policy import (
@@ -29,7 +29,7 @@ async def read_policies(
     policy_filter: Annotated[PolicyFilter, FilterDepends(PolicyFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -55,7 +55,7 @@ async def read_policies(
 async def post_policy(
     input_policy: PolicyCreate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Post new policy.
@@ -103,7 +103,7 @@ async def post_policy(
 async def read_policy(
     policy_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Retrieve individual policy.
@@ -124,7 +124,7 @@ async def put_policy(
     policy_id: Annotated[int, Path(alias="id")],
     input_policy: PolicyUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Update policy.
@@ -162,7 +162,7 @@ async def put_policy(
 async def delete_policy(
     policy_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     """
     Delete policy.

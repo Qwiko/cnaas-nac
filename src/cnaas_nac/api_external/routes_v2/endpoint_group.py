@@ -1,15 +1,15 @@
 from typing import Annotated, Any
-from fastapi import HTTPException, Path, status, Response
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.db import get_async_session
+from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
-from cnaas_nac.core.security import get_current_user
+from cnaas_nac.core.rbac_filter import apply_group_filter
+from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.filters.endpoint_group import EndpointGroupFilter
 from cnaas_nac.models.endpoint import EndpointGroup
 from cnaas_nac.models.policy import PolicyCondition
@@ -25,7 +25,7 @@ async def get_endpoint_groups(
     ],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -36,9 +36,11 @@ async def get_endpoint_groups(
     query = endpoint_group_filter.filter(query)
     query = endpoint_group_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
+    query = apply_group_filter(query, EndpointGroup, current_user.group_ids)
 
     count_query = select(func.count()).select_from(EndpointGroup)
     count_query = endpoint_group_filter.filter(count_query)
+    count_query = apply_group_filter(count_query, EndpointGroup, current_user.group_ids)
 
     total_count = (await db.execute(count_query)).scalar_one()
 
@@ -53,7 +55,7 @@ async def get_endpoint_groups(
 async def post_endpoint_group(
     db: Annotated[AsyncSession, Depends(get_async_session)],
     input_group: EndpointGroupBase,
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Post endpoint groups.
@@ -81,15 +83,16 @@ async def post_endpoint_group(
 async def get_endpoint_group(
     group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Get group.
     """
 
-    endpoint_group = (
-        await db.execute(select(EndpointGroup).where(EndpointGroup.id == group_id))
-    ).scalar_one_or_none()
+    stmt = select(EndpointGroup).where(EndpointGroup.id == group_id)
+    stmt = apply_group_filter(stmt, EndpointGroup, current_user.group_ids)
+
+    endpoint_group = (await db.execute(stmt)).scalar_one_or_none()
 
     if not endpoint_group:
         raise NotFound()
@@ -102,15 +105,16 @@ async def put_endpoint_group(
     group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     input_group: EndpointGroupBase,
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Put group.
     """
 
-    existing_group = (
-        await db.execute(select(EndpointGroup).where(EndpointGroup.id == group_id))
-    ).scalar_one_or_none()
+    stmt = select(EndpointGroup).where(EndpointGroup.id == group_id)
+    stmt = apply_group_filter(stmt, EndpointGroup, current_user.group_ids)
+
+    existing_group = (await db.execute(stmt)).scalar_one_or_none()
 
     if not existing_group:
         raise NotFound()
@@ -129,15 +133,16 @@ async def put_endpoint_group(
 async def delete_endpoint_group(
     group_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     """
     Delete group.
     """
 
-    endpoint_group = (
-        await db.execute(select(EndpointGroup).where(EndpointGroup.id == group_id))
-    ).scalar_one_or_none()
+    stmt = select(EndpointGroup).where(EndpointGroup.id == group_id)
+    stmt = apply_group_filter(stmt, EndpointGroup, current_user.group_ids)
+
+    endpoint_group = (await db.execute(stmt)).scalar_one_or_none()
 
     if not endpoint_group:
         raise NotFound()

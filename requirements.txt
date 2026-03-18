@@ -2,7 +2,7 @@ alembic==1.18.4
 apscheduler==3.11.2
 asyncpg
 authlib==1.6.8
-fastapi[standard]
+fastapi[standard-no-fastapi-cloud-cli]
 fastapi==0.128.8
 netutils>=1.15.1
 psycopg2_binary==2.9.11
@@ -11,6 +11,7 @@ pyrad==2.5.4
 sqlalchemy
 itsdangerous==2.2.0
 fastapi_filter==2.0.1
+cachetools==7.0.5
 
 # Dev
 httpx==0.28.1

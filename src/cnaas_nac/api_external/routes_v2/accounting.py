@@ -1,7 +1,6 @@
 from typing import Annotated, Any
-from fastapi import Path, Response, status
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path, Response, status
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,10 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
-from cnaas_nac.core.security import get_current_user
+from cnaas_nac.core.rbac_filter import apply_group_filter
+from cnaas_nac.core.security import User, get_current_user
+from cnaas_nac.filters.logs import AccountingFilter
 from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.schemas.radacct import RadAcctLog, RadAcctLogFull
-from cnaas_nac.filters.logs import AccountingFilter
 
 router = APIRouter(prefix="", tags=["logs"])
 
@@ -22,7 +22,7 @@ async def get_accountings(
     accounting_filter: Annotated[AccountingFilter, FilterDepends(AccountingFilter)],
     pagination_params: Annotated[PaginationParams, Depends(PaginationParams)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     response: Response,
 ) -> Any:
     """
@@ -32,9 +32,11 @@ async def get_accountings(
     query = accounting_filter.filter(query)
     query = accounting_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
+    query = apply_group_filter(query, RadAcct, current_user.group_ids)
 
     count_query = select(func.count()).select_from(RadAcct)
     count_query = accounting_filter.filter(count_query)
+    count_query = apply_group_filter(count_query, RadAcct, current_user.group_ids)
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -47,15 +49,16 @@ async def get_accountings(
 async def get_accounting(
     accounting_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """
     Get accounting.
     """
 
-    accounting = (
-        await db.execute(select(RadAcct).where(RadAcct.id == accounting_id))
-    ).scalar_one_or_none()
+    stmt = select(RadAcct).where(RadAcct.id == accounting_id)
+    stmt = apply_group_filter(stmt, RadAcct, current_user.group_ids)
+
+    accounting = (await db.execute(stmt)).scalar_one_or_none()
 
     if not accounting:
         raise NotFound()
@@ -67,15 +70,16 @@ async def get_accounting(
 async def delete_accounting(
     accounting_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     """
     Delete accounting.
     """
 
-    accounting = (
-        await db.execute(select(RadAcct).where(RadAcct.id == accounting_id))
-    ).scalar_one_or_none()
+    stmt = select(RadAcct).where(RadAcct.id == accounting_id)
+    stmt = apply_group_filter(stmt, RadAcct, current_user.group_ids)
+
+    accounting = (await db.execute(stmt)).scalar_one_or_none()
 
     if not accounting:
         raise NotFound()
