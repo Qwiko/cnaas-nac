@@ -1,39 +1,10 @@
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address, IPv6Network
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel, IPvAnyAddress
+from pydantic import BaseModel, field_validator
 from pydantic_extra_types.mac_address import MacAddress
 
 from cnaas_nac.schemas.generic import Username
-
-
-class RadAcctLog(BaseModel):
-    id: int
-    endpoint_id: Optional[int] = None
-
-    username: Username
-    calling_station_id: MacAddress
-    nas_ip_address: IPvAnyAddress
-    nas_port_id: str
-    nas_identifier: Optional[str] = None
-    acct_start_time: datetime
-    acct_update_time: Optional[datetime] = None
-    acct_stop_time: Optional[datetime] = None
-    acct_session_time: Optional[int] = None
-    acct_input_octets: Optional[int] = None
-    acct_output_octets: Optional[int] = None
-
-
-class RadAcctLogFull(RadAcctLog):
-    acct_terminate_cause: Optional[str] = None
-    service_type: Optional[str] = None
-    framed_protocol: Optional[str] = None
-    framed_ip_address: Optional[IPv4Address] = None
-    framed_ipv6_address: Optional[IPv6Address] = None
-    framed_ipv6_prefix: Optional[IPv6Network] = None
-    framed_interface_id: Optional[str] = None
-    delegated_ipv6_prefix: Optional[IPv6Network] = None
 
 
 class RadPostAuthLog(BaseModel):
@@ -48,3 +19,16 @@ class RadPostAuthLog(BaseModel):
     reply: str
     matched_policy_id: Optional[int] = None
     error_message: Optional[str] = None
+
+
+class RadPostAuthLogFull(RadPostAuthLog):
+    request_json: Optional[dict[str, Any]] = {}
+    reply_json: Optional[dict[str, Any]] = {}
+
+    @field_validator("request_json", mode="before")
+    def clean_json(cls, val: dict[str, Any]) -> dict[str, Any]:
+        # Hack to replace \\\/ in NAS-Port-Id so it looks nicer
+        return {
+            k: v.replace("=5C=5C=5C/", "/") if isinstance(v, str) else v
+            for k, v in val.items()
+        }

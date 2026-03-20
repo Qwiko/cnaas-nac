@@ -336,13 +336,13 @@ server default {
 		}
 
 		# EAP is valid -> query the rest api to check against policies
-		if (&EAP-Type == TLS && &reply:Packet-Type == Access-Accept) {
+		if (&EAP-Type && &EAP-Type == TLS && &reply:Packet-Type == Access-Accept) {
 			# Assign the user to the correct vlan using the rest-api
 			rest
 
 			# The rest api send Auth-Type := Reject when client does not pass
 			# So we can check that here and reject the user even though eap/proxy have passed
-			if (fail || notfound || !updated || invalid || &reply:Auth-Type == Reject) {
+			if (fail || notfound || !updated || invalid || (&reply:Auth-Type && &reply:Auth-Type == Reject)) {
 				reject
 			}
 		}
@@ -458,19 +458,19 @@ server default {
 		#  The "session-state" attributes are not available here.
 		#
 		Post-Auth-Type REJECT {
-			if (&EAP-Type == TLS) {
-				update request {
-					&Tmp-String-0 := ""
+			if (&EAP-Type && &EAP-Type == TLS) {
+				update control {
+					Tmp-String-0 := ""
 				}
 
 				# Loop through the array and build the newline-separated string
 				foreach &Module-Failure-Message {
 					if ("&Tmp-String-0" == "") {
-						update request {
+						update control {
 							&Tmp-String-0 := "%{Foreach-Variable-0}"
 						}
 					} else {
-						update request {
+						update control {
 							&Tmp-String-0 := "&Tmp-String-0\n%{Foreach-Variable-0}"
 						}
 					}

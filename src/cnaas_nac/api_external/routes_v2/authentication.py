@@ -12,7 +12,7 @@ from cnaas_nac.core.pagination import PaginationParams
 from cnaas_nac.core.rbac_filter import apply_group_filter
 from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.models.radpostauth import RadPostAuth
-from cnaas_nac.schemas.radportauth import RadPostAuthLog
+from cnaas_nac.schemas.radportauth import RadPostAuthLog, RadPostAuthLogFull
 from cnaas_nac.filters.logs import AuthenticationFilter
 
 router = APIRouter(prefix="", tags=["logs"])
@@ -49,7 +49,7 @@ async def get_authentications(
     return (await db.execute(query)).scalars().all()
 
 
-@router.get("/authentication/{id}", response_model=RadPostAuthLog)
+@router.get("/authentication/{id}", response_model=RadPostAuthLogFull)
 async def get_authentication(
     authentication_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],

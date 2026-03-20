@@ -1,3 +1,0 @@
-# Internal attributes to hold your application's context
-ATTRIBUTE    NAC-Policy-Id        3000    integer
-ATTRIBUTE    NAC-Error-Message    3001    string
