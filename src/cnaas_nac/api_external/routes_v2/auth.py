@@ -35,7 +35,7 @@ async def callback(request: Request):
         raise HTTPException(status_code=400, detail=f"OAuth error: {error.error}")
 
     # Extract the tokens
-    access_token = token.get("access_token")
+    access_token = token.get(settings.OIDC_TOKEN_ATTRIBUTE)
     refresh_token = token.get("refresh_token")
 
     params = {"access_token": access_token}
@@ -81,7 +81,7 @@ async def refresh(request: Request, response: Response):
     )
 
     refresh_data: dict = ret.json()
-    access_token = refresh_data.get("access_token")
+    access_token = refresh_data.get(settings.OIDC_TOKEN_ATTRIBUTE)
     refresh_token = refresh_data.get("refresh_token")
 
     if not access_token or not refresh_token:

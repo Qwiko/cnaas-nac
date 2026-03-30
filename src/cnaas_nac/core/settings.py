@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = "cnaas-nac"
     OIDC_CLIENT_SECRET: str = ""
     OIDC_DISCOVERY_URL: str = ""
+    OIDC_TOKEN_ATTRIBUTE: str = "access_token"
     OIDC_USERNAME_ATTRIBUTE: str = "preferred_username"
     OIDC_GROUPS_ATTRIBUTE: str = "roles"
     OIDC_ADMIN_GROUP: str = "admins"
