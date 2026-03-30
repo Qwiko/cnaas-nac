@@ -40,14 +40,14 @@ class RadPostAuth(Base):
     called_station_id: Mapped[Optional[str]] = mapped_column(Text)
     nas_ip_address: Mapped[IPvAnyAddress] = mapped_column(INET, nullable=False)
 
-    request_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
-    reply_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    request_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    reply_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     matched_policy_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("policy.id", name="fk_policy_id"), nullable=True
     )
 
-    error_message: Mapped[Optional[str]] = mapped_column(Text)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     nas_identifier: Mapped[str] = mapped_column(Text, nullable=True)
     nas_port_id: Mapped[Optional[str]] = mapped_column(Text)
 
