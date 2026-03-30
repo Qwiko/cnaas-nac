@@ -42,8 +42,8 @@ for SEQ in $SEQUENCES; do
 	# Find the highest ID currently in the table
 	CURRENT_MAX=$(psql -U "$DB_USER" -d "$DB_NAME" -t -A -c "
         SELECT COALESCE(MAX($COLUMN_NAME), 0)
-        FROM $TABLE_NAME
-        WHERE $COLUMN_NAME % $OFFSET = $START_POINT % $OFFSET;
+        FROM \"$TABLE_NAME\"
+        WHERE \"$COLUMN_NAME\" % $OFFSET = $START_POINT % $OFFSET;
         ")
 
 	echo "Table: $TABLE_NAME, Column: $COLUMN_NAME, CURRENT MAX: $CURRENT_MAX"
