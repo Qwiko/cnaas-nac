@@ -16,7 +16,6 @@ def apply_group_filter(
     model: Type[T],
     group_ids: Sequence[int],
 ) -> Select[tuple[T]]:
-
     if not group_ids:
         return stmt
 

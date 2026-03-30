@@ -89,7 +89,6 @@ async def test_auth_policy_discovered(
     db: AsyncSession,
     int_client: AsyncClient,
 ) -> None:
-
     auth_json = {
         "username": "bb:bb:cc:dd:ee:ff",
         "nas_identifier": "a1",
@@ -168,7 +167,6 @@ async def test_auth_policy_authorized_to_rejected(
 async def test_auth_port_lock_wrong_port(
     db: AsyncSession, int_client: AsyncClient
 ) -> None:
-
     policy = Policy(
         name="test_policy_switchport",
         match_logic=MatchLogic.AND,

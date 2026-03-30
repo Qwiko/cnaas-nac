@@ -74,7 +74,6 @@ async def update_endpoint_state(
     endpoint: Endpoint | None,
     endpoint_state: EndpointState,
 ) -> None:
-
     if not endpoint:
         endpoint = Endpoint(
             username=auth.username, calling_station_id=auth.calling_station_id
@@ -99,7 +98,6 @@ async def update_endpoint_state(
 
 
 async def create_new_endpoint(db: AsyncSession, auth: InternalAuth) -> Endpoint:
-
     try:
         endpoint = Endpoint(
             username=auth.username,

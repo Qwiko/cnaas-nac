@@ -75,7 +75,6 @@ async def get_current_user(
     token: Annotated[HTTPAuthorizationCredentials, Depends(bearer)],
     db: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> User:
-
     # Local development token validation skip oauth
     if settings.ENVIRONMENT == EnvironmentOption.LOCAL:
         key = settings.SECRET_KEY
