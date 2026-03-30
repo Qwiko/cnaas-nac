@@ -233,19 +233,17 @@ server external {
 			&reply: += &session-state:
 		}
 
-		#  Get an address from the IP Pool.
-	#	main_pool
+		# Remove secrets / passwords from request
+		update request {
+			&User-Password !* ANY
+			&CHAP-Password !* ANY
+			&MS-CHAP-Response !* ANY
+		}
 
-
-		#  Create the CUI value and add the attribute to Access-Accept.
-		#  Uncomment the line below if *returning* the CUI.
-	#	cui
-
-		#
-		#  If you want to have a log of authentication replies,
-		#  un-comment the following line, and enable the
-		#  'detail reply_log' module.
-	#	reply_log
+		# Remove REST status codes from reply
+		update reply {
+			&REST-HTTP-Status-Code !* ANY
+		}
 
 		#
 		#  After authenticating the user, do another SQL query.
@@ -349,24 +347,6 @@ server external {
 		#  The "session-state" attributes are not available here.
 		#
 		Post-Auth-Type REJECT {
-			if (&EAP-Type == TLS) {
-				update request {
-					&Tmp-String-0 := ""
-				}
-
-				# Loop through the array and build the newline-separated string
-				foreach &Module-Failure-Message {
-					if ("&Tmp-String-0" == "") {
-						update request {
-							&Tmp-String-0 := "%{Foreach-Variable-0}"
-						}
-					} else {
-						update request {
-							&Tmp-String-0 := "&Tmp-String-0\n%{Foreach-Variable-0}"
-						}
-					}
-				}
-			}
 			# log failed authentications in SQL, too.
 			-sql
 			attr_filter.access_reject

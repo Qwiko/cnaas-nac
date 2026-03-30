@@ -335,6 +335,20 @@ server default {
 			&reply: += &session-state:
 		}
 
+		
+		# Remove secrets / passwords from request
+		update request {
+			&User-Password !* ANY
+			&CHAP-Password !* ANY
+			&MS-CHAP-Response !* ANY
+		}
+
+		# Remove REST status codes from reply
+		update reply {
+			&REST-HTTP-Status-Code !* ANY
+		}
+		
+
 		# EAP is valid -> query the rest api to check against policies
 		if (&EAP-Type && &EAP-Type == TLS && &reply:Packet-Type == Access-Accept) {
 			# Assign the user to the correct vlan using the rest-api
@@ -458,24 +472,6 @@ server default {
 		#  The "session-state" attributes are not available here.
 		#
 		Post-Auth-Type REJECT {
-			if (&EAP-Type && &EAP-Type == TLS) {
-				update control {
-					Tmp-String-0 := ""
-				}
-
-				# Loop through the array and build the newline-separated string
-				foreach &Module-Failure-Message {
-					if ("&Tmp-String-0" == "") {
-						update control {
-							&Tmp-String-0 := "%{Foreach-Variable-0}"
-						}
-					} else {
-						update control {
-							&Tmp-String-0 := "&Tmp-String-0\n%{Foreach-Variable-0}"
-						}
-					}
-				}
-			}
 			# log failed authentications in SQL, too.
 			-sql
 			attr_filter.access_reject
