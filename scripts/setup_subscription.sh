@@ -6,7 +6,7 @@ DB_NAME=${2:-"nac"}
 DB_USER=${3:-"cnaas"}
 DB_PASSWORD=${4:-"cnaas"}
 
-SUB_NAME="subscription_$PEER_HOST"
+SUB_NAME="subscription_${PEER_HOST//-/_}"
 
 echo "Setting up subscription to $PEER_HOST, db: $DB_NAME"
 
