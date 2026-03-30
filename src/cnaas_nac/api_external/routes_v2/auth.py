@@ -17,6 +17,10 @@ async def login(request: Request):
     OAuth Login
     """
     redirect_uri = request.url_for("callback")
+
+    if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION:
+        redirect_uri = redirect_uri.replace(scheme="https")
+
     return await oauth_client.authorize_redirect(request, redirect_uri)
 
 
