@@ -17,7 +17,7 @@ class CoA:
             self.nasport.nas_ip_address,
             coaport=3799,
             secret=str.encode(settings.RADIUS_COA_SECRET),
-            dict=Dictionary("cnaas_nac/core/coa_dicts/dictionary"),
+            dict=Dictionary("src/cnaas_nac/core/coa_dicts/dictionary"),
         )
 
         self.client.timeout = 10
