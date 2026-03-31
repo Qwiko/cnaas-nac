@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ruff:
+    name: Ruff linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run ruff check
+        run:  uv run --group dev ruff check src
+
+      - name: Run ruff format check
+        run:  uv run --group dev ruff format --check src
+
+
+  mypy:
+    name: Mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run mypy
+        run: uv run --group dev mypy --install-types --non-interactive .

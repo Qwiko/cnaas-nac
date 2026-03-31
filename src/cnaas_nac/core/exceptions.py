@@ -1,5 +1,5 @@
 from typing import Any
-from fastapi import Request, status
+from fastapi import Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -8,28 +8,30 @@ from cnaas_nac.schemas.generic import ErrorResponse
 # ExceptionClasses
 
 
-class BaseException(Exception):
-    def __init__(self, error: str):
-        self.error = error
-
-
-class Unauthorized(BaseException):
+class Unauthorized(Exception):
     """Returns an Unauthorized 401"""
+
+    def __init__(self, error: str) -> None:
+        super().__init__(error)
+        self.error = error
 
     pass
 
 
-class NotFound(BaseException):
+class NotFound(Exception):
     """Returns an NotFound 404"""
 
-    def __init__(self):
-        self.error = "Not Found"
+    def __init__(self, error: str = "Not Found") -> None:
+        super().__init__(error)
+        self.error = error
+
+    pass
 
 
 # ExceptionHandlers
 
 
-def format_react_admin_errors(exc: RequestValidationError):
+def format_react_admin_errors(exc: RequestValidationError) -> dict[str, Any]:
     errors: dict[str, Any] = {}
 
     for error in exc.errors():
@@ -52,14 +54,18 @@ def format_react_admin_errors(exc: RequestValidationError):
     return errors
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"errors": format_react_admin_errors(exc)},
     )
 
 
-def unauthorized_exception_handler(request: Request, exc: Unauthorized):
+async def unauthorized_exception_handler(
+    request: Request, exc: Unauthorized
+) -> Response:
     error = ErrorResponse(message=exc.error)
 
     return JSONResponse(
@@ -68,7 +74,9 @@ def unauthorized_exception_handler(request: Request, exc: Unauthorized):
     )
 
 
-def notfound_exception_handler(request: Request, exc: NotFound):
+async def notfound_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, NotFound)
+
     error = ErrorResponse(message=exc.error)
 
     return JSONResponse(

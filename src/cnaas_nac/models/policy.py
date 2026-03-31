@@ -106,8 +106,7 @@ class PolicyCondition(Base):
     __tablename__ = "policy_condition"
     __table_args__ = (
         CheckConstraint(
-            "(value_ref IS NOT NULL AND group_id IS NULL) OR "
-            "(value_ref IS NULL AND group_id IS NOT NULL)",
+            "(value_ref IS NOT NULL AND group_id IS NULL) OR (value_ref IS NULL AND group_id IS NOT NULL)",
             name="check_exclusive_reference",
         ),
     )

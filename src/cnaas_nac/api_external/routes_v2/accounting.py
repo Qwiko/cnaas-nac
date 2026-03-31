@@ -1,5 +1,4 @@
 from typing import Annotated, Any
-
 from fastapi import APIRouter, Depends, Path, Response, status
 from fastapi_filter import FilterDepends
 from sqlalchemy import func, select

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from secrets import token_bytes
 from typing import AsyncGenerator
 
 from authlib.jose import jwt

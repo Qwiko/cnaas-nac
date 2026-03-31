@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 
 
-class Group(Base):
+class RBAC(Base):
     __tablename__ = "group"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -12,14 +12,14 @@ class Group(Base):
     name: Mapped[str] = mapped_column(String, unique=True, index=True)
 
     # TODO change to a relation to group_ids array
-    allowed_groups: Mapped[list[str]] = mapped_column(JSON, default=list)
+    allowed_group_ids: Mapped[list[int]] = mapped_column(JSON, default=list)
 
-    permissions: Mapped[list["GroupPermission"]] = relationship(
+    permissions: Mapped[list["RBACPermission"]] = relationship(
         back_populates="group", lazy="selectin", cascade="all, delete-orphan"
     )
 
 
-class GroupPermission(Base):
+class RBACPermission(Base):
     __tablename__ = "group_permission"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -29,4 +29,4 @@ class GroupPermission(Base):
 
     methods: Mapped[list[str]] = mapped_column(JSON, default=list)
 
-    group: Mapped["Group"] = relationship(back_populates="permissions")
+    group: Mapped["RBAC"] = relationship(back_populates="permissions")

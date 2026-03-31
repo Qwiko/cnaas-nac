@@ -1,4 +1,4 @@
-from fastapi import Request, status
+from fastapi import Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -6,12 +6,7 @@ from cnaas_nac.api_internal.schemas import AccessReject, AttributeDetail, Intern
 from cnaas_nac.models.policy import ClientType
 
 
-class BaseException(Exception):
-    def __init__(self, error: str):
-        self.error = error
-
-
-class Unauthorized(BaseException):
+class Unauthorized(Exception):
     """Returns an Unauthorized 401"""
 
     def __init__(self, error: str, policy_id: str | None = None):
@@ -21,7 +16,9 @@ class Unauthorized(BaseException):
     pass
 
 
-async def unauthorized_exception_handler(request: Request, exc: Unauthorized):
+async def unauthorized_exception_handler(
+    request: Request, exc: Unauthorized
+) -> JSONResponse:
     error = AccessReject(
         policy_id=AttributeDetail(value=exc.policy_id) if exc.policy_id else None,
         error_message=AttributeDetail(value=exc.error),
@@ -41,7 +38,11 @@ async def unauthorized_exception_handler(request: Request, exc: Unauthorized):
     )
 
 
-def validation_exception_handler(request, exc: RequestValidationError):
+async def validation_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
+    assert isinstance(exc, RequestValidationError)
+
     message = "Validation errors:"
     for error in exc.errors():
         message += f"\nField: {error['loc']}, Error: {error['msg']}"
