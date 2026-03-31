@@ -11,9 +11,9 @@ ENV ENVIRONMENT="production"
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY pyproject.toml .
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install .
 
 COPY alembic.ini .
 COPY alembic ./alembic
