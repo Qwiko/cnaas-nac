@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
+from secrets import token_bytes
 from typing import AsyncGenerator
 
-import jwt
+from authlib.jose import jwt
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -133,6 +134,7 @@ def create_test_token() -> str:
     }
 
     # Encode the token using your secret key and the HS256 algorithm
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    header = {"alg": "HS256"}
+    token_bytes = jwt.encode(header, payload, settings.SECRET_KEY)
 
-    return token
+    return token_bytes.decode("utf-8")
