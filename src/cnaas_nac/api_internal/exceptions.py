@@ -1,4 +1,4 @@
-from fastapi import Request, Response, status
+from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
