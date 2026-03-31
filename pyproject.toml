@@ -94,8 +94,8 @@ where = [ "src" ]
 exclude = [ "tests" ]
 
 [tool.ruff]
-target-version = "py311"
-line-length = 120
+target-version = "py314"
+#line-length = 120
 exclude = [
   ".eggs",
   ".git",
