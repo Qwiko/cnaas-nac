@@ -1,3 +1,4 @@
+import sys
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -5,6 +6,9 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.base import Base
+
+sys.path.append("src")
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
