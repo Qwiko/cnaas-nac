@@ -24,7 +24,7 @@ COPY alembic.ini .
 COPY alembic ./alembic
 
 # Copy full source code
-COPY src .
+COPY src ./src
 
 COPY docker/api/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
