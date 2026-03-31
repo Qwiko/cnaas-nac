@@ -2,26 +2,30 @@ name: CNaaS NAC
 
 on:
   push:
-    branches: [ develop, main ]
+    branches: [develop, main]
   pull_request:
-    branches: [ develop, main ]
+    branches: [develop, main]
 jobs:
   pytest:
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: cnaas
+          POSTGRES_PASSWORD: cnaas
+          POSTGRES_DB: nac
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        
-      - name: Install dependencies
-        run: sudo apt install -y python3-pip docker-compose
-        
-      - name: Start PostgreSQL
-        run: docker compose -f docker/docker-compose.dev.yml up -d nac_postgres
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
 
       - name: Install requirements
         run: |
-          pip3 install --upgrade pip
-          pip3 install .
-          pip3 install --group dev
+          uv pip install --system -r pyproject.toml
 
       - name: Run tests
         run: POSTGRES_SERVER=127.0.0.1 pytest
