@@ -8,12 +8,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONPATH="/app/src"
 # App environment
 ENV ENVIRONMENT="production"
+# Disable development dependencies
+ENV UV_NO_DEV=1
+
+# Copy uv from astral
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
 COPY pyproject.toml .
-RUN pip install --upgrade pip && \
-    pip install .
+COPY uv.lock .
+RUN uv pip install --system -r pyproject.toml
 
 COPY alembic.ini .
 COPY alembic ./alembic

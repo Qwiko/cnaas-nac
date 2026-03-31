@@ -1,22 +1,15 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = [ "setuptools>=77.0.3" ]
+requires = ["uv_build>=0.11.2,<0.12"]
+build-backend = "uv_build"
 
 [project]
-name = "cnaas_nms"
+name = "cnaas_nac"
 description = "Campus Network as-a-Service - NAC (Campus network automation software)"
-license = { text = "BSD-2-Clause" }
 authors = [
   { name = "SUNET" },
 ]
+version = "2.0.0"
 requires-python = ">=3.11"
-classifiers = [
-  "License :: OSI Approved :: BSD License",
-  "Operating System :: POSIX :: Linux",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.14",
-]
-dynamic = [ "version" ]
 dependencies = [
   "alembic==1.18.4",
   "apscheduler==3.11.2",
@@ -44,12 +37,9 @@ dev = [
   "types-setuptools==82.0.0.20260210",
 ]
 
-[project.readme]
-file = "README.md"
-content-type = "text/markdown"
-
-[tool.distutils.easy_install]
-index-url = "https://pypi.sunet.se/simple/"
+#[project.readme]
+#file = "README.md"
+#content-type = "text/markdown"
 
 [tool.nosetests]
 match = "^test"
@@ -86,7 +76,7 @@ warn_required_dynamic_aliases = "True"
 warn_untyped_fields = "True"
 
 [project.urls]
-Issues = "https://github.com/SUNET/cnaas-nms/issues"
+Issues = "https://github.com/SUNET/cnaas-nac/issues"
 Repository = "https://github.com/sunet/cnaas-nac"
 
 [tool.setuptools.packages.find]
