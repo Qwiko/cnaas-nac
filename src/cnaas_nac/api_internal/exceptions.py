@@ -9,7 +9,7 @@ from cnaas_nac.models.policy import ClientType
 class Unauthorized(Exception):
     """Returns an Unauthorized 401"""
 
-    def __init__(self, error: str, policy_id: str | None = None):
+    def __init__(self, error: str, policy_id: int | None = None):
         self.error = error
         self.policy_id = policy_id
 

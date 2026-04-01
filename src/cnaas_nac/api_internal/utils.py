@@ -65,7 +65,7 @@ async def reject(
     logger.info(
         f"User: {auth.username}({auth.calling_station_id}) rejected, reason: {error_message}"
     )
-    raise Unauthorized(error_message, matched_policy.name if matched_policy else None)
+    raise Unauthorized(error_message, matched_policy.id if matched_policy else None)
 
 
 async def update_endpoint_state(
