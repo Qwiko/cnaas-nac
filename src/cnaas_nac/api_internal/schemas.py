@@ -53,7 +53,7 @@ class InternalAuth(BaseModel):
 
 class AttributeDetail(BaseModel):
     op: Literal["=", ":="] = ":="
-    value: str
+    value: str | int
 
 
 # class AccessAccept(BaseModel):
