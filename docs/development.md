@@ -22,3 +22,9 @@ uv run fastapi dev src/cnaas_nac/api_internal/main.py
 # Start postgres db
 docker compose -f docker/docker-compose.dev.yml up -d
 ```
+
+
+## Building documentation
+```bash
+uv run --group docs mkdocs serve
+```
