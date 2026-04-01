@@ -18,6 +18,7 @@ theme:
     - content.code.copy
     - content.code.select
 markdown_extensions:
+  - admonition
   - attr_list
   - md_in_html
   - pymdownx.blocks.caption
@@ -28,6 +29,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - tables
 watch:
   - mkdocs.yml
   - docs
@@ -35,6 +37,9 @@ nav:
   - Overview:
     - Overview: index.md
     - Links: links.md
+  - Configuration:
+    - Configuration: configuration.md
+    - Environment variables: environment_variables.md
   - Development:
     - Development: development.md
     - Testing: testing.md
