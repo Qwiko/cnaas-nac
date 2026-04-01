@@ -1,0 +1,40 @@
+dev_addr: '127.0.0.1:8001'
+site_name: CNaaS NAC documentation
+site_description: Documentation for CNaaS NAC
+site_author: SUNET
+site_url: 'https://cnaas-nac.readthedocs.io/en/latest/'
+repo_url: 'https://github.com/SUNET/cnaas-nac'
+theme:
+  name: material
+  hljs_languages:
+    - python
+  features:
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - content.code.copy
+    - content.code.select
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+watch:
+  - mkdocs.yml
+  - docs
+nav:
+  - Overview:
+    - Overview: index.md
+    - Links: links.md
+  - Development:
+    - Development: development.md
+    - Testing: testing.md

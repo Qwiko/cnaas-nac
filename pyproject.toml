@@ -39,6 +39,10 @@ dev = [
   "types-cachetools>=6.2.0.20260317",
   "ruff==0.14.14",
 ]
+docs = [
+  "click==8.2.1",
+  "mkdocs-material>=9.7.6",
+]
 
 #[project.readme]
 #file = "README.md"
