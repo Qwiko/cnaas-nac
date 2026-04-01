@@ -21,6 +21,18 @@ from cnaas_nac.models.radpostauth import RadPostAuth
 pytestmark = pytest.mark.anyio
 
 
+async def call_prune_func(db: AsyncSession, prune_func: Callable) -> None:
+    @asynccontextmanager
+    async def override_session_factory():
+        yield db
+
+    with patch(
+        "cnaas_nac.core.scheduled_tasks.prune_endpoints.async_session_factory",
+        new=override_session_factory,
+    ):
+        await prune_func()
+
+
 async def create_endpoints(
     db: AsyncSession,
     endpoint_state: EndpointState,
@@ -40,7 +52,11 @@ async def create_endpoints(
         auth_date = now - timedelta(days=i)
 
         endpoint = Endpoint(
-            username=username, calling_station_id=mac, state=endpoint_state
+            username=username,
+            calling_station_id=mac,
+            state=endpoint_state,
+            created_at=auth_date,
+            updated_at=auth_date,
         )
         rad_post = RadPostAuth(
             username=username,
@@ -57,15 +73,7 @@ async def create_endpoints(
         await db.execute(select(func.count()).select_from(RadPostAuth))
     ).scalar_one()
 
-    @asynccontextmanager
-    async def override_session_factory():
-        yield db
-
-    with patch(
-        "cnaas_nac.core.scheduled_tasks.prune_endpoints.async_session_factory",
-        new=override_session_factory,
-    ):
-        await prune_func()
+    await call_prune_func(db, prune_func)
 
     post_count = (
         await db.execute(select(func.count()).select_from(RadPostAuth))
@@ -120,3 +128,35 @@ async def test_prune_eap_authorized_endpoints(db: AsyncSession) -> None:
     )
 
     assert pre_count - post_count == 1
+
+
+async def test_prune_endpoint_with_later_updated_at(db: AsyncSession) -> None:
+    # Create an endpoint that should not be pruned because it has a later updated_at timestamp
+    mac = "aa:bb:cc:dd:ee:ff"
+
+    auth_date = datetime.now() - timedelta(days=100)
+
+    endpoint = Endpoint(
+        username=mac,
+        calling_station_id=mac,
+        state=EndpointState.AUTHORIZED,
+        updated_at=datetime.now(),
+    )
+    rad_post = RadPostAuth(
+        username=mac,
+        calling_station_id=mac,
+        nas_ip_address="127.0.0.1",
+        auth_date=auth_date,
+    )
+    db.add(endpoint)
+    db.add(rad_post)
+    await db.commit()
+
+    await call_prune_func(db, prune_mab_authorized_endpoints)
+
+    # Verify that the endpoint was not pruned
+    result = await db.execute(
+        select(func.count()).select_from(RadPostAuth).where(RadPostAuth.username == mac)
+    )
+    count = result.scalar_one()
+    assert count == 1

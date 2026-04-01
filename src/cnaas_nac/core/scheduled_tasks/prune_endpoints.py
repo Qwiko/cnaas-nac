@@ -44,7 +44,13 @@ async def prune_endpoints(filter, cutoff_days: int):
                     == last_activity_subq.c.calling_station_id,
                 ),
             )
-            .where(last_activity_subq.c.last_seen < cutoff, filter)
+            .where(
+                # Endpoint has not been seen since cutoff and is in the specified state
+                # Endpoint updated_at must also be older than cutoff to avoid deleting recently updated endpoints without recent RadPostAuth entries
+                last_activity_subq.c.last_seen < cutoff,
+                Endpoint.updated_at < cutoff,
+                filter,
+            )
         )
 
         endpoints = (await db.execute(stmt)).scalars().all()
