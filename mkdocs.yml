@@ -1,4 +1,4 @@
-dev_addr: '127.0.0.1:8001'
+dev_addr: '127.0.0.1:8008'
 site_name: CNaaS NAC documentation
 site_description: Documentation for CNaaS NAC
 site_author: SUNET
@@ -8,6 +8,23 @@ theme:
   name: material
   hljs_languages:
     - python
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: cyan
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
   features:
     - navigation.footer
     - navigation.indexes

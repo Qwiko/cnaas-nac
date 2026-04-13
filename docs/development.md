@@ -18,13 +18,13 @@ uv run fastapi dev src/cnaas_nac/api_internal/main.py
 ```
 
 ## Run within docker
+!!! warning "WIP"
+    Need to be updated
 ```bash
-# Start postgres db
 docker compose -f docker/docker-compose.dev.yml up -d
 ```
 
-
-## Building documentation
+## Developing documentation
 ```bash
 uv run --group docs mkdocs serve
 ```
