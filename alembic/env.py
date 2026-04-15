@@ -1,7 +1,7 @@
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, text
 
 from alembic import context
 from cnaas_nac.core.settings import settings
@@ -58,6 +58,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table_schema="alembic_schema",
     )
 
     with context.begin_transaction():
@@ -78,9 +79,14 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
+        # Create the schema for the Alembic version table if it doesn't exist
+        connection.execute(text("CREATE SCHEMA IF NOT EXISTS alembic_schema;"))
+        connection.commit()
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            version_table_schema="alembic_schema",
         )
 
         with context.begin_transaction():
