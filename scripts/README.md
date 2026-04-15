@@ -48,10 +48,10 @@ It just refreshes the subscription so new tables are also included.
 
 ```bash
 # Example: Running on nac-01
-docker exec nac_radius psql -U cnaas -d nac -c "
+docker exec nac_postgres psql -U cnaas -d nac -c "
   ALTER SUBSCRIPTION subscription_nac_02 REFRESH PUBLICATION WITH (copy_data = false);"
 
 # Example: Running on nac-02
-docker exec nac_radius psql -U cnaas -d nac -c "
+docker exec nac_postgres psql -U cnaas -d nac -c "
   ALTER SUBSCRIPTION subscription_nac_01 REFRESH PUBLICATION WITH (copy_data = false);"
 ```
