@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 from netutils.mac import mac_to_format, is_valid_mac
 from pydantic import BaseModel, Field, AfterValidator, AwareDatetime
-from pydantic_extra_types.mac_address import MacAddress
+from pydantic_extra_types.mac_address import MacAddress as PydanticMacAddress
 
 
 class ErrorResponse(BaseModel):
@@ -35,5 +35,13 @@ class TimestampSchema(BaseModel):
 
 VlanID = Annotated[int, Field(..., ge=1, le=4094, description="VLAN ID range")]
 Username = Annotated[
-    str | MacAddress, Field(..., description="Username"), AfterValidator(format_mac)
+    str | PydanticMacAddress,
+    Field(..., description="Username"),
+    AfterValidator(format_mac),
+]
+# Specific mac_address type that can be reused in other schemas, with validation and formatting.
+MacAddress = Annotated[
+    PydanticMacAddress,
+    Field(..., description="MAC address"),
+    AfterValidator(format_mac),
 ]

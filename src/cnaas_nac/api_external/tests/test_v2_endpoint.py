@@ -65,6 +65,32 @@ async def test_v2_endpoint_get_name(db: AsyncSession, ext_client: AsyncClient) -
     assert mac == res_json.get("username")
 
 
+async def test_v2_endpoint_get_name_different_format(
+    db: AsyncSession, ext_client: AsyncClient
+) -> None:
+    mac = "00:00:00:00:00:01"
+    other_format_mac = "0000.0000.0001"
+
+    # Create entry in db
+    endpoint = Endpoint(
+        username=mac, calling_station_id=mac, state=EndpointState.PENDING
+    )
+    db.add(endpoint)
+    await db.commit()
+
+    response = await ext_client.get(
+        f"/api/v2/endpoint?calling_station_id={other_format_mac}",
+    )
+
+    res_json = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(res_json, list)
+    assert len(res_json) == 1
+
+    # Translated mac is saved and returned
+    assert mac == res_json[0].get("username")
+
+
 async def test_v2_endpoint_get_id_not_found(ext_client: AsyncClient) -> None:
     response = await ext_client.get(
         "/api/v2/endpoint/9999999",

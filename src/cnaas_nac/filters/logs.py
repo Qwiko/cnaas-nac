@@ -10,6 +10,7 @@ from sqlalchemy import Select, or_
 
 from cnaas_nac.models.radacct import RadAcct
 from cnaas_nac.models.radpostauth import RadPostAuth
+from cnaas_nac.schemas.generic import MacAddress, Username
 
 
 def validate_nas_ip_address(v: Any) -> None | IPvAnyNetwork:
@@ -30,17 +31,17 @@ class AccountingFilter(Filter):
     endpoint_id__in: Optional[list[int]] = None
     endpoint_id__neq: Optional[str] = None
 
-    username: Optional[str] = None
-    username__in: Optional[list[str]] = None
+    username: Optional[Username] = None
+    username__in: Optional[list[Username]] = None
     username__ilike: Optional[str] = None
     username__like: Optional[str] = None
-    username__neq: Optional[str] = None
+    username__neq: Optional[Username] = None
 
-    calling_station_id: Optional[str] = None
-    calling_station_id__in: Optional[list[str]] = None
+    calling_station_id: Optional[MacAddress] = None
+    calling_station_id__in: Optional[list[MacAddress]] = None
     calling_station_id__ilike: Optional[str] = None
     calling_station_id__like: Optional[str] = None
-    calling_station_id__neq: Optional[str] = None
+    calling_station_id__neq: Optional[MacAddress] = None
 
     nas_identifier: Optional[str] = None
     nas_identifier__in: Optional[list[str]] = None
@@ -127,17 +128,17 @@ class AuthenticationFilter(Filter):
     endpoint_id__in: Optional[list[int]] = None
     endpoint_id__neq: Optional[str] = None
 
-    username: Optional[str] = None
-    username__in: Optional[list[str]] = None
+    username: Optional[Username] = None
+    username__in: Optional[list[Username]] = None
     username__ilike: Optional[str] = None
     username__like: Optional[str] = None
-    username__neq: Optional[str] = None
+    username__neq: Optional[Username] = None
 
-    calling_station_id: Optional[str] = None
-    calling_station_id__in: Optional[list[str]] = None
+    calling_station_id: Optional[MacAddress] = None
+    calling_station_id__in: Optional[list[MacAddress]] = None
     calling_station_id__ilike: Optional[str] = None
     calling_station_id__like: Optional[str] = None
-    calling_station_id__neq: Optional[str] = None
+    calling_station_id__neq: Optional[MacAddress] = None
 
     matched_policy_id: Optional[int] = None
     matched_policy_id__in: Optional[list[int]] = None
