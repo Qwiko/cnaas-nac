@@ -27,14 +27,14 @@ class RBACCreateUpdate(RBACBase):
 
 
 # Schema for Responses (Returns the ID from the database)
-class GroupResponse(RBACBase):
+class RBACResponse(RBACBase):
     id: int
 
 
 router = APIRouter(prefix="/rbac", tags=["rbac"])
 
 
-@router.post("", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=RBACResponse, status_code=status.HTTP_201_CREATED)
 async def create_group(
     request: Request,
     group_in: RBACCreateUpdate,
@@ -61,44 +61,44 @@ async def create_group(
     return db_group
 
 
-@router.get("", response_model=list[GroupResponse])
-async def read_groups(
+@router.get("", response_model=list[RBACResponse])
+async def read_rbac(
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Retrieve all groups with pagination."""
-    groups = (await db.execute(select(RBAC))).scalars().all()
-    return groups
+    """Retrieve all RBAC entries with pagination."""
+    rbac_entries = (await db.execute(select(RBAC))).scalars().all()
+    return rbac_entries
 
 
-@router.get("/{id}", response_model=GroupResponse)
-async def read_group(
-    group_id: Annotated[int, Path(alias="id")],
+@router.get("/{id}", response_model=RBACResponse)
+async def read_rbac_entry(
+    rbac_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Get a specific group by ID."""
+    """Get a specific RBAC entry by ID."""
     db_group = (
-        await db.execute(select(RBAC).where(RBAC.id == group_id))
+        await db.execute(select(RBAC).where(RBAC.id == rbac_id))
     ).scalar_one_or_none()
     if not db_group:
-        raise HTTPException(status_code=404, detail="Group not found")
+        raise HTTPException(status_code=404, detail="RBAC not found")
     return db_group
 
 
-@router.put("/{id}", response_model=GroupResponse)
-async def update_group(
-    group_id: Annotated[int, Path(alias="id")],
+@router.put("/{id}", response_model=RBACResponse)
+async def update_rbac(
+    rbac_id: Annotated[int, Path(alias="id")],
     group_in: RBACCreateUpdate,
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     """Update a group's details."""
     db_group = (
-        await db.execute(select(RBAC).where(RBAC.id == group_id))
+        await db.execute(select(RBAC).where(RBAC.id == rbac_id))
     ).scalar_one_or_none()
     if not db_group:
-        raise HTTPException(status_code=404, detail="Group not found")
+        raise HTTPException(status_code=404, detail="RBAC not found")
 
     # Extract only the fields the user actually provided in the request
     update_data = group_in.model_dump(exclude_unset=True)
@@ -113,17 +113,17 @@ async def update_group(
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_group(
-    group_id: Annotated[int, Path(alias="id")],
+async def delete_rbac(
+    rbac_id: Annotated[int, Path(alias="id")],
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Delete a group."""
+    """Delete a rbac group."""
     db_group = (
-        await db.execute(select(RBAC).where(RBAC.id == group_id))
+        await db.execute(select(RBAC).where(RBAC.id == rbac_id))
     ).scalar_one_or_none()
     if not db_group:
-        raise HTTPException(status_code=404, detail="Group not found")
+        raise HTTPException(status_code=404, detail="RBAC not found")
 
     await db.delete(db_group)
     await db.commit()
