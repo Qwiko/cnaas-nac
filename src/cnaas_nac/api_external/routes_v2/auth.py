@@ -1,12 +1,19 @@
 from typing import Annotated
+from urllib.parse import urlencode
 
-import requests
 from authlib.integrations.starlette_client import OAuthError
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import RedirectResponse
-from urllib.parse import urlencode
-from cnaas_nac.core.security import User, get_current_user, oauth_client
-from cnaas_nac.core.settings import settings, EnvironmentOption
+
+from cnaas_nac.core.db import get_async_session
+from cnaas_nac.core.security import (
+    User,
+    create_access_token,
+    get_current_user,
+    oauth_client,
+)
+from cnaas_nac.core.settings import EnvironmentOption, settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -25,7 +32,10 @@ async def login(request: Request):
 
 
 @router.get("/callback")
-async def callback(request: Request):
+async def callback(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+):
     """
     OAuth callback
     """
@@ -34,72 +44,24 @@ async def callback(request: Request):
     except OAuthError as error:
         raise HTTPException(status_code=400, detail=f"OAuth error: {error.error}")
 
-    # Extract the tokens
-    access_token = token.get(settings.OIDC_TOKEN_ATTRIBUTE)
-    refresh_token = token.get("refresh_token")
+    # Extract the access_token
+    oidc_token = token.get(settings.OIDC_TOKEN_ATTRIBUTE)
 
-    params = {"access_token": access_token}
+    # Get values from the OIDC token. The username and groups attributes are configurable in settings.
+    username: str = oidc_token.get(settings.OIDC_USERNAME_ATTRIBUTE, "")
+    groups: list[str] = oidc_token.get(settings.OIDC_GROUPS_ATTRIBUTE, [])
 
-    query_string = urlencode(params)
+    if not username:
+        raise HTTPException(status_code=400, detail="Username not found in token")
+
+    # Create new internal jwt token that cnaas_nac have full control over.
+    access_token = await create_access_token(db, username, groups)
+
+    query_string = urlencode({"access_token": access_token})
 
     response = RedirectResponse(url=settings.FRONTEND_CALLBACK_URL + "?" + query_string)
 
-    if refresh_token:
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            secure=True
-            if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION
-            else False,
-            samesite="lax",
-            path="/api/v2/auth/refresh",
-            max_age=60 * 60 * 24 * 14,
-        )
-
     return response
-
-
-@router.post("/refresh")
-async def refresh(request: Request, response: Response):
-    """Refresh access token using refresh token"""
-    await oauth_client.load_server_metadata()
-
-    refresh_token = request.cookies.get("refresh_token")
-
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Missing refresh token")
-
-    ret = requests.post(
-        oauth_client.server_metadata["token_endpoint"],
-        data={
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
-            "client_id": oauth_client.client_id,
-            "client_secret": oauth_client.client_secret,
-        },
-    )
-
-    refresh_data: dict = ret.json()
-    access_token = refresh_data.get(settings.OIDC_TOKEN_ATTRIBUTE)
-    refresh_token = refresh_data.get("refresh_token")
-
-    if not access_token or not refresh_token:
-        raise HTTPException(status_code=401, detail="Missing access token")
-
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=(
-            True if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION else False
-        ),
-        samesite="lax",
-        path="/api/v2/auth/refresh",
-        max_age=60 * 60 * 24 * 14,
-    )
-
-    return {"access_token": access_token}
 
 
 @router.post("/logout")
@@ -109,16 +71,6 @@ async def logout(request: Request, response: Response):
     # TODO
     # Remove internal session
     # Logout session in oidc?
-
-    response.set_cookie(
-        key="refresh_token",
-        value="",
-        httponly=True,
-        secure=True if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION else False,
-        samesite="lax",
-        path="/api/v1.0/auth/refresh",
-        max_age=0,
-    )
 
     return
 

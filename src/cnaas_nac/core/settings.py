@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     OIDC_ADMIN_GROUP: str = "admins"
 
     SECRET_KEY: str = "replace_this_with_a_secure_random_string"
+    JWT_EXPIRATION_MINUTES: int = 60
 
     FRONTEND_CALLBACK_URL: str = "/#/auth-callback"
 
