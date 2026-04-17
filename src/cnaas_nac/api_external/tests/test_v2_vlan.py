@@ -10,9 +10,6 @@ pytestmark = pytest.mark.anyio
 
 
 async def test_v2_vlans_get_notfound(db: AsyncSession, ext_client: AsyncClient) -> None:
-    # Remove all Users if there are any in test-db
-    # Will be brought back by a transaction.
-
     await db.execute(delete(PolicyReply))
 
     response = await ext_client.get(
