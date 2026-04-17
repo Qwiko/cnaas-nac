@@ -1,7 +1,5 @@
-from datetime import datetime, timedelta, timezone
 from typing import AsyncGenerator
 
-from authlib.jose import jwt
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -17,7 +15,8 @@ from alembic import command
 from cnaas_nac.api_external.main import app as external_app
 from cnaas_nac.api_internal.main import app as internal_app
 from cnaas_nac.core.db import get_async_session
-from cnaas_nac.core.settings import EnvironmentOption, settings
+from cnaas_nac.core.settings import settings
+from cnaas_nac.core.security import create_access_token
 
 async_engine = create_async_engine(
     settings.POSTGRES_ASYNC_PREFIX + settings.POSTGRES_URI, future=True
@@ -74,7 +73,13 @@ async def ext_client(
             yield async_session
 
     external_app.dependency_overrides[get_async_session] = override_get_async_session
-    test_token = create_test_token()
+    async with AsyncSession(
+        bind=connection,
+        join_transaction_mode="create_savepoint",
+        expire_on_commit=False,
+    ) as async_session:
+        test_token = await create_test_token(async_session)
+
     async with AsyncClient(
         transport=ASGITransport(app=external_app),
         base_url="http://cnaas-nac-external",
@@ -112,28 +117,7 @@ def apply_migrations():
     command.upgrade(alembic_cfg, "head")
 
 
-@pytest.fixture(autouse=True)
-def mock_pydantic_settings(monkeypatch):
-    """
-    Automatically mock specific Pydantic settings for all tests.
-    """
-    # Make sure ENVIRONMENT is set to Local for tests.
-    monkeypatch.setattr(settings, "ENVIRONMENT", EnvironmentOption.LOCAL)
-
-
-def create_test_token() -> str:
+async def create_test_token(db: AsyncSession) -> str:
     """Generates a test JWT signed with the application's secret key."""
 
-    payload = {
-        "sub": "test_user_123",
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
-        "email": "test@example.com",
-        "preferred_username": "test@example.com",
-        "groups": ["admin"],
-    }
-
-    # Encode the token using your secret key and the HS256 algorithm
-    header = {"alg": "HS256"}
-    token_bytes = jwt.encode(header, payload, settings.SECRET_KEY)
-
-    return token_bytes.decode("utf-8")
+    return await create_access_token(db, "test_user_123", groups=[])
