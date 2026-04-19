@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Callable
+from typing import AsyncIterator, Callable
 from unittest.mock import patch
 
 from fastapi.concurrency import asynccontextmanager
@@ -40,7 +40,7 @@ async def create_radpostauth(
     ).scalar_one()
 
     @asynccontextmanager
-    async def override_session_factory():
+    async def override_session_factory() -> AsyncIterator[AsyncSession]:
         yield db
 
     with patch(

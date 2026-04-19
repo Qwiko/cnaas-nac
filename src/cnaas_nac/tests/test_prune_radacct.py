@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Callable
+from typing import AsyncIterator, Callable
 from unittest.mock import patch
 
 import pytest
@@ -46,7 +46,7 @@ async def create_radacct(
     ).scalar_one()
 
     @asynccontextmanager
-    async def override_session_factory():
+    async def override_session_factory() -> AsyncIterator[AsyncSession]:
         yield db
 
     with patch(
@@ -107,7 +107,7 @@ async def test_prune_radacct_without_endpoint(db: AsyncSession) -> None:
     ).scalar_one()
 
     @asynccontextmanager
-    async def override_session_factory():
+    async def override_session_factory() -> AsyncIterator[AsyncSession]:
         yield db
 
     with patch(

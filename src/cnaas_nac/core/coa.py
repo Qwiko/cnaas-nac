@@ -1,5 +1,5 @@
-from pyrad.client import Client, Timeout  # type: ignore[import-untyped]
-from pyrad.dictionary import Dictionary  # type: ignore[import-untyped]
+from pyrad.client import Client, Timeout
+from pyrad.dictionary import Dictionary
 from pyrad.packet import Packet, CoAACK, CoANAK
 
 from cnaas_nac.core.logging import get_logger

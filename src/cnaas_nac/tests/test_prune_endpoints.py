@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Callable
+from typing import AsyncIterator, Callable
 from unittest.mock import patch
 
 import pytest
@@ -23,7 +23,7 @@ pytestmark = pytest.mark.anyio
 
 async def call_prune_func(db: AsyncSession, prune_func: Callable) -> None:
     @asynccontextmanager
-    async def override_session_factory():
+    async def override_session_factory() -> AsyncIterator[AsyncSession]:
         yield db
 
     with patch(

@@ -92,8 +92,15 @@ async def create_access_token(
     # Encode the token using your secret key and the HS256 algorithm
     header = {"alg": "HS256"}
     token_bytes = jwt.encode(header, data, settings.SECRET_KEY)
+    try:
+        jwt_token = str(token_bytes.decode("utf-8"))
+    except UnicodeDecodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
 
-    return token_bytes.decode("utf-8")
+    return jwt_token
 
 
 class User(BaseModel):

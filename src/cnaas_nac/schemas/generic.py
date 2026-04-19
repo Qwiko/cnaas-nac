@@ -24,7 +24,7 @@ class ValidationErrorResponse(BaseModel):
 
 def format_mac(v: str) -> str:
     if is_valid_mac(v):
-        return mac_to_format(v, "MAC_COLON_TWO")
+        v = mac_to_format(v, "MAC_COLON_TWO")
     return v
 
 

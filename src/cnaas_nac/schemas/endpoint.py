@@ -44,7 +44,7 @@ class EndpointResponse(EndpointBase, TimestampSchema):
     @property
     def oui(self) -> str:
         try:
-            value = get_oui(self.calling_station_id)
+            value = str(get_oui(self.calling_station_id))
         except ValueError:
             value = "Unknown"
         return value

@@ -138,7 +138,7 @@ class PolicyCondition(Base):
         return self.value_ref
 
     @value.setter
-    def value(self, v) -> None:
+    def value(self, v: str | int) -> None:
         """Sets the appropriate column based on the type of value passed."""
         if isinstance(v, int):
             self.group_id = v

@@ -23,4 +23,4 @@ async def prune_postauth() -> None:
         result = await db.execute(delete_stmt)
 
         await db.commit()
-        logger.info(f"Completed task: prune_postauth. Removed {result.rowcount} lines.")
+        logger.info(f"Completed task: prune_postauth. Removed {result.rowcount} lines.") # type: ignore[attr-defined]

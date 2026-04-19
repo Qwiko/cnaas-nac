@@ -1,4 +1,4 @@
-from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
+from apscheduler.schedulers.asyncio import (
     AsyncIOScheduler,
 )
 

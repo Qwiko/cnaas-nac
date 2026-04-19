@@ -28,14 +28,14 @@ async def get_accountings(
     Get accountings.
     """
     query = select(RadAcct)
-    query = accounting_filter.filter(query)
+    query = accounting_filter.filter(query) # type: ignore[assignment]
     query = accounting_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    query = apply_group_filter(query, RadAcct, current_user)  # type: ignore[misc]
+    query = apply_group_filter(query, RadAcct, current_user)
 
     count_query = select(func.count()).select_from(RadAcct)
-    count_query = accounting_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, RadAcct, current_user)  # type: ignore[misc]
+    count_query = accounting_filter.filter(count_query) # type: ignore[assignment]
+    count_query = apply_group_filter(count_query, RadAcct, current_user) # type: ignore[misc]
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()

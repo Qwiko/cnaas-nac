@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import ColumnElement, Select, and_, func, select
 
 from cnaas_nac.core.db import async_session_factory
 from cnaas_nac.core.logging import get_logger
@@ -13,7 +13,7 @@ logger = get_logger()
 mac_regex = r"^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$"
 
 
-async def prune_endpoints(filter, cutoff_days: int):
+async def prune_endpoints(filter: ColumnElement[bool], cutoff_days: int) -> None:
     async with async_session_factory() as db:
         logger.info(f"Starting task: prune_endpoints for state: {filter}")
 

@@ -23,9 +23,9 @@ def apply_group_filter(
     if model == Endpoint:
         stmt = stmt.where(
             or_(
-                model.group_id.in_(current_user.endpoint_group_ids),
-                model.state == EndpointState.DISCOVERED,
-            )  # type: ignore[attr-defined]
+                model.group_id.in_(current_user.endpoint_group_ids),  # type: ignore[attr-defined]
+                model.state == EndpointState.DISCOVERED,  # type: ignore[attr-defined]
+            )
         )
     if model == EndpointGroup:
         stmt = stmt.where(
@@ -36,7 +36,7 @@ def apply_group_filter(
             or_(
                 model.endpoint_group_id.in_(current_user.endpoint_group_ids),  # type: ignore[attr-defined]
                 model.endpoint_state  # type: ignore[attr-defined]
-                == EndpointState.DISCOVERED,  # type: ignore[attr-defined]
+                == EndpointState.DISCOVERED,
             )
         )
     return stmt

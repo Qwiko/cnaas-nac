@@ -33,14 +33,14 @@ async def get_authentications(
     """
 
     query = select(RadPostAuth)
-    query = authentication_filter.filter(query)
+    query = authentication_filter.filter(query) # type: ignore[assignment]
     query = authentication_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
     query = apply_group_filter(query, RadPostAuth, current_user)
 
     count_query = select(func.count()).select_from(RadPostAuth)
-    count_query = authentication_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, RadPostAuth, current_user)
+    count_query = authentication_filter.filter(count_query) # type: ignore[assignment]
+    count_query = apply_group_filter(count_query, RadPostAuth, current_user) # type: ignore[misc]
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()

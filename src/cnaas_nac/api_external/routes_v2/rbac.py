@@ -27,10 +27,10 @@ async def create_group(
     if existing_rbac:
         raise HTTPException(status_code=400, detail="RBAC name already registered")
 
-    stmt = select(EndpointGroup).where(
+    endpoint_group_stmt = select(EndpointGroup).where(
         EndpointGroup.id.in_(rbac_in.allowed_endpoint_groups)
     )
-    endpoint_groups = (await db.execute(stmt)).scalars().all()
+    endpoint_groups = (await db.execute(endpoint_group_stmt)).scalars().all()
 
     db_rbac = RBAC(name=rbac_in.name, allowed_endpoint_groups=endpoint_groups)
 
