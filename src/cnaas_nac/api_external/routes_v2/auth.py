@@ -29,7 +29,7 @@ async def login(request: Request) -> RedirectResponse:
     if settings.ENVIRONMENT == EnvironmentOption.PRODUCTION:
         redirect_uri = redirect_uri.replace(scheme="https")
 
-    return await oauth_client.authorize_redirect(request, redirect_uri) # type: ignore[no-any-return]
+    return await oauth_client.authorize_redirect(request, redirect_uri)  # type: ignore[no-any-return]
 
 
 @router.get("/callback")

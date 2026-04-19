@@ -30,5 +30,5 @@ async def prune_radacct() -> None:
         await db.commit()
 
         logger.info(
-            f"Completed task: prune_acct. Removed {result.rowcount} radacct, {no_endpoint_result.rowcount} radacct with no associated endpoint." # type: ignore[attr-defined]
+            f"Completed task: prune_acct. Removed {result.rowcount} radacct, {no_endpoint_result.rowcount} radacct with no associated endpoint."  # type: ignore[attr-defined]
         )

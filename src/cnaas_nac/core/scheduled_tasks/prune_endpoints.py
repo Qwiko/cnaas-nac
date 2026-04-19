@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import ColumnElement, Select, and_, func, select
+from sqlalchemy import ColumnElement, and_, func, select
 
 from cnaas_nac.core.db import async_session_factory
 from cnaas_nac.core.logging import get_logger
