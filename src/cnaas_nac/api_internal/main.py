@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, AsyncIterator
 
 from alembic.config import Config
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -22,22 +22,22 @@ from cnaas_nac.api_internal.schemas import AccessReject
 from cnaas_nac.core.db import get_async_session
 
 
-def run_alembic_migrations():
+def run_alembic_migrations() -> None:
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
 
 
 @asynccontextmanager
-async def lifespan(app_: FastAPI):
+async def lifespan(app_: FastAPI) -> AsyncIterator[None]:
     run_alembic_migrations()
 
     if not settings.PRUNING_DISABLED:
         scheduler = setup_scheduled_tasks()
         scheduler.start()
-        yield
+        yield None
         scheduler.shutdown()
     else:
-        yield
+        yield None
 
 
 app = FastAPI(
@@ -73,7 +73,9 @@ app = FastAPI(
 
 
 @app.get("/api/v2/health")
-async def health_check(db: Annotated[AsyncSession, Depends(get_async_session)]):
+async def health_check(
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+) -> dict[str, str]:
     try:
         await db.execute(text("SELECT 1"))
 

@@ -68,9 +68,9 @@ async def test_auth_policy(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": "aa:bb:cc:dd:ee:ff",  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": "aa:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(
@@ -94,9 +94,9 @@ async def test_auth_policy_discovered(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": "bb:bb:cc:dd:ee:ff",  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": "bb:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(
@@ -138,9 +138,9 @@ async def test_auth_policy_authorized_to_rejected(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": "bb:bb:cc:dd:ee:ff",  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": "bb:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(
@@ -214,9 +214,9 @@ async def test_auth_port_lock_wrong_port(
         "nas_identifier": "eos-a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": "aa:bb:cc:dd:ee:ff",  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": "aa:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(
@@ -326,9 +326,9 @@ async def test_auth_port_type(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": mac,  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": mac,
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(

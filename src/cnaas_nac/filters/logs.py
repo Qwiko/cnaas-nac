@@ -89,7 +89,7 @@ class AccountingFilter(Filter):
         search_model_fields = ["username", "calling_station_id"]
         search_field_name = "q"
 
-    def filter(self, query: Union[Query, Select]):
+    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -97,7 +97,7 @@ class AccountingFilter(Filter):
             else:
                 if "__" in field_name:
                     field_name, operator = field_name.split("__")
-                    operator, value = _orm_operator_transformer[operator](value)
+                    operator, value = _orm_operator_transformer[operator](value)  # type: ignore[no-untyped-call]
                 else:
                     operator = "__eq__"
 
@@ -183,7 +183,7 @@ class AuthenticationFilter(Filter):
         search_model_fields = ["username", "calling_station_id"]
         search_field_name = "q"
 
-    def filter(self, query: Union[Query, Select]):
+    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
         for field_name, value in self.filtering_fields:
             field_value = getattr(self, field_name)
             if isinstance(field_value, Filter):
@@ -191,7 +191,7 @@ class AuthenticationFilter(Filter):
             else:
                 if "__" in field_name:
                     field_name, operator = field_name.split("__")
-                    operator, value = _orm_operator_transformer[operator](value)
+                    operator, value = _orm_operator_transformer[operator](value)  # type: ignore[no-untyped-call]
                 else:
                     operator = "__eq__"
 

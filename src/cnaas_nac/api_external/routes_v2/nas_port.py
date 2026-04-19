@@ -32,11 +32,11 @@ async def get_nas_ports(
     query = nas_port_filter.filter(query)
     query = nas_port_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    query = apply_group_filter(query, NasPort, current_user.group_ids)
+    query = apply_group_filter(query, NasPort, current_user)
 
     count_query = select(func.count()).select_from(NasPort)
     count_query = nas_port_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, NasPort, current_user.group_ids)
+    count_query = apply_group_filter(count_query, NasPort, current_user)
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -56,7 +56,7 @@ async def delete_nas_port(
     """
 
     stmt = select(NasPort).where(NasPort.id == nas_port_id)
-    stmt = apply_group_filter(stmt, NasPort, current_user.group_ids)
+    stmt = apply_group_filter(stmt, NasPort, current_user)
 
     nas_port = (await db.execute(stmt)).scalar_one_or_none()
 

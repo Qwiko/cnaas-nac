@@ -11,6 +11,7 @@ from cnaas_nac.core.security import (
     User,
     create_access_token,
     get_current_user,
+    get_user_permissions,
     oauth_client,
 )
 from cnaas_nac.core.settings import EnvironmentOption, settings
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/login")
-async def login(request: Request):
+async def login(request: Request) -> RedirectResponse:
     """
     OAuth Login
     """
@@ -35,7 +36,7 @@ async def login(request: Request):
 async def callback(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_async_session)],
-):
+) -> RedirectResponse:
     """
     OAuth callback
     """
@@ -65,7 +66,7 @@ async def callback(
 
 
 @router.post("/logout")
-async def logout(request: Request, response: Response):
+async def logout(request: Request, response: Response) -> None:
     # Retrieve the ID token you stored during login
 
     # TODO
@@ -75,27 +76,21 @@ async def logout(request: Request, response: Response):
     return
 
 
-@router.get("/me")
+@router.get("/me", response_model=User)
 async def me(
     request: Request, current_user: Annotated[User, Depends(get_current_user)]
-):
+) -> User:
     """Get current user information"""
 
-    return current_user.model_dump(include={"name"})
+    return current_user
 
 
 @router.get("/permissions")
-async def get_permissions(current_user: Annotated[User, Depends(get_current_user)]):
+async def get_permissions(
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, list[str]]:
     """Get user permissions"""
-    # TODO actually map to rbac roles here.
-
-    return {
-        "endpoint": ["GET", "POST", "PUT", "DELETE"],
-        "endpoint_group": ["GET", "POST", "PUT", "DELETE"],
-        "policy": ["GET", "POST", "PUT", "DELETE"],
-        "nas_port": ["GET", "POST", "PUT", "DELETE"],
-        "accounting": ["GET", "POST", "PUT", "DELETE"],
-        "authentication": ["GET", "POST", "PUT", "DELETE"],
-        "radius_client": ["GET", "POST", "PUT", "DELETE"],
-        "vlan": ["GET", "POST", "PUT", "DELETE"],
-    }
+    return await get_user_permissions(
+        db, current_user.username, current_user.rbac_groups, current_user.is_admin
+    )

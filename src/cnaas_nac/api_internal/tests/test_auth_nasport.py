@@ -62,9 +62,9 @@ async def test_auth_endpoint_nasport(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": "aa:bb:cc:dd:ee:ff",  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": "aa:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(

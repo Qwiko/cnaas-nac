@@ -36,11 +36,11 @@ async def get_authentications(
     query = authentication_filter.filter(query)
     query = authentication_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    query = apply_group_filter(query, RadPostAuth, current_user.group_ids)
+    query = apply_group_filter(query, RadPostAuth, current_user)
 
     count_query = select(func.count()).select_from(RadPostAuth)
     count_query = authentication_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, RadPostAuth, current_user.group_ids)
+    count_query = apply_group_filter(count_query, RadPostAuth, current_user)
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -60,7 +60,7 @@ async def get_authentication(
     """
 
     stmt = select(RadPostAuth).where(RadPostAuth.id == authentication_id)
-    stmt = apply_group_filter(stmt, RadPostAuth, current_user.group_ids)
+    stmt = apply_group_filter(stmt, RadPostAuth, current_user)
 
     authentication = (await db.execute(stmt)).scalar_one_or_none()
 
@@ -81,7 +81,7 @@ async def delete_authentication(
     """
 
     stmt = select(RadPostAuth).where(RadPostAuth.id == authentication_id)
-    stmt = apply_group_filter(stmt, RadPostAuth, current_user.group_ids)
+    stmt = apply_group_filter(stmt, RadPostAuth, current_user)
 
     authentication = (await db.execute(stmt)).scalar_one_or_none()
 

@@ -1,7 +1,28 @@
-from sqlalchemy import String, JSON, ForeignKey
+from sqlalchemy import String, JSON, ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from cnaas_nac.models.endpoint import EndpointGroup
+
+rbac_group_association = Table(
+    "rbac_group_association",
+    Base.metadata,
+    Column("rbac_id", ForeignKey("group.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "endpoint_group_id",
+        ForeignKey("endpoint_group.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)
+
+
+class RBACEndpointGroup(Base):
+    __tablename__ = "rbac_endpoint_group_association"
+
+    rbac_id: Mapped[int] = mapped_column(ForeignKey("group.id"), primary_key=True)
+    endpoint_group_id: Mapped[int] = mapped_column(
+        ForeignKey("endpoint_group.id"), primary_key=True
+    )
 
 
 class RBAC(Base):
@@ -11,12 +32,17 @@ class RBAC(Base):
 
     name: Mapped[str] = mapped_column(String, unique=True, index=True)
 
-    # TODO change to a relation to group_ids array
-    allowed_group_ids: Mapped[list[int]] = mapped_column(JSON, default=list)
+    allowed_endpoint_groups: Mapped[list["EndpointGroup"]] = relationship(
+        secondary="rbac_endpoint_group_association", lazy="selectin"
+    )
 
     permissions: Mapped[list["RBACPermission"]] = relationship(
         back_populates="group", lazy="selectin", cascade="all, delete-orphan"
     )
+
+    @property
+    def allowed_endpoint_group_ids(self) -> list[int]:
+        return [endpoint_group.id for endpoint_group in self.allowed_endpoint_groups]
 
 
 class RBACPermission(Base):

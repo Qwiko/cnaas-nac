@@ -1,6 +1,6 @@
 from pyrad.client import Client, Timeout  # type: ignore[import-untyped]
 from pyrad.dictionary import Dictionary  # type: ignore[import-untyped]
-from pyrad.packet import Packet, CoAACK, CoANAK  # type: ignore[import-untyped]
+from pyrad.packet import Packet, CoAACK, CoANAK
 
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
@@ -42,7 +42,7 @@ class CoA:
         try:
             self.coa_attrs = {k.replace("-", "_"): attrs[k] for k in attrs}
             self.coa_pkt = self.client.CreateCoAPacket(**self.coa_attrs)
-            return_packet: Packet = self.client.SendPacket(self.coa_pkt)  # type: ignore[annotation-unchecked]
+            return_packet: Packet = self.client.SendPacket(self.coa_pkt)
 
             if return_packet.code == CoAACK:
                 logger.info("CoAACK received, port bounced.")

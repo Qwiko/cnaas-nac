@@ -11,7 +11,7 @@ from cnaas_nac.models.radpostauth import RadPostAuth
 logger = get_logger()
 
 
-async def prune_postauth():
+async def prune_postauth() -> None:
     async with async_session_factory() as db:
         logger.info("Starting task: prune_postauth")
         threshold_date = datetime.now() - timedelta(

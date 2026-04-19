@@ -29,7 +29,7 @@ class InternalAuth(BaseModel):
 
     @field_validator("ldap_groups", mode="before")
     @classmethod
-    def parse_radius_groups(cls, value):
+    def parse_radius_groups(cls, value) -> list[str]:
         if isinstance(value, str):
             if not value.strip():
                 return []

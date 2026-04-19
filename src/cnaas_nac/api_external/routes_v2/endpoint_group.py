@@ -36,11 +36,11 @@ async def get_endpoint_groups(
     query = endpoint_group_filter.filter(query)
     query = endpoint_group_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    query = apply_group_filter(query, EndpointGroup, current_user.group_ids)
+    query = apply_group_filter(query, EndpointGroup, current_user)
 
     count_query = select(func.count()).select_from(EndpointGroup)
     count_query = endpoint_group_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, EndpointGroup, current_user.group_ids)
+    count_query = apply_group_filter(count_query, EndpointGroup, current_user)
 
     total_count = (await db.execute(count_query)).scalar_one()
 
@@ -90,7 +90,7 @@ async def get_endpoint_group(
     """
 
     stmt = select(EndpointGroup).where(EndpointGroup.id == group_id)
-    stmt = apply_group_filter(stmt, EndpointGroup, current_user.group_ids)
+    stmt = apply_group_filter(stmt, EndpointGroup, current_user)
 
     endpoint_group = (await db.execute(stmt)).scalar_one_or_none()
 
@@ -112,7 +112,7 @@ async def put_endpoint_group(
     """
 
     stmt = select(EndpointGroup).where(EndpointGroup.id == group_id)
-    stmt = apply_group_filter(stmt, EndpointGroup, current_user.group_ids)
+    stmt = apply_group_filter(stmt, EndpointGroup, current_user)
 
     existing_group = (await db.execute(stmt)).scalar_one_or_none()
 
@@ -140,7 +140,7 @@ async def delete_endpoint_group(
     """
 
     stmt = select(EndpointGroup).where(EndpointGroup.id == group_id)
-    stmt = apply_group_filter(stmt, EndpointGroup, current_user.group_ids)
+    stmt = apply_group_filter(stmt, EndpointGroup, current_user)
 
     endpoint_group = (await db.execute(stmt)).scalar_one_or_none()
 

@@ -67,7 +67,7 @@ async def prune_endpoints(filter, cutoff_days: int):
         )
 
 
-async def prune_mab_discovered_endpoints():
+async def prune_mab_discovered_endpoints() -> None:
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.DISCOVERED,
@@ -77,7 +77,7 @@ async def prune_mab_discovered_endpoints():
     )
 
 
-async def prune_mab_pending_endpoints():
+async def prune_mab_pending_endpoints() -> None:
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.PENDING,
@@ -87,7 +87,7 @@ async def prune_mab_pending_endpoints():
     )
 
 
-async def prune_mab_rejected_endpoints():
+async def prune_mab_rejected_endpoints() -> None:
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.REJECTED,
@@ -97,7 +97,7 @@ async def prune_mab_rejected_endpoints():
     )
 
 
-async def prune_mab_authorized_endpoints():
+async def prune_mab_authorized_endpoints() -> None:
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.AUTHORIZED,
@@ -107,7 +107,7 @@ async def prune_mab_authorized_endpoints():
     )
 
 
-async def prune_eap_rejected_endpoints():
+async def prune_eap_rejected_endpoints() -> None:
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.REJECTED,
@@ -117,7 +117,7 @@ async def prune_eap_rejected_endpoints():
     )
 
 
-async def prune_eap_authorized_endpoints():
+async def prune_eap_authorized_endpoints() -> None:
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.AUTHORIZED,

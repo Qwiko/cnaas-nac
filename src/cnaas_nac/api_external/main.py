@@ -53,7 +53,9 @@ app.add_middleware(
 
 
 @app.get("/api/v2/health")
-async def health_check(db: Annotated[AsyncSession, Depends(get_async_session)]):
+async def health_check(
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+) -> dict[str, str]:
     try:
         await db.execute(text("SELECT 1"))
 

@@ -41,11 +41,11 @@ async def get_endpoints(
     query = endpoint_filter.filter(query)
     query = endpoint_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    query = apply_group_filter(query, Endpoint, current_user.group_ids)
+    query = apply_group_filter(query, Endpoint, current_user)
 
     count_query = select(func.count()).select_from(Endpoint)
     count_query = endpoint_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, Endpoint, current_user.group_ids)
+    count_query = apply_group_filter(count_query, Endpoint, current_user)
 
     total_count = (await db.execute(count_query)).scalar_one()
 
@@ -101,7 +101,7 @@ async def read_username(
     """
 
     stmt = select(Endpoint).where(Endpoint.id == endpoint_id)
-    stmt = apply_group_filter(stmt, Endpoint, current_user.group_ids)
+    stmt = apply_group_filter(stmt, Endpoint, current_user)
 
     endpoint = (await db.execute(stmt)).scalar_one_or_none()
 
@@ -124,7 +124,7 @@ async def put_user(
     """
 
     stmt = select(Endpoint).where(Endpoint.id == endpoint_id)
-    stmt = apply_group_filter(stmt, Endpoint, current_user.group_ids)
+    stmt = apply_group_filter(stmt, Endpoint, current_user)
 
     existing_endpoint = (await db.execute(stmt)).scalar_one_or_none()
 
@@ -197,7 +197,7 @@ async def delete_user(
     """
 
     stmt = select(Endpoint).where(Endpoint.id == endpoint_id)
-    stmt = apply_group_filter(stmt, Endpoint, current_user.group_ids)
+    stmt = apply_group_filter(stmt, Endpoint, current_user)
 
     endpoint = (await db.execute(stmt)).scalar_one_or_none()
 

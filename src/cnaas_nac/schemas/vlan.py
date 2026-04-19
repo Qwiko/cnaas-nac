@@ -9,7 +9,7 @@ class VlanBase(BaseModel):
     name: Optional[str]
 
     @model_validator(mode="before")
-    def default_name(cls, values):
+    def default_name(cls, values) -> dict:
         if not values.get("name"):
             values["name"] = f"VLAN {values['vlan']}"
         return values

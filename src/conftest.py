@@ -25,12 +25,12 @@ async_session_factory = async_sessionmaker(bind=async_engine, expire_on_commit=F
 
 
 @pytest.fixture(scope="session")
-def anyio_backend():
+def anyio_backend() -> str:
     return "asyncio"
 
 
 @pytest.fixture(scope="session")
-async def connection(anyio_backend) -> AsyncGenerator[AsyncConnection, None]:
+async def connection(anyio_backend: str) -> AsyncGenerator[AsyncConnection, None]:
     async with async_engine.connect() as connection:
         yield connection
 
@@ -112,7 +112,7 @@ async def int_client(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def apply_migrations():
+def apply_migrations() -> None:
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
 
@@ -120,4 +120,5 @@ def apply_migrations():
 async def create_test_token(db: AsyncSession) -> str:
     """Generates a test JWT signed with the application's secret key."""
 
-    return await create_access_token(db, "test_user_123", groups=[])
+    # This user is by default an admin and has access to all endpoints.
+    return await create_access_token(db, "test_user_123", groups=["admins"])

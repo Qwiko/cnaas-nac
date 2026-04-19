@@ -31,11 +31,11 @@ async def get_accountings(
     query = accounting_filter.filter(query)
     query = accounting_filter.sort(query)
     query = query.offset(pagination_params.offset).limit(pagination_params.size)
-    query = apply_group_filter(query, RadAcct, current_user.group_ids)
+    query = apply_group_filter(query, RadAcct, current_user)  # type: ignore[misc]
 
     count_query = select(func.count()).select_from(RadAcct)
     count_query = accounting_filter.filter(count_query)
-    count_query = apply_group_filter(count_query, RadAcct, current_user.group_ids)
+    count_query = apply_group_filter(count_query, RadAcct, current_user)  # type: ignore[misc]
 
     response.headers["X-Total-Count"] = str(
         (await db.execute(count_query)).scalar_one()
@@ -55,7 +55,7 @@ async def get_accounting(
     """
 
     stmt = select(RadAcct).where(RadAcct.id == accounting_id)
-    stmt = apply_group_filter(stmt, RadAcct, current_user.group_ids)
+    stmt = apply_group_filter(stmt, RadAcct, current_user)
 
     accounting = (await db.execute(stmt)).scalar_one_or_none()
 
@@ -76,7 +76,7 @@ async def delete_accounting(
     """
 
     stmt = select(RadAcct).where(RadAcct.id == accounting_id)
-    stmt = apply_group_filter(stmt, RadAcct, current_user.group_ids)
+    stmt = apply_group_filter(stmt, RadAcct, current_user)
 
     accounting = (await db.execute(stmt)).scalar_one_or_none()
 

@@ -84,9 +84,9 @@ async def test_auth_endpoint_group(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": mac,  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": mac,
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(
@@ -172,9 +172,9 @@ async def test_auth_many_endpoint_groups(
         "nas_identifier": "a1",
         "nas_port_id": "Ethernet1",
         "nas_port_type": "Ethernet",
-        "calling_station_id": mac,  # type: ignore[arg-type]
-        "called_station_id": "00:00:00:00:00:01",  # type: ignore[arg-type]
-        "nas_ip_address": "10.0.0.2",  # type: ignore[arg-type]
+        "calling_station_id": mac,
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
     }
 
     response = await int_client.post(

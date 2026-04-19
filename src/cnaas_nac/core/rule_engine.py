@@ -61,7 +61,7 @@ def evaluate_condition(
         except re.error:
             return False  # Invalid regex fails safely
 
-    return False
+    return False # type: ignore[unreachable]
 
 
 def evaluate_policy(
