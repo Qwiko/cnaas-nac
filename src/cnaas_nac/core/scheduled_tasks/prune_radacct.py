@@ -23,7 +23,7 @@ async def prune_radacct() -> None:
 
         await db.commit()
 
-        no_endpoint_stmt = delete(RadAcct).where(RadAcct.endpoint_id.is_(None)) # type: ignore[no-untyped-def]
+        no_endpoint_stmt = delete(RadAcct).where(RadAcct.endpoint_id.is_(None))  # type: ignore[no-untyped-def]
 
         no_endpoint_result = await db.execute(no_endpoint_stmt)
 
