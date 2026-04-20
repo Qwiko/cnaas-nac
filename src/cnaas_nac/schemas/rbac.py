@@ -1,9 +1,9 @@
 from typing import Annotated, Literal
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, Field, PositiveInt, field_validator
 
 
 class RBACPermissionModel(BaseModel):
-    path: Literal[
+    resource: Literal[
         "accounting",
         "authentication",
         "endpoint_group",
@@ -22,6 +22,16 @@ class RBACBase(BaseModel):
     name: str
 
     permissions: list[RBACPermissionModel]
+
+    @field_validator("permissions", mode="after")
+    @classmethod
+    def validate_unique_list(
+        cls, value: list[RBACPermissionModel]
+    ) -> list[RBACPermissionModel]:
+        resource_list = [v.resource for v in value]
+        if len(resource_list) != len(set(resource_list)):
+            raise ValueError("resource need to be unique, between permissions.")
+        return value
 
 
 class RBACCreate(RBACBase):

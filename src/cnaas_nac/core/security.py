@@ -1,10 +1,10 @@
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
-from authlib.jose.errors import JoseError
-
 from authlib.integrations.starlette_client import OAuth, StarletteOAuth2App
 from authlib.jose import jwt
+from authlib.jose.errors import JoseError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -34,6 +34,9 @@ oauth_client: StarletteOAuth2App = oauth.oidc
 
 bearer = HTTPBearer(auto_error=False)
 
+url_pattern = re.compile(r"/api/v2/(.+)/")
+
+
 def _create_jwt_token(data: dict[str, Any]) -> str:
     header = {"alg": "HS256"}
     token_bytes = jwt.encode(header, data, settings.SECRET_KEY)
@@ -46,6 +49,7 @@ def _create_jwt_token(data: dict[str, Any]) -> str:
         )
 
     return jwt_token
+
 
 async def create_access_token(
     db: AsyncSession,
@@ -142,14 +146,20 @@ async def get_current_user(
         return user
 
     # Validate the user permissions
-    url_path = request.url.path.removeprefix("/api/v2/")
+    url_path = request.url.path
     method = request.method
 
+    match = url_pattern.match(url_path)
+    if match:
+        resource = match.group(1)
+    else:
+        resource = url_path.removeprefix("/api/v2/")
+
     # All users can access /auth endpoints
-    if url_path.startswith("auth/"):
+    if resource == "auth":
         return user
 
-    if url_path not in user.permissions or method not in user.permissions[url_path]:
+    if resource not in user.permissions or method not in user.permissions[resource]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -159,7 +169,7 @@ async def get_current_user(
 
 
 async def get_user_permissions(
-    db: AsyncSession, username: str, groups: list[str], is_admin: bool = False
+    db: AsyncSession, username: str, rbac_groups: list[str], is_admin: bool = False
 ) -> dict[str, list[str]]:
     if is_admin:
         return {
@@ -174,18 +184,20 @@ async def get_user_permissions(
             "rbac": ["GET", "POST", "PUT", "DELETE"],
         }
 
-    # Fetch permissions based on user's groups and RBAC settings
+    # Fetch permissions based on user's rbac_groups and RBAC settings
     db_rbac = (
-        (await db.execute(select(RBAC).where(RBAC.name.in_(groups)))).scalars().all()
+        (await db.execute(select(RBAC).where(RBAC.name.in_(rbac_groups))))
+        .scalars()
+        .all()
     )
 
     permissions: dict[str, list[str]] = {}
     for rbac in db_rbac:
         for perm in rbac.permissions:
-            if perm.path not in permissions:
-                permissions[perm.path] = list()
+            if perm.resource not in permissions:
+                permissions[perm.resource] = list()
             for method in perm.methods:
-                if method not in permissions[perm.path]:
-                    permissions[perm.path].append(method)
+                if method not in permissions[perm.resource]:
+                    permissions[perm.resource].append(method)
 
     return permissions

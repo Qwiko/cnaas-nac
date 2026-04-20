@@ -1,32 +1,21 @@
-from sqlalchemy import String, JSON, ForeignKey, Table, Column
+from sqlalchemy import String, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from cnaas_nac.models.endpoint import EndpointGroup
 
-rbac_group_association = Table(
-    "rbac_group_association",
-    Base.metadata,
-    Column("rbac_id", ForeignKey("group.id", ondelete="CASCADE"), primary_key=True),
-    Column(
-        "endpoint_group_id",
-        ForeignKey("endpoint_group.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
 
 class RBACEndpointGroup(Base):
     __tablename__ = "rbac_endpoint_group_association"
 
-    rbac_id: Mapped[int] = mapped_column(ForeignKey("group.id"), primary_key=True)
+    rbac_id: Mapped[int] = mapped_column(ForeignKey("rbac.id"), primary_key=True)
     endpoint_group_id: Mapped[int] = mapped_column(
         ForeignKey("endpoint_group.id"), primary_key=True
     )
 
 
 class RBAC(Base):
-    __tablename__ = "group"
+    __tablename__ = "rbac"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
@@ -37,7 +26,7 @@ class RBAC(Base):
     )
 
     permissions: Mapped[list["RBACPermission"]] = relationship(
-        back_populates="group", lazy="selectin", cascade="all, delete-orphan"
+        back_populates="rbac", lazy="selectin", cascade="all, delete-orphan"
     )
 
     @property
@@ -46,13 +35,13 @@ class RBAC(Base):
 
 
 class RBACPermission(Base):
-    __tablename__ = "group_permission"
+    __tablename__ = "rbac_permission"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    group_id: Mapped[int] = mapped_column(ForeignKey("group.id"))
+    group_id: Mapped[int] = mapped_column(ForeignKey("rbac.id"))
 
-    path: Mapped[str] = mapped_column(String)
+    resource: Mapped[str] = mapped_column(String)
 
     methods: Mapped[list[str]] = mapped_column(JSON, default=list)
 
-    group: Mapped["RBAC"] = relationship(back_populates="permissions")
+    rbac: Mapped["RBAC"] = relationship(back_populates="permissions")

@@ -36,7 +36,7 @@ async def test_v2_auth_permissions_structure(
         name="group1",
         allowed_endpoint_groups=[],
         permissions=[
-            RBACPermission(path="endpoint", methods=["GET", "POST"]),
+            RBACPermission(resource="endpoint", methods=["GET", "POST"]),
         ],
     )
     db.add(rbac_entry)
@@ -64,7 +64,7 @@ async def test_v2_auth_no_permissions(
         name="group1",
         allowed_endpoint_groups=[],
         permissions=[
-            RBACPermission(path="endpoint", methods=["GET", "POST"]),
+            RBACPermission(resource="endpoint", methods=["GET", "POST"]),
         ],
     )
     db.add(rbac_entry)

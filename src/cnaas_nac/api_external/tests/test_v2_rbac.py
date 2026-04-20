@@ -30,7 +30,7 @@ async def test_v2_rbac_get(db: AsyncSession, ext_client: AsyncClient) -> None:
         RBAC(
             name="test",
             allowed_endpoint_groups=endpoint_groups,
-            permissions=[RBACPermission(path="endpoint", methods=["GET", "POST"])],
+            permissions=[RBACPermission(resource="endpoint", methods=["GET", "POST"])],
         )
     )
     await db.commit()
@@ -45,7 +45,7 @@ async def test_v2_rbac_get(db: AsyncSession, ext_client: AsyncClient) -> None:
     assert data[0]["name"] == "test"
     assert data[0]["allowed_endpoint_groups"] == [eg.id for eg in endpoint_groups]
     assert len(data[0]["permissions"]) == 1
-    assert data[0]["permissions"][0]["path"] == "endpoint"
+    assert data[0]["permissions"][0]["resource"] == "endpoint"
     assert set(data[0]["permissions"][0]["methods"]) == {"GET", "POST"}
 
 
@@ -53,7 +53,7 @@ async def test_v2_rbac_delete(db: AsyncSession, ext_client: AsyncClient) -> None
     rbac = RBAC(
         name="test",
         allowed_endpoint_groups=[],
-        permissions=[RBACPermission(path="endpoint", methods=["GET", "POST"])],
+        permissions=[RBACPermission(resource="endpoint", methods=["GET", "POST"])],
     )
     db.add(rbac)
     await db.commit()
@@ -94,7 +94,7 @@ async def test_v2_rbac_create(db: AsyncSession, ext_client: AsyncClient) -> None
         json={
             "name": "test",
             "allowed_endpoint_groups": [eg.id for eg in endpoint_groups],
-            "permissions": [{"path": "endpoint", "methods": ["GET", "POST"]}],
+            "permissions": [{"resource": "endpoint", "methods": ["GET", "POST"]}],
         },
     )
 
@@ -104,8 +104,27 @@ async def test_v2_rbac_create(db: AsyncSession, ext_client: AsyncClient) -> None
     assert data["name"] == "test"
     assert data["allowed_endpoint_groups"] == [eg.id for eg in endpoint_groups]
     assert len(data["permissions"]) == 1
-    assert data["permissions"][0]["path"] == "endpoint"
+    assert data["permissions"][0]["resource"] == "endpoint"
     assert set(data["permissions"][0]["methods"]) == {"GET", "POST"}
+
+
+async def test_v2_rbac_create_resource_unique(
+    db: AsyncSession, ext_client: AsyncClient
+) -> None:
+    """Resource needs to be unique between the permissions"""
+    response = await ext_client.post(
+        "/api/v2/rbac",
+        json={
+            "name": "test",
+            "allowed_endpoint_groups": [],
+            "permissions": [
+                {"resource": "endpoint", "methods": ["GET", "POST"]},
+                {"resource": "endpoint", "methods": ["GET"]},
+            ],
+        },
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 async def test_v2_rbac_update_notfound(
@@ -116,7 +135,7 @@ async def test_v2_rbac_update_notfound(
         json={
             "name": "updated",
             "allowed_endpoint_group_ids": [4, 5, 6],
-            "permissions": [{"path": "endpoint", "methods": ["PUT"]}],
+            "permissions": [{"resource": "endpoint", "methods": ["PUT"]}],
         },
     )
 
@@ -128,7 +147,7 @@ async def test_v2_rbac_update(db: AsyncSession, ext_client: AsyncClient) -> None
     rbac = RBAC(
         name="test",
         allowed_endpoint_groups=[],
-        permissions=[RBACPermission(path="endpoint", methods=["GET", "POST"])],
+        permissions=[RBACPermission(resource="endpoint", methods=["GET", "POST"])],
     )
     db.add(rbac)
 
@@ -141,7 +160,7 @@ async def test_v2_rbac_update(db: AsyncSession, ext_client: AsyncClient) -> None
         json={
             "name": "updated",
             "allowed_endpoint_groups": [endpoint_group.id],
-            "permissions": [{"path": "endpoint", "methods": ["PUT"]}],
+            "permissions": [{"resource": "endpoint", "methods": ["PUT"]}],
         },
     )
 
@@ -151,5 +170,5 @@ async def test_v2_rbac_update(db: AsyncSession, ext_client: AsyncClient) -> None
     assert data["name"] == "updated"
     assert data["allowed_endpoint_groups"] == [endpoint_group.id]
     assert len(data["permissions"]) == 1
-    assert data["permissions"][0]["path"] == "endpoint"
+    assert data["permissions"][0]["resource"] == "endpoint"
     assert set(data["permissions"][0]["methods"]) == {"PUT"}

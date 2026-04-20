@@ -11,8 +11,8 @@ from cnaas_nac.core.security import (
     User,
     create_access_token,
     get_current_user,
-    get_user_permissions,
     oauth_client,
+    get_user_permissions,
 )
 from cnaas_nac.core.settings import EnvironmentOption, settings
 
@@ -91,6 +91,10 @@ async def get_permissions(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, list[str]]:
     """Get user permissions"""
-    return await get_user_permissions(
-        db, current_user.username, current_user.rbac_groups, current_user.is_admin
-    )
+    if current_user.is_admin:
+        return await get_user_permissions(
+            db,
+            **current_user.model_dump(include=["username", "rbac_groups", "is_admin"]),  # type: ignore[arg-type]
+        )
+
+    return current_user.permissions
