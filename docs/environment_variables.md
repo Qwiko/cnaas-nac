@@ -31,6 +31,7 @@ Environment variables shared between external and internal mode.
 | `OIDC_ADMIN_GROUP` | `string` | "admins" | Which OIDC group should map to the admin group |
 | `OIDC_ADMIN_USERS` | `list[string]` | [] | Used to manually set users to the internal admin group |
 | `SECRET_KEY` | `string` | "replace_this_with_a_secure_random_string" | Used for session middleware |
+| `JWT_EXPIRATION_MINUTES` | `int` | 60 | How long the jwt access token should be valid |
 | `FRONTEND_CALLBACK_URL` | `string` | "/#/auth-callback" | Frontend callback during OIDC login |
 
 ### Internal specific
