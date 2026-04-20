@@ -4,6 +4,26 @@
  - Install [docker and docker compose](https://www.docker.com/get-started/)
  - Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
+## Generate jwt access_token
+
+```bash
+uv run python -c '
+from datetime import datetime, timedelta, timezone
+
+from cnaas_nac.core.security import _create_jwt_token
+
+token = _create_jwt_token({
+    "username": "test_user",
+    "rbac_groups": [],
+    "endpoint_group_ids": [],
+    "is_admin": True,
+    "permissions": {},
+    "exp": datetime.now(timezone.utc) + timedelta(minutes=60)}
+)
+print(token)
+'
+```
+
 ## Run locally
 
 ```bash

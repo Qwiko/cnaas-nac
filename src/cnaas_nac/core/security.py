@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, Any
 
 from authlib.jose.errors import JoseError
 
@@ -34,6 +34,18 @@ oauth_client: StarletteOAuth2App = oauth.oidc
 
 bearer = HTTPBearer(auto_error=False)
 
+def _create_jwt_token(data: dict[str, Any]) -> str:
+    header = {"alg": "HS256"}
+    token_bytes = jwt.encode(header, data, settings.SECRET_KEY)
+    try:
+        jwt_token = str(token_bytes.decode("utf-8"))
+    except UnicodeDecodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
+
+    return jwt_token
 
 async def create_access_token(
     db: AsyncSession,
@@ -90,17 +102,7 @@ async def create_access_token(
     }
 
     # Encode the token using your secret key and the HS256 algorithm
-    header = {"alg": "HS256"}
-    token_bytes = jwt.encode(header, data, settings.SECRET_KEY)
-    try:
-        jwt_token = str(token_bytes.decode("utf-8"))
-    except UnicodeDecodeError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
-        )
-
-    return jwt_token
+    return _create_jwt_token(data)
 
 
 class User(BaseModel):
