@@ -13,12 +13,38 @@ from datetime import datetime, timedelta, timezone
 from cnaas_nac.core.security import _create_jwt_token
 
 token = _create_jwt_token({
-    "username": "test_user",
+    "username": "test_admin_user",
     "rbac_groups": [],
     "endpoint_group_ids": [],
     "is_admin": True,
     "permissions": {},
-    "exp": datetime.now(timezone.utc) + timedelta(minutes=60)}
+    "exp": datetime.now(timezone.utc) + timedelta(hours=8)}
+)
+print(token)
+'
+```
+
+### User with specific permissions
+
+```bash
+uv run python -c '
+from datetime import datetime, timedelta, timezone
+
+from cnaas_nac.core.security import _create_jwt_token
+
+token = _create_jwt_token({
+    "username": "test_servicedesk_user",
+    "rbac_groups": ["Servicedesk"],
+    "endpoint_group_ids": [],
+    "is_admin": False,
+    "permissions": {
+        "authentication": ["GET"],
+        "accounting": ["GET"],
+        "endpoint": ["GET", "POST", "PUT", "DELETE"],
+        "endpoint_group": ["GET"],
+        "nas_port": ["GET"]
+    },
+    "exp": datetime.now(timezone.utc) + timedelta(hours=8)}
 )
 print(token)
 '
