@@ -45,15 +45,15 @@ async def callback(
     except OAuthError as error:
         raise HTTPException(status_code=400, detail=f"OAuth error: {error.error}")
 
-    # Extract the access_token
-    oidc_token = token.get(settings.OIDC_TOKEN_ATTRIBUTE)
+    # Extract userinfo
+    user_info = token.get(settings.OIDC_USERINFO_ATTRIBUTE)
 
-    # Get values from the OIDC token. The username and groups attributes are configurable in settings.
-    username: str = oidc_token.get(settings.OIDC_USERNAME_ATTRIBUTE, "")
-    groups: list[str] = oidc_token.get(settings.OIDC_GROUPS_ATTRIBUTE, [])
+    # Get values from userinfo. The username and groups attributes are configurable in settings.
+    username: str = user_info.get(settings.OIDC_USERNAME_ATTRIBUTE, "")
+    groups: list[str] = user_info.get(settings.OIDC_GROUPS_ATTRIBUTE, [])
 
     if not username:
-        raise HTTPException(status_code=400, detail="Username not found in token")
+        raise HTTPException(status_code=400, detail="Username not found in userinfo")
 
     # Create new internal jwt token that cnaas_nac have full control over.
     access_token = await create_access_token(db, username, groups)
