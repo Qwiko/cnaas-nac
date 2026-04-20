@@ -25,10 +25,11 @@ Environment variables shared between external and internal mode.
 | `OIDC_CLIENT_ID` | `string` | "cnaas-nac" | OIDC client id |
 | `OIDC_CLIENT_SECRET` | `string` | "" | OIDC client secret |
 | `OIDC_DISCOVERY_URL` | `string` | "" | OIDC discovery url |
-| `OIDC_TOKEN_ATTRIBUTE` | `string` | "access_token" | OIDC token attribute |
-| `OIDC_USERNAME_ATTRIBUTE` | `string` | "preferred_username" | OIDC username attribute |
-| `OIDC_GROUPS_ATTRIBUTE` | `string` | "roles" | OIDC groups attribute |
+| `OIDC_USERINFO_ATTRIBUTE` | `string` | "userinfo" | OIDC userinfo attribute |
+| `OIDC_USERNAME_ATTRIBUTE` | `string` | "preferred_username" | userinfo username attribute |
+| `OIDC_GROUPS_ATTRIBUTE` | `string` | "roles" | userinfo groups attribute |
 | `OIDC_ADMIN_GROUP` | `string` | "admins" | Which OIDC group should map to the admin group |
+| `OIDC_ADMIN_USERS` | `list[string]` | [] | Used to manually set users to the internal admin group |
 | `SECRET_KEY` | `string` | "replace_this_with_a_secure_random_string" | Used for session middleware |
 | `FRONTEND_CALLBACK_URL` | `string` | "/#/auth-callback" | Frontend callback during OIDC login |
 

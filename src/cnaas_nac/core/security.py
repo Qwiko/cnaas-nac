@@ -68,7 +68,10 @@ async def create_access_token(
 
     """
 
-    is_admin: bool = settings.OIDC_ADMIN_GROUP in groups
+    # An user can be an admin if they are in the admin group or if they are manually assigned via OIDC_ADMIN_USERS
+    is_admin: bool = (
+        settings.OIDC_ADMIN_GROUP in groups or username in settings.OIDC_ADMIN_USERS
+    )
 
     # Fetch group IDs from the database
     # Admin can see all groups

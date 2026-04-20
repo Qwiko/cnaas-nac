@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     OIDC_USERNAME_ATTRIBUTE: str = "preferred_username"
     OIDC_GROUPS_ATTRIBUTE: str = "roles"
     OIDC_ADMIN_GROUP: str = "admins"
+    # Used to manually set users to the internal admin group
+    OIDC_ADMIN_USERS: list[str] = []
 
     SECRET_KEY: str = "replace_this_with_a_secure_random_string"
     JWT_EXPIRATION_MINUTES: int = 60
