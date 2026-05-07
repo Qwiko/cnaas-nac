@@ -13,7 +13,7 @@ logger = get_logger()
 mac_regex = r"^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$"
 
 
-async def prune_endpoints(filter: ColumnElement[bool], cutoff_days: int) -> None:
+async def prune_endpoints(filter: ColumnElement[bool], cutoff_days: int) -> int:
     async with async_session_factory() as db:
         cutoff = datetime.now() - timedelta(days=cutoff_days)
 
@@ -60,72 +60,88 @@ async def prune_endpoints(filter: ColumnElement[bool], cutoff_days: int) -> None
             await db.delete(endpoint)
 
         await db.commit()
-        logger.info(
-            f"Completed task: prune_endpoints for {filter}, deleted: {len(endpoints)} endpoints"
-        )
+        return len(endpoints)
 
 
 async def prune_mab_discovered_endpoints() -> None:
-    logger.info("Starting task: prune_mab_discovered_endpoints")
-    await prune_endpoints(
+    logger.info("Starting task: prune_mab_discovered_endpoints.")
+    deleted_endpoints = await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.DISCOVERED,
             Endpoint.username.op("~")(mac_regex),
         ),
         settings.ENDPOINT_MAB_DISCOVERED_RETENTION_DAYS,
     )
+    logger.info(
+        f"Completed task: prune_mab_discovered_endpoints, deleted: {deleted_endpoints} endpoints."
+    )
 
 
 async def prune_mab_pending_endpoints() -> None:
-    logger.info("Starting task: prune_mab_pending_endpoints")
-    await prune_endpoints(
+    logger.info("Starting task: prune_mab_pending_endpoints.")
+    deleted_endpoints = await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.PENDING,
             Endpoint.username.op("~")(mac_regex),
         ),
         settings.ENDPOINT_MAB_PENDING_RETENTION_DAYS,
     )
+    logger.info(
+        f"Completed task: prune_mab_pending_endpoints, deleted: {deleted_endpoints} endpoints."
+    )
 
 
 async def prune_mab_rejected_endpoints() -> None:
-    logger.info("Starting task: prune_mab_rejected_endpoints")
-    await prune_endpoints(
+    logger.info("Starting task: prune_mab_rejected_endpoints.")
+    deleted_endpoints = await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.REJECTED,
             Endpoint.username.op("~")(mac_regex),
         ),
         settings.ENDPOINT_MAB_REJECTED_RETENTION_DAYS,
     )
+    logger.info(
+        f"Completed task: prune_mab_rejected_endpoints, deleted: {deleted_endpoints} endpoints."
+    )
 
 
 async def prune_mab_authorized_endpoints() -> None:
-    logger.info("Starting task: prune_mab_authorized_endpoints")
-    await prune_endpoints(
+    logger.info("Starting task: prune_mab_authorized_endpoints.")
+    deleted_endpoints = await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.AUTHORIZED,
             Endpoint.username.op("~")(mac_regex),
         ),
         settings.ENDPOINT_MAB_AUTHORIZED_RETENTION_DAYS,
     )
+    logger.info(
+        f"Completed task: prune_mab_authorized_endpoints, deleted: {deleted_endpoints} endpoints."
+    )
 
 
 async def prune_eap_rejected_endpoints() -> None:
-    logger.info("Starting task: prune_eap_rejected_endpoints")
-    await prune_endpoints(
+    logger.info("Starting task: prune_eap_rejected_endpoints.")
+    deleted_endpoints = await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.REJECTED,
             Endpoint.username.op("!~")(mac_regex),
         ),
         settings.ENDPOINT_EAP_REJECTED_RETENTION_DAYS,
     )
+    logger.info(
+        f"Completed task: prune_eap_rejected_endpoints, deleted: {deleted_endpoints} endpoints."
+    )
 
 
 async def prune_eap_authorized_endpoints() -> None:
-    logger.info("Starting task: prune_eap_authorized_endpoints")
-    await prune_endpoints(
+    logger.info("Starting task: prune_eap_authorized_endpoints.")
+    deleted_endpoints = await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.AUTHORIZED,
             Endpoint.username.op("!~")(mac_regex),
         ),
         settings.ENDPOINT_EAP_AUTHORIZED_RETENTION_DAYS,
+    )
+    logger.info(
+        f"Completed task: prune_eap_authorized_endpoints, deleted: {deleted_endpoints} endpoints."
     )
