@@ -15,8 +15,6 @@ mac_regex = r"^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$"
 
 async def prune_endpoints(filter: ColumnElement[bool], cutoff_days: int) -> None:
     async with async_session_factory() as db:
-        logger.info(f"Starting task: prune_endpoints for state: {filter}")
-
         cutoff = datetime.now() - timedelta(days=cutoff_days)
 
         # Subquery to get the latest RadPostAuth per endpoint
@@ -68,6 +66,7 @@ async def prune_endpoints(filter: ColumnElement[bool], cutoff_days: int) -> None
 
 
 async def prune_mab_discovered_endpoints() -> None:
+    logger.info("Starting task: prune_mab_discovered_endpoints")
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.DISCOVERED,
@@ -78,6 +77,7 @@ async def prune_mab_discovered_endpoints() -> None:
 
 
 async def prune_mab_pending_endpoints() -> None:
+    logger.info("Starting task: prune_mab_pending_endpoints")
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.PENDING,
@@ -88,6 +88,7 @@ async def prune_mab_pending_endpoints() -> None:
 
 
 async def prune_mab_rejected_endpoints() -> None:
+    logger.info("Starting task: prune_mab_rejected_endpoints")
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.REJECTED,
@@ -98,6 +99,7 @@ async def prune_mab_rejected_endpoints() -> None:
 
 
 async def prune_mab_authorized_endpoints() -> None:
+    logger.info("Starting task: prune_mab_authorized_endpoints")
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.AUTHORIZED,
@@ -108,6 +110,7 @@ async def prune_mab_authorized_endpoints() -> None:
 
 
 async def prune_eap_rejected_endpoints() -> None:
+    logger.info("Starting task: prune_eap_rejected_endpoints")
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.REJECTED,
@@ -118,6 +121,7 @@ async def prune_eap_rejected_endpoints() -> None:
 
 
 async def prune_eap_authorized_endpoints() -> None:
+    logger.info("Starting task: prune_eap_authorized_endpoints")
     await prune_endpoints(
         and_(
             Endpoint.state == EndpointState.AUTHORIZED,
