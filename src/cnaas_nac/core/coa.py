@@ -24,9 +24,11 @@ class CoA:
 
         secret = self.nas.coa_secret if self.nas.coa_secret else self.nas.secret
 
+        coa_port = self.nas.coa_port if self.nas.coa_port else 3799
+
         self.coa_client = Client(
             server=self.nas_port.nas_ip_address,
-            coaport=self.nas.coa_port,
+            coaport=coa_port,
             secret=secret.encode(),
             dict=Dictionary("src/cnaas_nac/core/coa_dicts/dictionary"),
         )
