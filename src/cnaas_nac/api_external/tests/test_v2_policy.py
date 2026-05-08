@@ -3,7 +3,7 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.models.policy import Policy
+from cnaas_nac.models.policy import Policy, PolicyCondition, PolicyReply
 
 
 pytestmark = pytest.mark.anyio
@@ -19,7 +19,15 @@ async def test_v2_policy_get_notfound(ext_client: AsyncClient) -> None:
 
 
 async def test_v2_policy_get(db: AsyncSession, ext_client: AsyncClient) -> None:
-    db.add(Policy(name="Policy 1", description="Test policy 1"))
+    policy = Policy(
+        name="Policy 1",
+        description="Test policy 1",
+        conditions=[
+            PolicyCondition(attribute="attribute1", operator="EQUALS", value="value1")
+        ],
+        replies=[PolicyReply(attribute="attribute1", value="value1")],
+    )
+    db.add(policy)
     await db.commit()
 
     response = await ext_client.get(
