@@ -31,9 +31,6 @@ class Settings(BaseSettings):
     def POSTGRES_URI(self) -> str:
         return f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-    RADIUS_COA_ENABLED: bool = True
-    RADIUS_COA_SECRET: str = "testing123"
-
     OIDC_CLIENT_ID: str = "cnaas-nac"
     OIDC_CLIENT_SECRET: str = ""
     OIDC_DISCOVERY_URL: str = ""

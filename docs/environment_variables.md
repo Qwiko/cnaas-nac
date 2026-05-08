@@ -20,8 +20,6 @@ Environment variables shared between external and internal mode.
 ### External specific
 | Variable | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `RADIUS_COA_ENABLED` | `bool` | True | Determines if the API can send COA requests **TODO**: change to be determined by the radius_client |
-| `RADIUS_COA_SECRET` | `string` | "testing123" | The secret used for COA requests **TODO**: change to the radius_client password |
 | `OIDC_CLIENT_ID` | `string` | "cnaas-nac" | OIDC client id |
 | `OIDC_CLIENT_SECRET` | `string` | "" | OIDC client secret |
 | `OIDC_DISCOVERY_URL` | `string` | "" | OIDC discovery url |

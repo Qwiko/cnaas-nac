@@ -1,17 +1,11 @@
 import datetime
 from typing import Any, Optional
 
-from sqlalchemy import (
-    DateTime,
-    Integer,
-    PrimaryKeyConstraint,
-    Text,
-    text,
-)
-from sqlalchemy.dialects.postgresql import INET
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import CIDR
 from pydantic.networks import IPvAnyNetwork
+from sqlalchemy import Boolean, DateTime, Integer, PrimaryKeyConstraint, Text, text
+from sqlalchemy.dialects.postgresql import CIDR, INET
+from sqlalchemy.orm import Mapped, mapped_column
+
 from .base import Base, TimestampsMixin
 
 
@@ -36,6 +30,9 @@ class Nas(Base, TimestampsMixin):
     limit_proxy_state: Mapped[str] = mapped_column(
         Text, nullable=False, server_default=text("'auto'::text")
     )
+    coa_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    coa_port: Mapped[Optional[int]] = mapped_column(Integer, default=3799)
+    coa_secret: Mapped[Optional[str]] = mapped_column(Text)
     # ports: Mapped[Optional[int]] = mapped_column(Integer)
 
 

@@ -17,7 +17,6 @@ from cnaas_nac.core.rbac_filter import apply_group_filter
 from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.filters.endpoint import EndpointFilter
 from cnaas_nac.models.endpoint import Endpoint, EndpointState
-from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.schemas.endpoint import EndpointCreate, EndpointResponse, EndpointUpdate
 
 logger = get_logger()
@@ -159,28 +158,10 @@ async def put_user(
     await db.commit()
     await db.refresh(existing_endpoint)
 
-    recent_nasport = (
-        (
-            await db.execute(
-                select(NasPort)
-                .where(
-                    NasPort.username == existing_endpoint.username,
-                    NasPort.calling_station_id == existing_endpoint.calling_station_id,
-                )
-                .order_by(NasPort.updated_at.desc())
-            )
-        )
-        .scalars()
-        .first()
-    )
-
-    # TODO: Check if another endpoint have connected on this port after this endpoint.
-    # Then we should not bounce the port and assume the endpoint is already disconnected.
-
-    if recent_nasport and "group_id" in changed_attributes:
-        coa = CoA(recent_nasport)
-
-        background_tasks.add_task(coa.send_packet)
+    if "group_id" in changed_attributes:
+        coa = await CoA.create(existing_endpoint)
+        if coa:
+            background_tasks.add_task(coa.send_coa_packet)
 
     return existing_endpoint
 
@@ -204,30 +185,9 @@ async def delete_user(
     if not endpoint:
         raise NotFound()
 
-    recent_nasport = (
-        (
-            await db.execute(
-                select(NasPort)
-                .where(
-                    NasPort.username == endpoint.username,
-                    NasPort.calling_station_id == endpoint.calling_station_id,
-                )
-                .order_by(NasPort.updated_at.desc())
-            )
-        )
-        .scalars()
-        .first()
-    )
-
-    # TODO: Check if another endpoint have connected on this port after this endpoint.
-    # Then we should not bounce the port and assume the endpoint is already disconnected.
-
-    if recent_nasport:
-        # Move this object to outside the session.
-        db.expunge(recent_nasport)
-        coa = CoA(recent_nasport)
-
-        background_tasks.add_task(coa.send_packet)
+    coa = await CoA.create(endpoint)
+    if coa:
+        background_tasks.add_task(coa.send_coa_packet)
 
     await db.delete(endpoint)
 

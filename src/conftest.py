@@ -1,6 +1,7 @@
 from typing import AsyncGenerator
 
 import pytest
+from alembic.config import Config
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
@@ -9,14 +10,13 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from alembic.config import Config
-from alembic import command
 
+from alembic import command
 from cnaas_nac.api_external.main import app as external_app
 from cnaas_nac.api_internal.main import app as internal_app
 from cnaas_nac.core.db import get_async_session
-from cnaas_nac.core.settings import settings
 from cnaas_nac.core.security import create_access_token
+from cnaas_nac.core.settings import settings
 
 async_engine = create_async_engine(
     settings.POSTGRES_ASYNC_PREFIX + settings.POSTGRES_URI, future=True
@@ -52,7 +52,6 @@ async def db(
 ) -> AsyncGenerator[AsyncSession, None]:
     async_session = AsyncSession(
         bind=connection,
-        join_transaction_mode="create_savepoint",
         expire_on_commit=False,
     )
 
@@ -66,7 +65,6 @@ async def ext_client(
     async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
         async_session = AsyncSession(
             bind=connection,
-            join_transaction_mode="create_savepoint",
             expire_on_commit=False,
         )
         async with async_session:
@@ -75,7 +73,6 @@ async def ext_client(
     external_app.dependency_overrides[get_async_session] = override_get_async_session
     async with AsyncSession(
         bind=connection,
-        join_transaction_mode="create_savepoint",
         expire_on_commit=False,
     ) as async_session:
         test_token = await create_test_token(async_session)
@@ -96,7 +93,6 @@ async def int_client(
     async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
         async_session = AsyncSession(
             bind=connection,
-            join_transaction_mode="create_savepoint",
             expire_on_commit=False,
         )
         async with async_session:

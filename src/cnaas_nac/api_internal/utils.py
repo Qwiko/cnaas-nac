@@ -1,13 +1,14 @@
 from typing import Any
+
+from netutils.mac import is_valid_mac
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.api_internal.exceptions import Unauthorized
-from cnaas_nac.core.logging import get_logger
-from cnaas_nac.models.policy import Policy
-from cnaas_nac.models.nas_port import NasPort
-from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.api_internal.schemas import InternalAuth
-from netutils.mac import is_valid_mac
+from cnaas_nac.core.logging import get_logger
+from cnaas_nac.models.endpoint import Endpoint, EndpointState
+from cnaas_nac.models.nas_port import NasPort
+from cnaas_nac.models.policy import Policy
 
 logger = get_logger()
 
@@ -22,15 +23,24 @@ async def accept(
 
     await update_endpoint_state(db, auth, endpoint, EndpointState.AUTHORIZED)
 
-    reply: dict[str, dict[str, Any] | str] = {
-        reply.attribute: {"op": reply.operator, "value": reply.value}
-        for reply in matched_policy.replies
-    }
+    accept_reply: dict[str, list[str] | str] = {}
+
+    for reply in matched_policy.replies:
+        attribute = reply.attribute
+        value = reply.value
+
+        if attribute in accept_reply:
+            if isinstance(accept_reply[attribute], list):
+                accept_reply[attribute].append(value)  # type: ignore[union-attr]
+            else:
+                accept_reply[attribute] = [accept_reply.get(attribute), value]  # type: ignore[list-item]
+        else:
+            accept_reply[attribute] = value
 
     # Add NAC-Policy-Id attribute
-    reply["NAC-Policy-Id"] = str(matched_policy.id)
-
-    return reply
+    accept_reply["NAC-Policy-Id"] = str(matched_policy.id)
+    print(accept_reply)
+    return accept_reply
 
 
 async def reject(

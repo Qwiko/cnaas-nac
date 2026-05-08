@@ -14,7 +14,6 @@ from cnaas_nac.models.policy import (
     PolicyReply,
     PortLocking,
     PortType,
-    ReplyOperator,
 )
 
 pytestmark = pytest.mark.anyio
@@ -44,17 +43,14 @@ async def test_auth_policy(
         for d in [
             {
                 "attribute": "Tunnel-Medium-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "IEEE-802",
             },
             {
                 "attribute": "Tunnel-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "VLAN",
             },
             {
                 "attribute": "Tunnel-Private-Group-Id",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "213",
             },
         ]
@@ -80,9 +76,9 @@ async def test_auth_policy(
     ret_json = response.json()
     assert response.status_code == status.HTTP_200_OK
 
-    assert ret_json.get("Tunnel-Medium-Type").get("value") == "IEEE-802"
-    assert ret_json.get("Tunnel-Type").get("value") == "VLAN"
-    assert ret_json.get("Tunnel-Private-Group-Id").get("value") == "213"
+    assert ret_json.get("Tunnel-Medium-Type") == "IEEE-802"
+    assert ret_json.get("Tunnel-Type") == "VLAN"
+    assert ret_json.get("Tunnel-Private-Group-Id") == "213"
 
 
 async def test_auth_policy_discovered(
@@ -190,17 +186,14 @@ async def test_auth_port_lock_wrong_port(
         for d in [
             {
                 "attribute": "Tunnel-Medium-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "IEEE-802",
             },
             {
                 "attribute": "Tunnel-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "VLAN",
             },
             {
                 "attribute": "Tunnel-Private-Group-Id",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "213",
             },
         ]
@@ -231,9 +224,9 @@ async def test_auth_port_lock_wrong_port(
         json=auth_json,
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.json().get("Tunnel-Medium-Type").get("value") == "IEEE-802"
-    assert response.json().get("Tunnel-Type").get("value") == "VLAN"
-    assert response.json().get("Tunnel-Private-Group-Id").get("value") == "213"
+    assert response.json().get("Tunnel-Medium-Type") == "IEEE-802"
+    assert response.json().get("Tunnel-Type") == "VLAN"
+    assert response.json().get("Tunnel-Private-Group-Id") == "213"
 
     # Switch name changed, called_station_id same -> Accepted
     # NasPort should update with this info
@@ -302,17 +295,14 @@ async def test_auth_port_type(
         for d in [
             {
                 "attribute": "Tunnel-Medium-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "IEEE-802",
             },
             {
                 "attribute": "Tunnel-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "VLAN",
             },
             {
                 "attribute": "Tunnel-Private-Group-Id",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "55",
             },
         ]
@@ -339,9 +329,9 @@ async def test_auth_port_type(
 
     assert response.status_code == status.HTTP_200_OK
 
-    assert ret_json.get("Tunnel-Medium-Type").get("value") == "IEEE-802"
-    assert ret_json.get("Tunnel-Type").get("value") == "VLAN"
-    assert ret_json.get("Tunnel-Private-Group-Id").get("value") == "55"
+    assert ret_json.get("Tunnel-Medium-Type") == "IEEE-802"
+    assert ret_json.get("Tunnel-Type") == "VLAN"
+    assert ret_json.get("Tunnel-Private-Group-Id") == "55"
 
     auth_json["nas_port_type"] = "Wireless-802.11"
 
@@ -352,3 +342,74 @@ async def test_auth_port_type(
     ret_json = response.json()
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+async def test_auth_policy_list_values(
+    db: AsyncSession,
+    int_client: AsyncClient,
+) -> None:
+    # Add Policy
+
+    policy = Policy(name="test_policy", match_logic=MatchLogic.AND, enabled=True)
+
+    policy.conditions = [
+        PolicyCondition(**d)
+        for d in [
+            {
+                "attribute": "calling_station_id",
+                "operator": ConditionOperator.STARTS_WITH,
+                "value": "aa:bb:cc",
+            }
+        ]
+    ]
+
+    policy.replies = [
+        PolicyReply(**d)
+        for d in [
+            {
+                "attribute": "Tunnel-Medium-Type",
+                "value": "IEEE-802",
+            },
+            {
+                "attribute": "Tunnel-Type",
+                "value": "VLAN",
+            },
+            {
+                "attribute": "Tunnel-Private-Group-Id",
+                "value": "213",
+            },
+            {
+                "attribute": "Filter-Id",
+                "value": "test1",
+            },
+            {
+                "attribute": "Filter-Id",
+                "value": "test2",
+            },
+        ]
+    ]
+
+    db.add(policy)
+    await db.commit()
+
+    auth_json = {
+        "username": "aa:bb:cc:dd:ee:ff",
+        "nas_identifier": "a1",
+        "nas_port_id": "Ethernet1",
+        "nas_port_type": "Ethernet",
+        "calling_station_id": "aa:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
+    }
+
+    response = await int_client.post(
+        "/api/v2/auth",
+        json=auth_json,
+    )
+    ret_json = response.json()
+    assert response.status_code == status.HTTP_200_OK
+
+    assert ret_json.get("Tunnel-Medium-Type") == "IEEE-802"
+    assert ret_json.get("Tunnel-Type") == "VLAN"
+    assert ret_json.get("Tunnel-Private-Group-Id") == "213"
+    assert ret_json.get("Filter-Id") == ["test1", "test2"]

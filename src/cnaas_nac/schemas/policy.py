@@ -14,7 +14,6 @@ from cnaas_nac.models.policy import (
     MatchLogic,
     PortLocking,
     PortType,
-    ReplyOperator,
 )
 from cnaas_nac.schemas.generic import TimestampSchema
 
@@ -23,7 +22,6 @@ class PolicyReplyBase(BaseModel):
     """Shared properties for Policy Replies."""
 
     attribute: str = Field(..., max_length=100)
-    operator: ReplyOperator
     value: str = Field(..., max_length=255)
 
     @field_validator("value", mode="after")

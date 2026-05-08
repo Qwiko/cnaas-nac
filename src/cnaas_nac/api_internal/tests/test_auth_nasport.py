@@ -9,7 +9,6 @@ from cnaas_nac.models.policy import (
     ConditionOperator,
     PolicyCondition,
     PolicyReply,
-    ReplyOperator,
 )
 
 pytestmark = pytest.mark.anyio
@@ -38,17 +37,14 @@ async def test_auth_endpoint_nasport(
         for d in [
             {
                 "attribute": "Tunnel-Medium-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "IEEE-802",
             },
             {
                 "attribute": "Tunnel-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "VLAN",
             },
             {
                 "attribute": "Tunnel-Private-Group-Id",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "55",
             },
         ]

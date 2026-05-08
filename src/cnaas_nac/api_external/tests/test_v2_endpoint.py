@@ -1,16 +1,34 @@
+from typing import AsyncIterator
 from unittest.mock import patch
 
 import pytest
 from fastapi import status
+from fastapi.concurrency import asynccontextmanager
 from httpx import AsyncClient
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.models.endpoint import Endpoint, EndpointGroup, EndpointState
+from cnaas_nac.models.nas import Nas
 from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.radpostauth import RadPostAuth
+from cnaas_nac.core.coa import CoA
 
 pytestmark = pytest.mark.anyio
+
+
+@pytest.fixture(autouse=True)
+async def override_sessionmaker(
+    db: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    @asynccontextmanager
+    async def override_session_factory() -> AsyncIterator[AsyncSession]:
+        yield db
+
+    monkeypatch.setattr(
+        "cnaas_nac.core.coa.async_session_factory",
+        override_session_factory,
+    )
 
 
 async def test_v2_endpoint_get_none(db: AsyncSession, ext_client: AsyncClient) -> None:
@@ -153,6 +171,11 @@ async def test_v2_endpoint_delete_name(
         )
     )
     db.add(
+        Nas(
+            name="test", network="192.168.1.0/24", secret="testing123", coa_enabled=True
+        )
+    )
+    db.add(
         RadPostAuth(
             username=local_username,
             calling_station_id=local_username,
@@ -162,14 +185,14 @@ async def test_v2_endpoint_delete_name(
 
     await db.commit()
 
-    with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
+    with patch.object(CoA, "send_coa_packet", autospec=True) as mock_send:
         response = await ext_client.delete(
             f"/api/v2/endpoint/{endpoint.id}",
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        mock_send.assert_called_once()
+    mock_send.assert_called_once()
 
     # All relations should be deleted
     assert not (
@@ -256,17 +279,22 @@ async def test_v2_endpoint_put_name_issue_coa(
             called_station_id="00:00:00:00:00:00",
         )
     )
+    db.add(
+        Nas(
+            name="test", network="192.168.1.0/24", secret="testing123", coa_enabled=True
+        )
+    )
     db.add(EndpointGroup(id=999999, name="Test"))
     await db.commit()
 
-    with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
+    with patch.object(CoA, "send_coa_packet", autospec=True) as mock_send:
         response = await ext_client.put(
             f"/api/v2/endpoint/{endpoint.id}", json={"group_id": 999999}
         )
 
         assert response.status_code == status.HTTP_200_OK
 
-        mock_send.assert_called_once()
+    mock_send.assert_called_once()
 
 
 async def test_v2_endpoint_delete_name_issue_coa(
@@ -290,11 +318,16 @@ async def test_v2_endpoint_delete_name_issue_coa(
             called_station_id="00:00:00:00:00:00",
         )
     )
+    db.add(
+        Nas(
+            name="test", network="192.168.1.0/24", secret="testing123", coa_enabled=True
+        )
+    )
     await db.commit()
 
-    with patch("cnaas_nac.core.coa.CoA.send_packet", autospec=True) as mock_send:
+    with patch.object(CoA, "send_coa_packet", autospec=True) as mock_send:
         response = await ext_client.delete(f"/api/v2/endpoint/{endpoint.id}")
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        mock_send.assert_called_once()
+    mock_send.assert_called_once()

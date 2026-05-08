@@ -11,7 +11,6 @@ from cnaas_nac.models.policy import (
     ConditionOperator,
     PolicyCondition,
     PolicyReply,
-    ReplyOperator,
 )
 from cnaas_nac.models.radpostauth import RadPostAuth
 
@@ -60,17 +59,14 @@ async def test_auth_endpoint_group(
         for d in [
             {
                 "attribute": "Tunnel-Medium-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "IEEE-802",
             },
             {
                 "attribute": "Tunnel-Type",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "VLAN",
             },
             {
                 "attribute": "Tunnel-Private-Group-Id",
-                "operator": ReplyOperator.SET_EQUALS,
                 "value": "55",
             },
         ]
@@ -96,9 +92,9 @@ async def test_auth_endpoint_group(
     ret_json = response.json()
     assert response.status_code == status.HTTP_200_OK
 
-    assert ret_json.get("Tunnel-Medium-Type").get("value") == "IEEE-802"
-    assert ret_json.get("Tunnel-Type").get("value") == "VLAN"
-    assert ret_json.get("Tunnel-Private-Group-Id").get("value") == "55"
+    assert ret_json.get("Tunnel-Medium-Type") == "IEEE-802"
+    assert ret_json.get("Tunnel-Type") == "VLAN"
+    assert ret_json.get("Tunnel-Private-Group-Id") == "55"
 
 
 async def test_auth_many_endpoint_groups(
@@ -141,17 +137,14 @@ async def test_auth_many_endpoint_groups(
             for d in [
                 {
                     "attribute": "Tunnel-Medium-Type",
-                    "operator": ReplyOperator.SET_EQUALS,
                     "value": "IEEE-802",
                 },
                 {
                     "attribute": "Tunnel-Type",
-                    "operator": ReplyOperator.SET_EQUALS,
                     "value": "VLAN",
                 },
                 {
                     "attribute": "Tunnel-Private-Group-Id",
-                    "operator": ReplyOperator.SET_EQUALS,
                     "value": str(i),
                 },
             ]
@@ -184,6 +177,6 @@ async def test_auth_many_endpoint_groups(
     ret_json = response.json()
     assert response.status_code == status.HTTP_200_OK
 
-    assert ret_json.get("Tunnel-Medium-Type").get("value") == "IEEE-802"
-    assert ret_json.get("Tunnel-Type").get("value") == "VLAN"
-    assert ret_json.get("Tunnel-Private-Group-Id").get("value") == "55"
+    assert ret_json.get("Tunnel-Medium-Type") == "IEEE-802"
+    assert ret_json.get("Tunnel-Type") == "VLAN"
+    assert ret_json.get("Tunnel-Private-Group-Id") == "55"

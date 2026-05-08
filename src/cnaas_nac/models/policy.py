@@ -47,11 +47,6 @@ class ConditionOperator(enum.Enum):
     IN_LIST = "in_list"
 
 
-class ReplyOperator(enum.Enum):
-    EQUALS = "="
-    SET_EQUALS = ":="
-
-
 class Policy(Base, TimestampsMixin):
     __tablename__ = "policy"
     __table_args__ = (UniqueConstraint("name"),)
@@ -157,8 +152,6 @@ class PolicyReply(Base):
     policy_id: Mapped[int] = mapped_column(ForeignKey("policy.id"), index=True)
 
     attribute: Mapped[str] = mapped_column(String(100))
-
-    operator: Mapped[ReplyOperator] = mapped_column(Enum(ReplyOperator))
 
     value: Mapped[str] = mapped_column(String(255))
 
