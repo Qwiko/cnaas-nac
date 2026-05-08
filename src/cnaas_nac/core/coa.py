@@ -82,7 +82,7 @@ class CoA:
         return cls(endpoint, nas_port, nas)
 
     def send_coa_packet(self) -> None:
-        logger.debug(
+        logger.info(
             f"Sending CoA packet to: {self.nas_port.nas_identifier} to bounce: {self.nas_port.nas_port_id}, user: {self.nas_port.username}."
         )
 
@@ -107,7 +107,7 @@ class CoA:
             else:
                 logger.error("Unknown CoA return code received.")
         except Timeout:
-            logger.debug("Failed to send CoA packet, is NAS reachable?")
+            logger.info("Failed to send CoA packet, is NAS reachable?")
 
 
 async def get_latest_nas_port(
