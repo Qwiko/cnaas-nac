@@ -39,7 +39,7 @@ async def accept(
 
     # Add NAC-Policy-Id attribute
     accept_reply["NAC-Policy-Id"] = str(matched_policy.id)
-    print(accept_reply)
+
     return accept_reply
 
 
