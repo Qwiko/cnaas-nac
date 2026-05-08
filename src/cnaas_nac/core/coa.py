@@ -73,7 +73,7 @@ class CoA:
                 return None
 
             if not nas.coa_enabled:
-                logger.debug(
+                logger.info(
                     f"CoA is disabled for {nas.name}, {nas_port.nas_identifier}, not sending CoA packet."
                 )
                 return None
