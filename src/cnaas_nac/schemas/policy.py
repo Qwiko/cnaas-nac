@@ -88,20 +88,23 @@ class PolicyBase(BaseModel):
     conditions: List[PolicyConditionCreate]
 
     replies: List[PolicyReplyBase]
-    
+
     @field_validator("conditions", mode="after")
     @classmethod
-    def validate_conditions(cls, value: List[PolicyConditionCreate]) -> List[PolicyConditionCreate]:
+    def validate_conditions(
+        cls, value: List[PolicyConditionCreate]
+    ) -> List[PolicyConditionCreate]:
         if len(value) == 0:
-            raise ValueError("At least one condition is required.")
+            raise ValueError("at least one condition is required.")
         return value
 
     @field_validator("replies", mode="after")
     @classmethod
     def validate_replies(cls, value: List[PolicyReplyBase]) -> List[PolicyReplyBase]:
         if len(value) == 0:
-            raise ValueError("At least one reply is required.")
+            raise ValueError("at least one reply is required.")
         return value
+
 
 class PolicyCreate(PolicyBase):
     pass
