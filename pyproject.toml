@@ -14,7 +14,7 @@ dependencies = [
   "alembic==1.18.4",
   "apscheduler==3.11.2",
   "asyncpg",
-  "authlib==1.6.9",
+  "authlib==1.6.11",
   "fastapi[standard-no-fastapi-cloud-cli]",
   "fastapi==0.136.0",
   "netutils>=1.15.1",
