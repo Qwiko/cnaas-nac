@@ -29,6 +29,6 @@ jobs:
           enable-cache: true
 
       - name: Run tests
-        run: uv run --group dev pytest
+        run: uv run --group dev pytest -vv --showlocals
         env:
           POSTGRES_SERVER: 127.0.0.1
