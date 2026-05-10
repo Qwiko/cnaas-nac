@@ -44,6 +44,7 @@ aaa accounting dot1x default start-stop group cnaas-nac
 !
 interface Vlan14
    ip address 192.168.1.1/24
+   ipv6 address fd00:192:168:1::1/64
 !
 interface Ethernet1
    description DOT1X
@@ -80,7 +81,13 @@ dot1x system-auth-control
 dot1x dynamic-authorization
 !
 ip access-list Ethernet1-ACL
+   counters per-entry
    10 permit icmp any any
-   20 deny ip any any
+   20 permit tcp any any eq 22
+!
+ipv6 access-list Ethernet1-ACL
+   counters per-entry
+   10 permit icmpv6 any any
+   20 permit tcp any any eq ssh
 !
 end

@@ -13,7 +13,7 @@ topology:
   nodes:
     eos-a1:
       kind: arista_ceos
-      image: ceos:4.32.5.1M
+      image: ceos:${ARISTA_VERSION:=4.35.4M}
       labels:
         name: eos-a1
       startup-config: configs/eos-a1_startup_config.txt
@@ -28,6 +28,7 @@ topology:
         - apk add wpa_supplicant
         - ip link set dev eth1 address 02:43:ac:00:00:c1
         - ip address add 192.168.1.2/24 dev eth1
+        - ip address add fd00:192:168:1::2/64 dev eth1
     alpine-c2:
       kind: linux
       image: alpine:latest
@@ -37,6 +38,7 @@ topology:
         - apk add wpa_supplicant
         - ip link set dev eth1 address 02:43:ac:00:00:c2
         - ip address add 192.168.1.3/24 dev eth1
+        - ip address add fd00:192:168:1::3/64 dev eth1
 
   links:
     - endpoints: ["eos-a1:eth1", "alpine-c1:eth1"]
