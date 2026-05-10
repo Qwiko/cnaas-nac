@@ -5,8 +5,8 @@ services:
       dockerfile: docker/api/Dockerfile
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v2/health').getcode()"]
-      interval: 10s
-      retries: 5
+      interval: 3s
+      retries: 10
       start_period: 3s
       timeout: 10s
     ports:
@@ -15,6 +15,7 @@ services:
       - RADIUS_COA_SECRET=testing123
       - POSTGRES_USER=cnaas
       - POSTGRES_PASSWORD=cnaas
+      - ENVIRONMENT=local
     command: ["external"]
     depends_on:
       nac_postgres:
@@ -26,8 +27,8 @@ services:
       dockerfile: docker/api/Dockerfile
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v2/health').getcode()"]
-      interval: 10s
-      retries: 5
+      interval: 3s
+      retries: 10
       start_period: 3s
       timeout: 10s
     expose:

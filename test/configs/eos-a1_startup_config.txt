@@ -12,7 +12,7 @@ transceiver qsfp default-mode 4x10G
 !
 service routing protocols model multi-agent
 !
-hostname eos-a2
+hostname eos-a1
 !
 spanning-tree mode mstp
 !
@@ -43,7 +43,7 @@ aaa authentication dot1x default group cnaas-nac
 aaa accounting dot1x default start-stop group cnaas-nac
 !
 interface Vlan14
-   ip address 192.168.2.1/24
+   ip address 192.168.1.1/24
 !
 interface Ethernet1
    description DOT1X
@@ -78,5 +78,9 @@ ip route 0.0.0.0/0 10.100.2.1
 !
 dot1x system-auth-control
 dot1x dynamic-authorization
+!
+ip access-list Ethernet1-ACL
+   10 permit icmp any any
+   20 deny ip any any
 !
 end
