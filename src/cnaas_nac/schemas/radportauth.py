@@ -27,6 +27,9 @@ class RadPostAuthLogFull(RadPostAuthLog):
 
     @field_validator("request_json", mode="before")
     def clean_json(cls, val: dict[str, Any]) -> dict[str, Any]:
+        if not val:
+            return {}
+
         # Hack to replace \\\/ in NAS-Port-Id so it looks nicer
         return {
             k: v.replace("=5C=5C=5C/", "/") if isinstance(v, str) else v
