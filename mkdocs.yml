@@ -54,6 +54,9 @@ nav:
   - Overview:
     - Overview: index.md
     - Links: links.md
+  - Switch Configuration:
+    - Arista: switch_configuration/arista.md
+    - Cisco: switch_configuration/cisco.md
   - Configuration:
     - Configuration: configuration.md
     - Environment variables: environment_variables.md
