@@ -20,11 +20,6 @@ jobs:
           POSTGRES_USER: cnaas
           POSTGRES_PASSWORD: cnaas
           POSTGRES_DB: nac
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
