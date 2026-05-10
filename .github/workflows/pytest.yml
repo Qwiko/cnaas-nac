@@ -7,6 +7,7 @@ on:
     branches: [develop, main]
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   pytest:
@@ -19,6 +20,11 @@ jobs:
           POSTGRES_USER: cnaas
           POSTGRES_PASSWORD: cnaas
           POSTGRES_DB: nac
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -29,6 +35,28 @@ jobs:
           enable-cache: true
 
       - name: Run tests
-        run: uv run --group dev pytest -vv --showlocals
         env:
           POSTGRES_SERVER: 127.0.0.1
+        run: |
+          uv run --group dev pytest \
+            -vv \
+            --showlocals \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html \
+            --junitxml=pytest.xml \
+            | tee pytest-coverage.txt
+
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
+          retention-days: 7
+
+      - name: Coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
