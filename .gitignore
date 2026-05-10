@@ -108,5 +108,3 @@ venv.bak/
 test/clab-cnaas-nac-e2e
 test/client-cert/ca.pem
 test/client-cert/client*
-pytest.xml
-pytest-coverage.txt
