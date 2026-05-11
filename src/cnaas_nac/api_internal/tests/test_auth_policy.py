@@ -7,9 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cnaas_nac.models.endpoint import Endpoint, EndpointState
 from cnaas_nac.models.nas_port import NasPort
 from cnaas_nac.models.policy import (
-    Policy,
-    MatchLogic,
     ConditionOperator,
+    MatchLogic,
+    Policy,
     PolicyCondition,
     PolicyReply,
     PortLocking,
@@ -413,3 +413,53 @@ async def test_auth_policy_list_values(
     assert ret_json.get("Tunnel-Type") == "VLAN"
     assert ret_json.get("Tunnel-Private-Group-Id") == "213"
     assert ret_json.get("Filter-Id") == ["test1", "test2"]
+
+
+async def test_auth_policy_auth_type_reject(
+    db: AsyncSession,
+    int_client: AsyncClient,
+) -> None:
+    # Add Policy
+
+    policy = Policy(name="test_policy_reject", match_logic=MatchLogic.AND, enabled=True)
+
+    policy.conditions = [
+        PolicyCondition(**d)
+        for d in [
+            {
+                "attribute": "calling_station_id",
+                "operator": ConditionOperator.STARTS_WITH,
+                "value": "aa:bb:cc",
+            }
+        ]
+    ]
+
+    policy.replies = [
+        PolicyReply(**d)
+        for d in [
+            {
+                "attribute": "Auth-Type",
+                "value": "Reject",
+            }
+        ]
+    ]
+
+    db.add(policy)
+    await db.commit()
+
+    auth_json = {
+        "username": "aa:bb:cc:dd:ee:ff",
+        "nas_identifier": "a1",
+        "nas_port_id": "Ethernet1",
+        "nas_port_type": "Ethernet",
+        "calling_station_id": "aa:bb:cc:dd:ee:ff",
+        "called_station_id": "00:00:00:00:00:01",
+        "nas_ip_address": "10.0.0.2",
+    }
+
+    response = await int_client.post(
+        "/api/v2/auth",
+        json=auth_json,
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED

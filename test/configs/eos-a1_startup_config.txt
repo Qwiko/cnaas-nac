@@ -70,6 +70,18 @@ interface Ethernet2
    dot1x timeout reauth-period 600
    dot1x eapol authentication failure fallback mba timeout 5
 !
+interface Ethernet3
+   description DOT1X
+   spanning-tree portfast
+   spanning-tree bpduguard enable
+   dot1x pae authenticator
+   dot1x authentication failure action traffic allow vlan 13
+   dot1x reauthentication
+   dot1x port-control auto
+   dot1x mac based authentication
+   dot1x timeout reauth-period 600
+   dot1x eapol authentication failure fallback mba timeout 5
+!
 interface Management0
    ip address 10.100.2.11/24
 !

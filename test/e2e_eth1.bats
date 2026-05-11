@@ -59,6 +59,8 @@ load shared.bash
 @test "test eos-a1 eth1 coa port bounce" {
     endpoint_id=$(api_request "GET" "endpoint?username=02:43:ac:00:00:c1" | jq -r '.[].id')
 
+    [ "$endpoint_id" != "null" ]
+
     # Delete issues a CoA that causes the port to bounce
     api_request "DELETE" "endpoint/$endpoint_id"
 

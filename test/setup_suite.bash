@@ -21,7 +21,7 @@ EOF
 )"
 }
 
-function setup_policy() {
+function setup_policy_eth1() {
     log "Setting up API policy..."
     api_request "GET" "policy?name=alpine-c1%20to%20vlan14" | grep -q "alpine-c1 to vlan14" && \
     log "Policy already exists, skipping creation." && \
@@ -64,6 +64,38 @@ EOF
 )"
 }
 
+function setup_policy_eth3() {
+    log "Setting up API policy..."
+    api_request "GET" "policy?name=alpine-c3%20reject" | grep -q "alpine-c3 reject" && \
+    log "Policy already exists, skipping creation." && \
+    return 0
+
+    api_request "POST" "policy" "$(cat <<EOF
+{
+  "name": "alpine-c3 reject",
+  "priority": 90,
+  "match_logic": "AND",
+  "client_type": "MAB",
+  "port_type": "Ethernet",
+  "enabled": true,
+  "conditions": [
+    {
+        "attribute": "calling_station_id",
+        "operator": "==",
+        "value": "02:43:ac:00:00:c3"
+    }
+  ],
+  "replies": [
+    {
+        "attribute": "Auth-Type",
+        "value": "Reject"
+    }
+  ]
+}
+EOF
+)"
+}
+
 function start_environment() {
     log "Setting up Docker containers..."
     run docker compose -f docker/docker-compose.dev.yml up --force-recreate --build -d &
@@ -74,7 +106,8 @@ function start_environment() {
 
 function setup_api() {
     setup_radius_client
-    setup_policy
+    setup_policy_eth1
+    setup_policy_eth3
     log "API setup completed."
 }
 
@@ -120,8 +153,8 @@ function wait_for_containerlab() {
 }
 
 function setup_suite() {
-    if ! sudo -n true 2>/dev/null; then
-        log "ERROR: This test suite requires passwordless sudo privileges!"
+    if ! sudo -n containerlab 2>/dev/null; then
+        log "ERROR: This test suite requires passwordless containerlab privileges!"
         log "Please configure sudoers or run the suite as root."
         return 1 # Abort the test suite cleanly
     fi

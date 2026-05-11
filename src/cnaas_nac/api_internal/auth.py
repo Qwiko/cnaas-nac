@@ -211,6 +211,26 @@ async def post_auth(
 
     # Fetch replies from the db.
     await db.refresh(matched_policy, attribute_names=["replies"])
+
+    # Check if we have a final reject in the replies, if so we reject the user even if the conditions matched.
+    final_reject = next(
+        (
+            reply
+            for reply in matched_policy.replies
+            if reply.attribute == "Auth-Type" and reply.value == "Reject"
+        ),
+        None,
+    )
+
+    if final_reject:
+        return await reject(
+            db,
+            auth,
+            endpoint,
+            "Policy have Auth-Type: Reject, rejecting user.",
+            matched_policy,
+        )
+
     logger.info(
         f"User: {auth.username}({auth.calling_station_id}) passed policy checks, accepted."
     )
