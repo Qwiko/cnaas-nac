@@ -2,7 +2,7 @@
 
 Here are some example configuration for Cisco switches that work well with CNaaS-NAC.
 
-## Enable nas_identifier
+## nas_identifier attribute
 
 Enables nas_identifier in access-request and accounting-request packets.
 
@@ -11,7 +11,7 @@ radius-server attribute 32 include-in-access-req format %h
 radius-server attribute 32 include-in-accounting-req format %h
 ```
 
-## Enable accounting
+## Accounting
 
 
 ```
@@ -19,7 +19,7 @@ aaa accounting update periodic 30 # In minutes
 aaa accounting dot1x default start-stop group cnaas-nac
 ```
 
-## Enable CoA support
+## CoA support
 
 ```
 aaa server radius dynamic-author

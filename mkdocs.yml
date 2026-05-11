@@ -45,8 +45,12 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
   - tables
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 watch:
   - mkdocs.yml
   - docs
@@ -54,12 +58,17 @@ nav:
   - Overview:
     - Overview: index.md
     - Links: links.md
-  - Switch Configuration:
-    - Arista: switch_configuration/arista.md
-    - Cisco: switch_configuration/cisco.md
+  - User manual:
+    - User manual: user_manual/index.md
+    - Endpoints: user_manual/endpoints.md
+    - Policies: user_manual/policies.md
+    - API: user_manual/api.md
   - Configuration:
     - Configuration: configuration.md
     - Environment variables: environment_variables.md
+    - Switch Example Configuration:
+      - Arista: switch_example_configuration/arista.md
+      - Cisco: switch_example_configuration/cisco.md
   - Development:
     - Development: development.md
     - Testing: testing.md
