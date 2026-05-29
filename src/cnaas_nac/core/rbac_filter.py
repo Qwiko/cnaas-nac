@@ -27,7 +27,7 @@ def apply_group_filter(
                 model.state == EndpointState.DISCOVERED,  # type: ignore[attr-defined]
             )
         )
-    if model == EndpointGroup:
+    elif model == EndpointGroup:
         stmt = stmt.where(
             model.id.in_(current_user.endpoint_group_ids)  # type: ignore[attr-defined]
         )
