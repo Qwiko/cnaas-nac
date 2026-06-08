@@ -72,5 +72,5 @@ docker compose -f docker/docker-compose.dev.yml up -d
 
 ## Developing documentation
 ```bash
-uv run --group docs mkdocs serve
+uv run --group docs zensical serve
 ```

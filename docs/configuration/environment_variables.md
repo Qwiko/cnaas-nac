@@ -35,7 +35,7 @@ Environment variables shared between external and internal mode.
 ### Internal specific
 | Variable | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `PRUNING_DISABLED` | `bool` | False | Disable pruning by settings this to true |
+| `PRUNING_DISABLED` | `bool` | False | Disable pruning by setting this to true |
 | `ENDPOINT_MAB_DISCOVERED_RETENTION_DAYS` | `int` | 30 | How long to keep discovered MAB endpoints before they are pruned |
 | `ENDPOINT_MAB_PENDING_RETENTION_DAYS` | `int` | 30 | How long to keep pending MAB endpoints before they are pruned |
 | `ENDPOINT_MAB_REJECTED_RETENTION_DAYS` | `int` | 30 | How long to keep rejected MAB endpoints before they are pruned |

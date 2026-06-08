@@ -1,7 +1,7 @@
 # Testing
 
 ## Prerequisites
-Install [development prerequisites](development.md)
+Install [development prerequisites](index.md)
 
 
 ## Pytest

@@ -6,19 +6,19 @@ All radius users handled in CNaaS-NAC will be saved to a database as an Endpoint
 
 An endpoint can be in four different states.
 
-- Discovered
+### Discovered
 
 A rejected MAB endpoint that is first seen on the network.
 
-- Rejected
+### Rejected
 
 A rejected endpoint. Usually by not matching any policy.
 
-- Pending
+### Pending
 
 A MAB endpoint that have been manually added or changed via the api and is waiting on the next authentication.
 
-- Authorized
+### Authorized
 
 An endpoint that is authorized.
 
