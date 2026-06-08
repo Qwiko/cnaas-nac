@@ -22,7 +22,7 @@ EOF
 }
 
 function setup_policy_eth1() {
-    log "Setting up API policy..."
+    log "Setting up API policy for eth1..."
     api_request "GET" "policy?name=alpine-c1%20to%20vlan14" | grep -q "alpine-c1 to vlan14" && \
     log "Policy already exists, skipping creation." && \
     return 0
@@ -65,7 +65,7 @@ EOF
 }
 
 function setup_policy_eth3() {
-    log "Setting up API policy..."
+    log "Setting up API policy for eth3..."
     api_request "GET" "policy?name=alpine-c3%20reject" | grep -q "alpine-c3 reject" && \
     log "Policy already exists, skipping creation." && \
     return 0
@@ -97,10 +97,17 @@ EOF
 }
 
 function start_environment() {
+    local image_version=${ARISTA_VERSION:=4.35.4M}
+
+    if ! docker image inspect ceos:$image_version > /dev/null 2>&1; then
+        log "No ceos image found! (ceos:$image_version is missing)"
+        return 1
+    fi
+
     log "Setting up Docker containers..."
-    run docker compose -f docker/docker-compose.dev.yml up --force-recreate --build -d &
+    docker compose -f docker/docker-compose.dev.yml up --force-recreate --build -d &
     log "Setting up containerlab environment..."
-    run sudo -n containerlab -t test/e2e.clab.yml deploy --reconfigure &
+    sudo -n ARISTA_VERSION=$image_version containerlab -t test/e2e.clab.yml deploy --reconfigure &
     log "Containerlab is being deployed."
 }
 
@@ -155,7 +162,7 @@ function wait_for_containerlab() {
 function setup_suite() {
     if ! sudo -n containerlab 2>/dev/null; then
         log "ERROR: This test suite requires passwordless containerlab privileges!"
-        log "Please configure sudoers or run the suite as root."
+        log "Please configure sudoers or run the test suite as root."
         return 1 # Abort the test suite cleanly
     fi
     log "Sudo access confirmed. Setting up the environment..."
@@ -176,6 +183,6 @@ function teardown_suite() {
         return 0
     fi
     log "Tearing down the environment..."
-    run docker compose -f docker/docker-compose.dev.yml down -v
-    run sudo -n containerlab -t test/e2e.clab.yml destroy
+    docker compose -f docker/docker-compose.dev.yml down -v 2>&1 || true
+    sudo -n containerlab -t test/e2e.clab.yml destroy 2>&1 || true
 }
