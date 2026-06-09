@@ -42,6 +42,9 @@ docker compose -f docker/docker-compose.dev.yml up --build -d
 cd test
 sudo containerlab deploy
 
+# or run a specific cEOS version with:
+sudo ARISTA_VERSION=4.35.4M containerlab deploy 
+
 cd ..
 # Run bats
 MANUAL_TEST=1 bats test
