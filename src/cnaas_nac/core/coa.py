@@ -3,7 +3,7 @@ from typing import Optional, Self
 from pyrad.client import Client, Timeout
 from pyrad.dictionary import Dictionary
 from pyrad.packet import CoAACK, CoANAK, Packet
-from sqlalchemy import cast, select
+from sqlalchemy import cast, select, or_, and_
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,27 +42,62 @@ class CoA:
 
             if not nas_port:
                 logger.info(
-                    f"No NAS port found for endpoint: {endpoint.username},({endpoint.calling_station_id})."
+                    f"No NAS port found for endpoint: {endpoint.username}({endpoint.calling_station_id})."
                 )
                 return None
 
-            # Check if this NAS_Port is more recent on another endpoint.abs
+            logger.debug(
+                f"Found NasPort: {nas_port.nas_identifier}, {nas_port.nas_port_id} for endpoint: {endpoint.username}({endpoint.calling_station_id})."
+            )
 
+            # Check if this NAS_Port is more recent on another endpoint.
+            # Then we should not issue a port bounce.
             result = await db.execute(
                 select(NasPort).where(
                     NasPort.updated_at > nas_port.updated_at,
-                    NasPort.username != endpoint.username,
-                    NasPort.calling_station_id != endpoint.calling_station_id,
+                    or_(
+                        # Different username and mac.
+                        and_(
+                            NasPort.username != endpoint.username,
+                            NasPort.calling_station_id != endpoint.calling_station_id,
+                        ),
+                        # EAP same username different mac.
+                        and_(
+                            NasPort.username == endpoint.username,
+                            NasPort.calling_station_id != endpoint.calling_station_id,
+                        ),
+                    ),
+                    # If nas_identifier is not specified we can still check the called_station_id
+                    or_(
+                        and_(
+                            NasPort.nas_identifier == nas_port.nas_identifier,
+                            NasPort.called_station_id == nas_port.called_station_id,
+                        ),
+                        and_(
+                            or_(
+                                NasPort.nas_identifier.is_(None),
+                                NasPort.nas_identifier == "",
+                            ),
+                            NasPort.called_station_id == nas_port.called_station_id,
+                        ),
+                    ),
+                    NasPort.nas_port_id == nas_port.nas_port_id,
                 )
             )
 
-            other_port = result.scalar_one_or_none()
+            other_port = result.scalars().first()
 
             if other_port:
-                logger.info("Endpoint have no recent NAS Port, skipping port bounce.")
+                logger.info(
+                    "Another endpoint have connected on this port more recently, will not send CoA packet."
+                )
                 return None
 
-            assert nas_port.nas_ip_address, "NAS port must have NAS IP address."
+            if not nas_port.nas_ip_address:
+                logger.error(
+                    "NAS port must have NAS IP address, cannot send CoA packet."
+                )
+                return None
 
             nas = await get_nas(db, nas_port.nas_ip_address)
 
@@ -83,7 +118,7 @@ class CoA:
 
     def send_coa_packet(self) -> None:
         logger.info(
-            f"Sending CoA packet to: {self.nas_port.nas_identifier} to bounce: {self.nas_port.nas_port_id}, user: {self.nas_port.username}."
+            f"Sending CoA packet to: {self.nas_port.nas_identifier} to bounce: {self.nas_port.nas_port_id}, user: {self.nas_port.username}({self.nas_port.calling_station_id})."
         )
 
         attrs = {
