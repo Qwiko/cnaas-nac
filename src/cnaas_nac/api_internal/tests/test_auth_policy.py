@@ -465,14 +465,15 @@ async def test_auth_policy_auth_type_reject(
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-
 async def test_auth_policy_realm_accept(
     db: AsyncSession,
     int_client: AsyncClient,
 ) -> None:
     # Add Policy
 
-    policy = Policy(name="test_policy_realm_accept", match_logic=MatchLogic.AND, enabled=True)
+    policy = Policy(
+        name="test_policy_realm_accept", match_logic=MatchLogic.AND, enabled=True
+    )
 
     policy.conditions = [
         PolicyCondition(**d)
