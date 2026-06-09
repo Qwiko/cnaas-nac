@@ -22,7 +22,38 @@ def validate_nas_ip_address(v: Any) -> None | IPvAnyNetwork:
         return None
 
 
-class AccountingFilter(Filter):
+class LogFilter(Filter):
+    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
+        for field_name, value in self.filtering_fields:
+            field_value = getattr(self, field_name)
+            if isinstance(field_value, Filter):
+                query = field_value.filter(query)
+            else:
+                if "__" in field_name:
+                    field_name, operator = field_name.split("__")
+                    operator, value = _orm_operator_transformer[operator](value)  # type: ignore[no-untyped-call]
+                else:
+                    operator = "__eq__"
+
+                if field_name == self.Constants.search_field_name and hasattr(
+                    self.Constants, "search_model_fields"
+                ):
+                    search_filters = [
+                        getattr(self.Constants.model, field).ilike(f"%{value}%")
+                        for field in self.Constants.search_model_fields
+                    ]
+                    query = query.filter(or_(*search_filters))
+                else:
+                    model_field = getattr(self.Constants.model, field_name)
+                    if "ip_address" in field_name and "__in" in field_name:
+                        query = query.filter(getattr(model_field).op("<<=")(value))  # type: ignore[call-overload]
+                    else:
+                        query = query.filter(getattr(model_field, operator)(value))
+
+        return query
+
+
+class AccountingFilter(LogFilter):
     id: Optional[int] = None
     id__in: Optional[list[int]] = None
     id__neq: Optional[str] = None
@@ -95,37 +126,8 @@ class AccountingFilter(Filter):
         search_model_fields = ["username", "calling_station_id"]
         search_field_name = "q"
 
-    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
-        for field_name, value in self.filtering_fields:
-            field_value = getattr(self, field_name)
-            if isinstance(field_value, Filter):
-                query = field_value.filter(query)
-            else:
-                if "__" in field_name:
-                    field_name, operator = field_name.split("__")
-                    operator, value = _orm_operator_transformer[operator](value)  # type: ignore[no-untyped-call]
-                else:
-                    operator = "__eq__"
 
-                if field_name == self.Constants.search_field_name and hasattr(
-                    self.Constants, "search_model_fields"
-                ):
-                    search_filters = [
-                        getattr(self.Constants.model, field).ilike(f"%{value}%")
-                        for field in self.Constants.search_model_fields
-                    ]
-                    query = query.filter(or_(*search_filters))
-                else:
-                    model_field = getattr(self.Constants.model, field_name)
-                    if "ip_address" in field_name and "__in" in field_name:
-                        query = query.filter(getattr(model_field).op("<<=")(value))  # type: ignore[call-overload]
-                    else:
-                        query = query.filter(getattr(model_field, operator)(value))
-
-        return query
-
-
-class AuthenticationFilter(Filter):
+class AuthenticationFilter(LogFilter):
     id: Optional[int] = None
     id__in: Optional[list[int]] = None
     id__neq: Optional[str] = None
@@ -188,32 +190,3 @@ class AuthenticationFilter(Filter):
         model = RadPostAuth
         search_model_fields = ["username", "calling_station_id"]
         search_field_name = "q"
-
-    def filter(self, query: Union[Query, Select]) -> Union[Query, Select]:
-        for field_name, value in self.filtering_fields:
-            field_value = getattr(self, field_name)
-            if isinstance(field_value, Filter):
-                query = field_value.filter(query)
-            else:
-                if "__" in field_name:
-                    field_name, operator = field_name.split("__")
-                    operator, value = _orm_operator_transformer[operator](value)  # type: ignore[no-untyped-call]
-                else:
-                    operator = "__eq__"
-
-                if field_name == self.Constants.search_field_name and hasattr(
-                    self.Constants, "search_model_fields"
-                ):
-                    search_filters = [
-                        getattr(self.Constants.model, field).ilike(f"%{value}%")
-                        for field in self.Constants.search_model_fields
-                    ]
-                    query = query.filter(or_(*search_filters))
-                else:
-                    model_field = getattr(self.Constants.model, field_name)
-                    if "ip_address" in field_name and "__in" in field_name:
-                        query = query.filter(getattr(model_field).op("<<=")(value))  # type: ignore[call-overload]
-                    else:
-                        query = query.filter(getattr(model_field, operator)(value))
-
-        return query

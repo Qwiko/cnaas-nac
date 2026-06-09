@@ -140,3 +140,27 @@ async def test_v2_policy_delete_notfound(ext_client: AsyncClient) -> None:
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_v2_policy_put(db: AsyncSession, ext_client: AsyncClient) -> None:
+    policy = Policy(name="Policy to update", description="This policy will be updated")
+    db.add(policy)
+    await db.commit()
+
+    response = await ext_client.put(
+        f"/api/v2/policy/{policy.id}",
+        json={
+            "name": "Updated Policy",
+            "enabled": False,
+            "description": "This policy has been updated",
+            "conditions": [
+                {"attribute": "attribute1", "operator": "==", "value": "value1"}
+            ],
+            "replies": [{"attribute": "attribute1", "value": "value1"}],
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["name"] == "Updated Policy"
+    assert data["description"] == "This policy has been updated"

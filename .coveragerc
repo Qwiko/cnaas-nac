@@ -1,3 +1,7 @@
 [run]
 branch = True
 concurrency = greenlet
+source = src/cnaas_nac
+omit =
+    */tests/*
+    conftest.py
