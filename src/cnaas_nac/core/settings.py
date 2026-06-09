@@ -67,11 +67,16 @@ class Settings(BaseSettings):
     @field_validator("LOGGING", mode="before")
     @classmethod
     def setup_logging(cls, v: Any) -> int:
-        if not v:
+        log_level = None
+        if isinstance(v, str):
+            log_level = logging._nameToLevel.get(v.upper())
+        elif isinstance(v, int) and logging._levelToName.get(v):
+            log_level = v
+
+        if not log_level:
             return logging.INFO
-        if v not in logging._nameToLevel:
-            return logging.INFO
-        return logging._nameToLevel.get(v, logging.INFO)
+
+        return log_level
 
 
 settings = Settings()
