@@ -184,5 +184,5 @@ function teardown_suite() {
     fi
     log "Tearing down the environment..."
     docker compose -f docker/docker-compose.dev.yml down -v 2>&1 || true
-    sudo -n containerlab -t test/e2e.clab.yml destroy 2>&1 || true
+    sudo -n containerlab -t test/e2e.clab.yml destroy -c 2>&1 || true
 }
