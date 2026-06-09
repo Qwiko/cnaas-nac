@@ -25,6 +25,7 @@ class InternalAuth(BaseModel):
     calling_station_id: Annotated[MacAddress, Field(examples=["00:00:00:00:00:00"])]
     called_station_id: Annotated[MacAddress, Field(examples=["00:00:00:00:00:00"])]
     nas_ip_address: Annotated[IPvAnyAddress, Field(examples=["1.1.1.1"])]
+    realm: Optional[str] = None
     ldap_groups: Annotated[list[str], Field(examples=[["admins", "employees"]])] = []
 
     @field_validator("ldap_groups", mode="before")

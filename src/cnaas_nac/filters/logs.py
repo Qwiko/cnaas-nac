@@ -43,6 +43,12 @@ class AccountingFilter(Filter):
     calling_station_id__like: Optional[str] = None
     calling_station_id__neq: Optional[MacAddress] = None
 
+    realm: Optional[str] = None
+    realm__in: Optional[list[str]] = None
+    realm__ilike: Optional[str] = None
+    realm__like: Optional[str] = None
+    realm__neq: Optional[str] = None
+
     nas_identifier: Optional[str] = None
     nas_identifier__in: Optional[list[str]] = None
     nas_identifier__ilike: Optional[str] = None

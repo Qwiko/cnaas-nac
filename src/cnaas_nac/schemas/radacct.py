@@ -13,6 +13,7 @@ class RadAcctLog(BaseModel):
     endpoint_id: Optional[int] = None
 
     username: Username
+    realm: Optional[str] = None
     calling_station_id: MacAddress
     nas_ip_address: IPvAnyAddress
     nas_port_id: str

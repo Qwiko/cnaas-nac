@@ -55,6 +55,7 @@ A policy can have multiple conditions with two different match logic, **AND** or
 | Calling-Station-Id | MAC address of the supplicant |
 | Called-Station-Id | MAC address of the device |
 | NAS-IP-Address | Device IP address |
+| Realm | Domain name of an EAP user |
 | Ldap-Groups | When LDAP is enabled Ldap groups for the user can also be matched |
 | Endpoint group | CNaaS-NAC internal group for mac-address based endpoints. |
 
