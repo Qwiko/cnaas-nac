@@ -1,20 +1,19 @@
 import re
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-
+from cnaas_nac.core.logging import get_logger
 from cnaas_nac.models.policy import (
+    ConditionOperator,
+    MatchLogic,
     Policy,
     PolicyCondition,
-    MatchLogic,
-    ConditionOperator,
 )
-from cnaas_nac.core.logging import get_logger
 
 logger = get_logger()
 
 
 def evaluate_condition(
-    condition: PolicyCondition, data: Dict[str, Any], group_id: Optional[int]
+    condition: PolicyCondition, data: Dict[str, Any], group_id: Optional[int] = None
 ) -> bool:
     """Evaluates a single condition against the request data."""
     if condition.attribute == "group_id":
@@ -65,7 +64,7 @@ def evaluate_condition(
 
 
 def evaluate_policy(
-    rule: Policy, data: Dict[str, Any], group_id: Optional[int]
+    rule: Policy, data: Dict[str, Any], group_id: Optional[int] = None
 ) -> bool:
     """Evaluates a full rule based on its MatchLogic (AND/OR)."""
     if not rule.conditions:

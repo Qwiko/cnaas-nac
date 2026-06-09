@@ -164,3 +164,20 @@ async def test_v2_policy_put(db: AsyncSession, ext_client: AsyncClient) -> None:
     data = response.json()
     assert data["name"] == "Updated Policy"
     assert data["description"] == "This policy has been updated"
+
+
+async def test_v2_policy_post_invalid_regex(ext_client: AsyncClient) -> None:
+    response = await ext_client.post(
+        "/api/v2/policy",
+        json={
+            "name": "Invalid Regex Policy",
+            "enabled": True,
+            "description": "This policy has an invalid regex",
+            "conditions": [
+                {"attribute": "attribute1", "operator": "regex", "value": "[..["}
+            ],
+            "replies": [{"attribute": "attribute1", "value": "value1"}],
+        },
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT

@@ -1,3 +1,4 @@
+import re
 from typing import Annotated, List, Optional
 
 from pydantic import (
@@ -53,6 +54,17 @@ class PolicyConditionBase(BaseModel):
             raise ValueError("attribute group_id must be used with operator EQUALS.")
 
         return operator
+
+    @field_validator("value", mode="after")
+    @classmethod
+    def validate_regex_value(cls, value: object, info: ValidationInfo) -> object:
+        if info.data.get("operator") == ConditionOperator.REGEX:
+            try:
+                re.compile(str(value))
+            except re.error as exc:
+                raise ValueError(f"{value} is not a valid regular expression.") from exc
+
+        return value
 
 
 class PolicyConditionCreate(PolicyConditionBase):
