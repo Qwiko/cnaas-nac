@@ -1,3 +1,5 @@
+import os
+import re
 import sys
 from logging.config import fileConfig
 
@@ -10,6 +12,24 @@ from cnaas_nac.models.base import Base
 sys.path.append("src")
 
 
+def get_next_prefix(versions_dir: str) -> str:
+    """Scan existing migration files and return the next numeric prefix."""
+    if not os.path.isdir(versions_dir):
+        return "01"
+
+    max_num = 0
+    pattern = re.compile(r"^(\d+)_")
+
+    for filename in os.listdir(versions_dir):
+        match = pattern.match(filename)
+        if match:
+            num = int(match.group(1))
+            if num > max_num:
+                max_num = num
+
+    return f"{max_num + 1:02d}"
+
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -18,6 +38,13 @@ config.set_main_option(
     "sqlalchemy.url",
     f"{settings.POSTGRES_SYNC_PREFIX}{settings.POSTGRES_URI}",
 )
+
+# Get the versions directory from alembic config
+versions_dir = config.get_main_option("version_locations", "alembic/versions")
+
+# Inject the custom file template with the next prefix
+next_prefix = get_next_prefix(versions_dir)
+config.set_main_option("file_template", f"{next_prefix}_%%(rev)s_%%(slug)s")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
