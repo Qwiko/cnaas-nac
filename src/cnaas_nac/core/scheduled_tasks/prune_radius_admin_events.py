@@ -17,7 +17,9 @@ async def prune_radius_admin_events() -> None:
             days=settings.RADIUS_ADMIN_EVENTS_RETENTION_DAYS
         )
 
-        delete_stmt = delete(RadiusAdminEvent).where(RadiusAdminEvent.created_at < threshold_date)
+        delete_stmt = delete(RadiusAdminEvent).where(
+            RadiusAdminEvent.created_at < threshold_date
+        )
 
         result = await db.execute(delete_stmt)
 

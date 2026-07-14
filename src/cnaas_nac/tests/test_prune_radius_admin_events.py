@@ -7,8 +7,9 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.core.scheduled_tasks.prune_postauth import prune_postauth
-from cnaas_nac.core.scheduled_tasks.prune_radius_admin_events import prune_radius_admin_events
+from cnaas_nac.core.scheduled_tasks.prune_radius_admin_events import (
+    prune_radius_admin_events,
+)
 from cnaas_nac.models.radiusadminevent import RadiusAdminEvent, RadiusCommand
 
 pytestmark = pytest.mark.anyio
@@ -55,7 +56,9 @@ async def create_radius_admin_events(
 
 
 async def test_prune_radius_admin_events(db: AsyncSession) -> None:
-    pre_count, post_count = await create_radius_admin_events(db, 0, 10, prune_radius_admin_events)
+    pre_count, post_count = await create_radius_admin_events(
+        db, 0, 10, prune_radius_admin_events
+    )
 
     # Deleted 3 events because the retention period is set to 7 days in the settings
     assert pre_count - post_count == 3

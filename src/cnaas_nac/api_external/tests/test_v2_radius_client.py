@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.models.nas import Nas
 from cnaas_nac.models.radiusadminevent import RadiusAdminEvent, RadiusCommand
+
 pytestmark = pytest.mark.anyio
 
 
@@ -119,7 +120,12 @@ async def test_v2_radius_client_put_name(
 
     # When the secret has changed we need to add a radius admin event to clear the client from the radius server
     assert (
-        await db.execute(select(RadiusAdminEvent).where(RadiusAdminEvent.command == RadiusCommand.CLEAR_CLIENT), RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24")
+        await db.execute(
+            select(RadiusAdminEvent).where(
+                RadiusAdminEvent.command == RadiusCommand.CLEAR_CLIENT
+            ),
+            RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24",
+        )
     ).scalar_one_or_none() is not None
 
 
@@ -144,5 +150,10 @@ async def test_v2_radius_client_delete_name(
 
     # New radius event is created to clear the client from the radius server.
     assert (
-        await db.execute(select(RadiusAdminEvent).where(RadiusAdminEvent.command == RadiusCommand.CLEAR_CLIENT), RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24")
+        await db.execute(
+            select(RadiusAdminEvent).where(
+                RadiusAdminEvent.command == RadiusCommand.CLEAR_CLIENT
+            ),
+            RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24",
+        )
     ).scalar_one_or_none() is not None
