@@ -62,6 +62,8 @@ class Settings(BaseSettings):
     RADACCT_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 90
     RADPOSTAUTH_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 90
 
+    RADIUS_ADMIN_EVENTS_RETENTION_DAYS: Annotated[int, Field(gt=0)] = 7
+
     LOGGING: str | int = logging.INFO
 
     @field_validator("LOGGING", mode="before")

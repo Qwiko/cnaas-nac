@@ -1,4 +1,4 @@
-FROM freeradius/freeradius-server:3.2.8-alpine
+FROM freeradius/freeradius-server:3.2.10-alpine
 
 RUN apk add postgresql python3 py3-jinja2 py3-pydantic-settings
 
@@ -22,18 +22,24 @@ RUN ln -s /etc/raddb/mods-available/rest /etc/raddb/mods-enabled/rest && \
     ln -s /etc/raddb/mods-available/ldap /etc/raddb/mods-enabled/ldap && \
     ln -s /etc/raddb/mods-available/json /etc/raddb/mods-enabled/json
 
-# RUN 
+# Create symlink for enabled sites
 RUN ln -s /etc/raddb/sites-available/control-socket /etc/raddb/sites-enabled/control-socket && \
     ln -s /etc/raddb/sites-available/dynamic-clients /etc/raddb/sites-enabled/dynamic-clients
 
+# Copy over scripts
 COPY docker/radius/render_config.py /docker-entrypoint.d/00_render_config.py
 COPY docker/radius/entrypoint.sh /docker-entrypoint.sh
-
 
 RUN chmod +x \ 
         /docker-entrypoint.d/00_render_config.py \
         /docker-entrypoint.sh
 
-RUN mkdir -p /opt/var/run/radiusd && \
-    chown -R root:root /opt/var/run/radiusd && \
+RUN addgroup -g 1001 radius \
+    && adduser -D -u 1001 -G radius radius
+
+RUN chown -R radius:radius /opt/etc/raddb \
+    && mkdir -p /opt/var/log/radius && chown -R radius:radius /opt/var/log/radius \
+    && mkdir -p /opt/var/run/radiusd && chown -R radius:radius /opt/var/run/radiusd && \
     chmod 755 /opt/var/run/radiusd
+
+USER radius

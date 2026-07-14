@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.models.nas import Nas
-
+from cnaas_nac.models.radiusadminevent import RadiusAdminEvent, RadiusCommand
 pytestmark = pytest.mark.anyio
 
 
@@ -103,7 +103,7 @@ async def test_v2_radius_client_put_name(
     db: AsyncSession, ext_client: AsyncClient
 ) -> None:
     # Create entry in db
-    nas = Nas(name="TestClient1", network="10.0.0.0/24", secret="testing123")
+    nas = Nas(name="TestClient1", network="10.0.0.0/24", secret="testing111")
     db.add(nas)
     await db.commit()
     await db.refresh(nas)
@@ -116,6 +116,11 @@ async def test_v2_radius_client_put_name(
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(res_json, dict)
     assert "TestClient2" == res_json.get("name")
+
+    # When the secret has changed we need to add a radius admin event to clear the client from the radius server
+    assert (
+        await db.execute(select(RadiusAdminEvent).where(RadiusAdminEvent.command == RadiusCommand.CLEAR_CLIENT), RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24")
+    ).scalar_one_or_none() is not None
 
 
 async def test_v2_radius_client_delete_name(
@@ -136,3 +141,8 @@ async def test_v2_radius_client_delete_name(
     assert (
         await db.execute(select(Nas).where(Nas.name == "TestClient"))
     ).scalar_one_or_none() is None
+
+    # New radius event is created to clear the client from the radius server.
+    assert (
+        await db.execute(select(RadiusAdminEvent).where(RadiusAdminEvent.command == RadiusCommand.CLEAR_CLIENT), RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24")
+    ).scalar_one_or_none() is not None

@@ -44,6 +44,7 @@ Environment variables shared between external and internal mode.
 | `ENDPOINT_EAP_AUTHORIZED_RETENTION_DAYS` | `int` | 90 | How long to keep authorized EAP endpoints before they are pruned |
 | `RADACCT_RETENTION_DAYS` | `int` | 90 | How long to keep radacct(sessions) before they are pruned |
 | `RADPOSTAUTH_RETENTION_DAYS` | `int` | 90 | How long to keep radpostauth(authentications) before they are pruned |
+| `RADIUS_ADMIN_EVENTS_RETENTION_DAYS` | `int` | 7 | How long to keep radius admin events before they are pruned |
 
 ## nac_radius
 
@@ -85,9 +86,8 @@ RADIUS_PROXY_CONFIGS: |
 RADIUS_EAP_CONFIGS: |
     [
         {
-            "name": "",
             "domain": "",
-            "priv_key": "",
+            "private_key_password": "",
             "cert": "",
             "ca": "",
             "check_crl": false,

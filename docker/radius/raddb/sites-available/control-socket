@@ -4,7 +4,7 @@ listen {
 	socket = ${run_dir}/${name}.sock
 #       peercred = no
 #       socket = ${run_dir}/control/${name}.sock
-#       uid = freerad
-#       gid = freerad
+        uid = radius
+        gid = radius
         mode = rw
 }

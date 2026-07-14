@@ -52,12 +52,24 @@ services:
     build:
       context: ..
       dockerfile: docker/radius/Dockerfile
+    restart: unless-stopped
     ports:
       - 1812:1812/udp
       - 1813:1813/udp
     environment:
-      - RADIUS_SERVER_SECRET=testing123
-    command: ["-X"]
+      RADIUS_SERVER_SECRET: testing123
+      RADIUS_EAP_CONFIGS: |
+        [
+            {
+                "domain": "example.org",
+                "private_key_password": "whatever",
+                "cert": "",
+                "ca": "",
+                "check_crl": false,
+                "crl_url": ""
+            }
+        ]
+    # command: ["-X"]
     depends_on:
       nac_api_internal:
         condition: service_healthy
@@ -70,11 +82,30 @@ services:
         source: nac-var-data
         target: /var/
       - type: volume
+        source: nac-radius-socket
+        target: /opt/var/run/radiusd/
+      - type: volume
         source: nac-api-certs
         target: /opt/cnaas/certs/
     # dns:
     #   - 192.168.0.1
     # dns_search: example.com
+
+  nac_radmin:
+    build:
+      context: ..
+      dockerfile: docker/radmin/Dockerfile
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=cnaas
+      - POSTGRES_PASSWORD=cnaas
+    depends_on:
+      nac_postgres:
+        condition: service_healthy
+    volumes:
+      - type: volume
+        source: nac-radius-socket
+        target: /var/run/radiusd/
 
   nac_postgres:
     image: postgres:18
@@ -102,5 +133,13 @@ volumes:
     external: false
   nac-var-data:
     external: false
+  nac-radius-socket:
+    external: false
   nac-api-certs:
     external: false
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.5.0.0/24

@@ -2,14 +2,17 @@ FROM python:3.14.3-slim-trixie
 
 LABEL org.opencontainers.image.vendor="SUNET"
 LABEL org.opencontainers.image.source="https://github.com/SUNET/cnaas-nac"
-LABEL org.opencontainers.image.description="CNaaS NAC"
+LABEL org.opencontainers.image.description="CNaaS NAC radmin sidecar"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONPATH="/app/src"
-# App environment
-ENV ENVIRONMENT="production"
 # Disable development dependencies
 ENV UV_NO_DEV=1
+
+# Install radmin dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    freeradius \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy uv from astral
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -21,27 +24,16 @@ COPY uv.lock .
 RUN uv pip install --system -r pyproject.toml
 
 # Create an unprivileged user for runtime
-RUN addgroup --system cnaas && \
-    adduser --system --ingroup cnaas --home /app --shell /bin/bash cnaas
-
-COPY alembic.ini .
-COPY alembic ./alembic
+RUN addgroup --system -gid 1001 cnaas && \
+    adduser --system -uid 1001 --ingroup cnaas --home /app --shell /bin/bash cnaas
 
 # Copy full source code
 COPY src ./src
 
-COPY docker/api/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
-    chown -R cnaas:cnaas /app /usr/local/bin/docker-entrypoint.sh
+RUN chown -R cnaas:cnaas /app
 
 ENV HOME=/app
 USER cnaas
 
-# Expose HTTPS
-EXPOSE 8000
-
 # Use the script to manage the arguments
-ENTRYPOINT ["docker-entrypoint.sh"]
-
-# Default to external if no argument is passed
-CMD ["external"]
+ENTRYPOINT ["python", "-u", "-m", "cnaas_nac.tools.radmin"]

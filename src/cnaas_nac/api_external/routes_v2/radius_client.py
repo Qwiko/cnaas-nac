@@ -7,6 +7,7 @@ from sqlalchemy import func, literal, select
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from cnaas_nac.core import db
 from cnaas_nac.core.db import get_async_session
 from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.pagination import PaginationParams
@@ -14,7 +15,7 @@ from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.filters.nas import NasFilter
 from cnaas_nac.models.nas import Nas
 from cnaas_nac.schemas.nas import NasCreateUpdate, NasOne, NasResponse
-
+from cnaas_nac.models.radiusadminevent import RadiusCommand, RadiusAdminEvent
 router = APIRouter(prefix="/radius_client", tags=["radius_client"])
 
 
@@ -127,9 +128,17 @@ async def put_radius_client(
     if not existing_nas:
         raise NotFound()
 
+    updated_fields = []
+
     for k, v in input_nas.model_dump().items():
         if getattr(existing_nas, k) != v:
             setattr(existing_nas, k, v)
+            updated_fields.append(k)
+
+    if "secret" in updated_fields:
+        # If the secret has changed we need to add a radius admin event to clear the client from the radius server
+        rae = RadiusAdminEvent(command=RadiusCommand.CLEAR_CLIENT, payload={"network": str(existing_nas.network)})
+        db.add(rae)
 
     await db.commit()
     await db.refresh(existing_nas)
@@ -151,6 +160,10 @@ async def delete_radius_client(
 
     if not nas:
         raise NotFound()
+
+    # When deleting a NAS we can clear the dynamic clients
+    rae = RadiusAdminEvent(command=RadiusCommand.CLEAR_CLIENT, payload={"network": str(nas.network)})
+    db.add(rae)
 
     await db.delete(nas)
 
