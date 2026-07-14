@@ -25,9 +25,8 @@ class ProxyRealm(BaseModel):
 
 
 class EapInstance(BaseModel):
-    name: str
     domain: str
-    priv_key: str
+    private_key_password: str
     cert: str
     ca: str
 

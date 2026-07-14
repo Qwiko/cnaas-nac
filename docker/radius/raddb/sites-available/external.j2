@@ -67,13 +67,13 @@ server external {
 		suffix
 	#	ntdomain
 
-		{% for instance in radius_eap_configs %}
+		{%- for instance in radius_eap_configs %}
 		{% if loop.first %}if{% else %}elsif{% endif %} (Realm == "{{ instance.domain }}") {
-			{{ instance.name }} {
+			{{ instance.domain | replace(".", "_") }} {
 				ok = return
 			}
 		}
-		{% endfor %}
+		{%- endfor %}
 
 
 		#
@@ -88,11 +88,11 @@ server external {
 
 
 	authenticate {
-		{% for instance in instances %}
-		Auth-Type {{ instance.name }} {
-			{{ instance.name }}
+		{%- for instance in radius_eap_configs %}
+		Auth-Type {{ instance.domain | replace(".", "_") }} {
+			{{ instance.domain | replace(".", "_") }}
 		}
-		{% endfor %}
+		{%- endfor %}
 
 		#
 		#  The older configurations sent a number of attributes in

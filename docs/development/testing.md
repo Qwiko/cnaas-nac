@@ -46,6 +46,10 @@ sudo containerlab deploy
 sudo ARISTA_VERSION=4.35.4M containerlab deploy 
 
 cd ..
+
+# Or use the bats script to manually start the environment
+bash -c "source test/setup_suite.bash && setup_suite"
+
 # Run bats
 MANUAL_TEST=1 bats test
 ```

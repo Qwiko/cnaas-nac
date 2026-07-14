@@ -1,3 +1,5 @@
+#!/usr/bin/env bats
+
 load shared.bash
 
 @test "test eos-a1 eth3 mac is rejected by a policy" {

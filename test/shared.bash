@@ -19,7 +19,11 @@ print(token)
 ')
 
 function log() {
-    echo "$@" >&3
+    if [[ -n "${BATS_VERSION}" ]]; then
+        echo "$@" >&3
+    else
+        echo "$@"
+    fi
 }
 
 function api_request() {

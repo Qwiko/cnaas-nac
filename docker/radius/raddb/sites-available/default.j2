@@ -74,13 +74,9 @@ server default {
 		
 		suffix
 	#	ntdomain
-		eap {
-			ok = return
-		}
-
 		{%- for instance in radius_eap_configs %}
-		{% if loop.first %}if{% else %}elsif{% endif %} (Realm == "{{ instance.domain }}") {
-			{{ instance.name }} {
+		{% if loop.first %}if{% else %}elsif{% endif %} (&User-Name =~ /@{{ instance.domain | replace(".", "\.") }}$/i) {
+			{{ instance.domain | replace(".", "_") }} {
 				ok = return
 			}
 		}
@@ -148,14 +144,11 @@ server default {
 	#  the post-auth section is for.
 	#
 	authenticate {
-		Auth-Type eap {
-			eap
+		{%- for instance in radius_eap_configs %}
+		Auth-Type {{ instance.domain | replace(".", "_") }} {
+			{{ instance.domain | replace(".", "_") }}
 		}
-		{% for instance in instances %}
-		Auth-Type {{ instance.name }} {
-			{{ instance.name }}
-		}
-		{% endfor %}
+		{%- endfor %}
 
 		#
 		#  The older configurations sent a number of attributes in

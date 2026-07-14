@@ -1,3 +1,5 @@
+#!/usr/bin/env bats
+
 load shared.bash
 
 @test "test eos-a1 eth2 mac is discovered" {
