@@ -79,7 +79,10 @@ services:
         source: nac-freeradius-certs
         target: /opt/etc/raddb/certs/
       - type: volume
-        source: nac-radius-socket
+        source: nac-freeradius-logs
+        target: /opt/var/log/radius/
+      - type: volume
+        source: nac-freeradius-socket
         target: /opt/var/run/radiusd/
       - type: volume
         source: nac-api-certs
@@ -101,8 +104,11 @@ services:
         condition: service_healthy
     volumes:
       - type: volume
-        source: nac-radius-socket
+        source: nac-freeradius-socket
         target: /var/run/radiusd/
+      - type: volume
+        source: nac-freeradius-logs
+        target: /var/log/radius/
 
   nac_postgres:
     image: postgres:18
@@ -130,7 +136,9 @@ volumes:
     external: false
   nac-var-data:
     external: false
-  nac-radius-socket:
+  nac-freeradius-socket:
+    external: false
+  nac-freeradius-logs:
     external: false
   nac-api-certs:
     external: false

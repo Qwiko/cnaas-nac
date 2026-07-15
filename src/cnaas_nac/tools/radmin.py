@@ -1,24 +1,109 @@
 import asyncio
+import os
 from asyncio.subprocess import Process
 
+from netutils.mac import is_valid_mac
 from pydantic import BaseModel, IPvAnyNetwork, ValidationError
 from pydantic_extra_types.mac_address import MacAddress
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy import delete, func, select
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from cnaas_nac.core.logging import get_logger
 from cnaas_nac.core.settings import settings
-from cnaas_nac.models.radiusadminevent import RadiusAdminEvent, RadiusCommand
+from cnaas_nac.models.radiusadminevent import (
+    RadiusAdminEvent,
+    RadiusCommand,
+    RadiusDebugLog,
+)
+from cnaas_nac.schemas.debug import DebugBase
 
 logger = get_logger()
+
+LOG_DIR = "/var/log/radius"
+LOG_NAME = "radmin_debug.log"
+TRACE_FILE = f"{LOG_DIR}/{LOG_NAME}"
+NODE_NAME = os.environ.get("HOSTNAME", "unknown")
+
+FREERADIUS_MAP = {
+    "username": "User-Name",
+    "nas_identifier": "NAS-Identifier",
+    "nas_port_id": "NAS-Port-Id",
+    "nas_port_type": "NAS-Port-Type",
+    "calling_station_id": "Calling-Station-Id",
+    "called_station_id": "Called-Station-Id",
+    "nas_ip_address": "NAS-IP-Address",
+    "realm": "Realm",
+}
 
 
 class ClearClientPayload(BaseModel):
     network: IPvAnyNetwork
 
 
-class DebugPayload(BaseModel):
-    mac: MacAddress
+def generate_mac_formats(mac: MacAddress) -> list[str]:
+    """
+    Takes a MAC address and returns a list of all common NAS formats
+    (colon, dash, dot, and bare in both upper and lower case).
+    """
+    # Normalize
+    raw_mac = str(mac).replace(":", "").replace("-", "").replace(".", "").lower()
+
+    # XX:XX:XX:XX:XX:XX
+    colon_lower = ":".join(raw_mac[i : i + 2] for i in range(0, 12, 2))
+    colon_upper = colon_lower.upper()
+
+    # XX-XX-XX-XX-XX-XX
+    dash_lower = colon_lower.replace(":", "-")
+    dash_upper = colon_upper.replace(":", "-")
+
+    # XXXX.XXXX.XXXX
+    dot_lower = ".".join(raw_mac[i : i + 4] for i in range(0, 12, 4))
+    dot_upper = dot_lower.upper()
+
+    return [
+        colon_lower,
+        colon_upper,
+        dash_lower,
+        dash_upper,
+        dot_lower,
+        dot_upper,
+        raw_mac,
+        raw_mac.upper(),
+    ]
+
+
+async def continuous_log_streamer() -> None:
+    """Runs forever, tailing the file and inserting to DB if a debug is active."""
+    logger.info("Starting continuous log streamer...")
+
+    while True:
+        try:
+            await (await asyncio.create_subprocess_exec("touch", TRACE_FILE)).wait()
+
+            proc = await asyncio.create_subprocess_exec(
+                "tail", "-n", "0", "-F", TRACE_FILE, stdout=asyncio.subprocess.PIPE
+            )
+
+            assert proc.stdout is not None, (
+                "Failed to capture stdout from tail process."
+            )
+
+            async with AsyncSessionLocal() as session:
+                async for line in proc.stdout:
+                    decoded_line = line.decode("utf-8").strip()
+                    if decoded_line:
+                        log = RadiusDebugLog(node_name=NODE_NAME, log_line=decoded_line)
+                        session.add(log)
+                        await session.commit()
+
+        except Exception as e:
+            logger.info(f"Log streamer encountered an error: {e}")
+            # Back off and restart the tail process if something breaks
+            await asyncio.sleep(5)
 
 
 async def radmin_setup() -> Process:
@@ -85,43 +170,60 @@ async def radius_clear_client(
 
 
 async def radius_debug_start(
-    proc: Process, lock: asyncio.Lock, raw_payload: dict
+    proc: Process, lock: asyncio.Lock, session: AsyncSession, raw_payload: dict
 ) -> None:
-    data = DebugPayload(**raw_payload)
+    data = DebugBase(**raw_payload)
 
-    output_lines = await send_radmin_command(proc, lock, "show debug condition")
-    pre_conditions = None
+    # Create the debug condition string
+    condition_parts = []
 
-    if output_lines:
-        if f'&Calling-Station-Id == "{data.mac}"' in output_lines:
-            logger.info(f"Debug condition for {data.mac} already exists.")
-            return
-        pre_conditions = output_lines[0].strip()
+    for field in data.model_fields_set:
+        value = getattr(data, field)
+        if is_valid_mac(value):
+            mac_formats = generate_mac_formats(value)
+            mac_conditions = [f'&{FREERADIUS_MAP[field]} == "{m}"' for m in mac_formats]
+            condition_parts.append("(" + " || ".join(mac_conditions) + ")")
+        else:
+            condition_parts.append(f'&{FREERADIUS_MAP[field]} == "{value}"')
 
-    if pre_conditions:
-        debug_condition = f'{pre_conditions} || &Calling-Station-Id == "{data.mac}"'
-    else:
-        debug_condition = f'&Calling-Station-Id == "{data.mac}"'
+    condition_string = " && ".join(condition_parts)
 
-    await send_radmin_command(proc, lock, f"debug condition '{debug_condition}'")
-    logger.info(f"Started debug trace for {data.mac}")
+    # Reset radius debug condition so no residual logs come through
+    await send_radmin_command(proc, lock, "debug condition")
+
+    # Reset debug file
+    await (await asyncio.create_subprocess_exec("sh", "-c", f"> {TRACE_FILE}")).wait()
+
+    # Reset log db
+    await session.execute(delete(RadiusDebugLog))
+    await session.commit()
+
+    await send_radmin_command(proc, lock, f"debug file {LOG_NAME}")
+    await send_radmin_command(proc, lock, f"debug condition '{condition_string}'")
+    logger.info(f"Started debugging, conditions: {data.model_dump(exclude_unset=True)}")
 
 
 async def radius_debug_stop(proc: Process, lock: asyncio.Lock) -> None:
     await send_radmin_command(proc, lock, "debug condition")
+    await send_radmin_command(proc, lock, "debug file")
     await send_radmin_command(proc, lock, "debug level 0")
+
     logger.info("Stopped debug trace")
 
 
 async def execute_radius_command(
-    proc: Process, lock: asyncio.Lock, command: RadiusCommand, raw_payload: dict
+    proc: Process,
+    lock: asyncio.Lock,
+    session: AsyncSession,
+    command: RadiusCommand,
+    raw_payload: dict,
 ) -> None:
     try:
         if command == RadiusCommand.CLEAR_CLIENT:
             await radius_clear_client(proc, lock, raw_payload)
 
         elif command == RadiusCommand.DEBUG_START:
-            await radius_debug_start(proc, lock, raw_payload)
+            await radius_debug_start(proc, lock, session, raw_payload)
 
         elif command == RadiusCommand.DEBUG_STOP:
             await radius_debug_stop(proc, lock)
@@ -171,7 +273,11 @@ async def run_worker() -> None:
                             f"[{event.created_at}] Processing: {event.command.value}"
                         )
                         await execute_radius_command(
-                            proc, radmin_lock, event.command, event.payload or {}
+                            proc,
+                            radmin_lock,
+                            session,
+                            event.command,
+                            event.payload or {},
                         )
                         last_checked = event.created_at
 
@@ -182,5 +288,9 @@ async def run_worker() -> None:
             await asyncio.sleep(5)
 
 
+async def main() -> None:
+    await asyncio.gather(run_worker(), continuous_log_streamer())
+
+
 if __name__ == "__main__":
-    asyncio.run(run_worker())
+    asyncio.run(main())

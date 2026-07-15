@@ -185,6 +185,7 @@ async def get_user_permissions(
             "radius_client": ["GET", "POST", "PUT", "DELETE"],
             "vlan": ["GET", "POST", "PUT", "DELETE"],
             "rbac": ["GET", "POST", "PUT", "DELETE"],
+            "debug": ["GET", "POST"],
         }
 
     # Fetch permissions based on user's rbac_groups and RBAC settings
