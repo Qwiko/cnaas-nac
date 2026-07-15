@@ -92,6 +92,7 @@ services:
     # dns_search: example.com
 
   nac_radmin:
+    hostname: nac_radmin_1
     build:
       context: ..
       dockerfile: docker/radmin/Dockerfile
