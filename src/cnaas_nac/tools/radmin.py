@@ -194,8 +194,13 @@ async def radius_debug_start(
     # Reset debug file
     await (await asyncio.create_subprocess_exec("sh", "-c", f"> {TRACE_FILE}")).wait()
 
-    # Reset log db
+    # Reset log db and add initial log line
     await session.execute(delete(RadiusDebugLog))
+    rdl = RadiusDebugLog(
+        node_name=NODE_NAME,
+        log_line=f"Started debugging, conditions: {data.model_dump(exclude_unset=True)}",
+    )
+    session.add(rdl)
     await session.commit()
 
     await send_radmin_command(proc, lock, f"debug file {LOG_NAME}")
@@ -209,6 +214,19 @@ async def radius_debug_stop(proc: Process, lock: asyncio.Lock) -> None:
     await send_radmin_command(proc, lock, "debug level 0")
 
     logger.info("Stopped debug trace")
+
+
+async def radius_debug_clear(
+    proc: Process, lock: asyncio.Lock, session: AsyncSession
+) -> None:
+    # Reset debug file
+    await (await asyncio.create_subprocess_exec("sh", "-c", f"> {TRACE_FILE}")).wait()
+
+    # Reset log db
+    await session.execute(delete(RadiusDebugLog))
+    await session.commit()
+
+    logger.info("Cleared debug logs")
 
 
 async def execute_radius_command(
@@ -227,6 +245,9 @@ async def execute_radius_command(
 
         elif command == RadiusCommand.DEBUG_STOP:
             await radius_debug_stop(proc, lock)
+
+        elif command == RadiusCommand.DEBUG_CLEAR:
+            await radius_debug_clear(proc, lock, session)
 
     except ValidationError as e:
         logger.error(f"Payload validation failed for '{command}': {e}")
@@ -281,7 +302,7 @@ async def run_worker() -> None:
                         )
                         last_checked = event.created_at
 
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
 
         except Exception as e:
             logger.error(f"Worker encountered an error, backing off: {e}")

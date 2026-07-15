@@ -25,10 +25,10 @@ def upgrade():
         sa.Column(
             "command",
             sa.Enum(
-                "RELOAD",
                 "CLEAR_CLIENT",
                 "DEBUG_START",
                 "DEBUG_STOP",
+                "DEBUG_CLEAR",
                 name="radiuscommand",
             ),
             nullable=False,

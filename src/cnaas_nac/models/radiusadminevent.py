@@ -13,10 +13,10 @@ from cnaas_nac.models.base import Base, TimestampsMixin
 
 
 class RadiusCommand(str, enum.Enum):
-    RELOAD = "reload"
     CLEAR_CLIENT = "clear_client"
     DEBUG_START = "debug_start"
     DEBUG_STOP = "debug_stop"
+    DEBUG_CLEAR = "debug_clear"
 
 
 class RadiusAdminEvent(Base, TimestampsMixin):
