@@ -1,8 +1,8 @@
 from typing import Optional
 
-from pydantic import IPvAnyNetwork, BaseModel, field_validator
+from pydantic import BaseModel, IPvAnyNetwork, field_validator
+
 from cnaas_nac.schemas.generic import TimestampSchema
-from ipaddress import ip_network
 
 
 class NasBase(BaseModel):
@@ -24,18 +24,6 @@ class NasBase(BaseModel):
 class NasCreateUpdate(NasBase):
     secret: str
     coa_secret: Optional[str] = None
-
-    @field_validator("network", mode="after")
-    @classmethod
-    def network_validation(cls, v: str) -> str:
-        """
-        Validate that the network does not contain more than 4098 addresses
-        This is due to a limitation in the freeradius radmin tool, which must iterate over all addresses in the network to clear them from the radius server.
-        """
-        if ip_network(v).num_addresses > 4098:
-            raise ValueError("Network cannot contain more than 4098 addresses")
-
-        return str(v)
 
 
 class NasResponse(NasBase, TimestampSchema):
