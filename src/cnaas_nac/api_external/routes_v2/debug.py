@@ -27,7 +27,8 @@ async def post_debug(
     """
 
     debug_event = RadiusAdminEvent(
-        command=RadiusCommand.DEBUG_START, payload=input_debug.model_dump(exclude_unset=True)
+        command=RadiusCommand.DEBUG_START,
+        payload=input_debug.model_dump(exclude_unset=True),
     )
 
     db.add(debug_event)
