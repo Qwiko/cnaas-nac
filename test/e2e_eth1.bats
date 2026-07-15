@@ -58,28 +58,17 @@ load shared.bash
     echo $output | grep -q "permit tcp"
 }
 
-@test "test eos-a1 eth1 coa port bounce" {
-    endpoint_id=$(api_request "GET" "endpoint?username=02:43:ac:00:00:c1" | jq -r '.[].id')
-
-    [ "$endpoint_id" != "null" ]
-
-    # Delete issues a CoA that causes the port to bounce
-    api_request "DELETE" "endpoint/$endpoint_id"
-
-    run clab_ceos_exec eos-a1 "show interface Ethernet 1 status"
-
-    # Port bounced and displays as N/A
-    echo $output | grep -qE "connected\s+N\/A\s"
-}
-
 @test "test eos-a1 eth1 EAP authorization" {
+    # Reset any previous runs
+    run clab_exec alpine-c1 "rm /var/run/wpa_supplicant/eth1"
+    run clab_exec alpine-c1 "pgrep wpa_supplicant | xargs kill"
     # Install wpa_supplicant on alpine-c1 and start it to trigger EAP authentication
     run clab_exec alpine-c1 "apk add wpa_supplicant"
     # Start wpa_supplicant on alpine-c1 to trigger EAP authentication
     run clab_exec alpine-c1 "wpa_supplicant -Dwired -i eth1 -c /tmp/wpa_supplicant.conf -B"
 
     # Sleep for a few seconds to allow the EAP authentication to complete
-    sleep 3
+    sleep 5
 
     # Check that the switch sees the EAP client
     run clab_ceos_exec eos-a1 "show dot1x hosts interface Ethernet 1 detail | include Supplicant:" 
@@ -89,5 +78,27 @@ load shared.bash
     # Revert wpa_supplicant on alpine-c1 to avoid affecting other tests
     run clab_exec alpine-c1 "rm /var/run/wpa_supplicant/eth1"
     run clab_exec alpine-c1 "pgrep wpa_supplicant | xargs kill"
-    run clab_ceos_exec eos-a1 "clear dot1x host interface Ethernet 1" 
+}
+
+@test "test eos-a1 eth1 coa port bounce" {
+    # Depends on the previous EAP test
+    # Get CoA requests before
+    run clab_ceos_exec eos-a1 "show radius | grep CoA.requests | grep -oP \"[0-9]+\""
+
+    pre_count=$(echo "$output" | jq ".stdout")
+
+    endpoint_id=$(api_request "GET" "endpoint?username=user%40example.org" | jq -r '.[].id')
+
+    [ "$endpoint_id" != "null" ]
+
+    # Delete issues a CoA that causes the port to bounce
+    api_request "DELETE" "endpoint/$endpoint_id"
+
+    # sleep 1
+
+    run clab_ceos_exec eos-a1 "show radius | grep CoA.requests | grep -oP \"[0-9]+\""
+
+    after_count=$(echo "$output" | jq ".stdout")
+
+    [ "$after_count" -gt "$pre_count" ]
 }

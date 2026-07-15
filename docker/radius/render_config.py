@@ -46,7 +46,7 @@ class LdapInstance(BaseModel):
 
 
 class Settings(BaseSettings):
-    pre_start_base_folder: str = "/etc/raddb"
+    pre_start_base_folder: str = "/opt/etc/raddb"
 
     radius_proxy_configs: List[ProxyRealm] = []
     radius_eap_configs: List[EapInstance] = []

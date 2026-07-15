@@ -39,10 +39,10 @@ function api_request() {
 
 function clab_ceos_exec() {
     # $1 is the name of the containerlab ceos node, $2 is the command to execute
-    sudo -n containerlab -t test/e2e.clab.yml exec --format json --label name=$1 --cmd "Cli -p 15 -c '$2'" | jq -r '.[].[]'
+    sudo -n containerlab -t test/e2e.clab.yml exec --format json --label name=$1 --cmd "Cli -p 15 -c '$2'" 2>/dev/null | jq -r '.[].[]'
 }
 
 function clab_exec() {
     # $1 is the name of the containerlab node, $2 is the command to execute
-    sudo -n containerlab -t test/e2e.clab.yml exec --format json --label name=$1 --cmd "$2" | jq -r '.[].[]'
+    sudo -n containerlab -t test/e2e.clab.yml exec --format json --label name=$1 --cmd "$2" 2>/dev/null | jq -r '.[].[]'
 }

@@ -11,7 +11,7 @@ function setup_radius_client() {
     api_request "POST" "radius_client" "$(cat <<EOF
 {
   "name": "clab",
-  "network": "10.5.0.0/24",
+  "network": "10.100.0.0/22",
   "description": "",
   "server": "default",
   "secret": "testing123",
@@ -145,9 +145,9 @@ function bootstrap_radius_ca() {
     log "Bootstrapping RADIUS CA..."
     docker compose -f docker/docker-compose.dev.yml exec -u root nac_radius sh -c \
         "apk add make openssl freeradius && \ 
-        cd /etc/raddb/certs && \
+        cd /opt/etc/raddb/certs && \
         make destroycerts && make all \
-        && chown -R radius:radius /etc/raddb/certs"
+        && chown -R radius:radius /opt/etc/raddb/certs"
     log "Restarting nac_radius container to apply new certs..."
     docker compose -f docker/docker-compose.dev.yml restart nac_radius
 
@@ -235,7 +235,7 @@ function wait_for_containerlab() {
     local max_wait=300  # 5 minutes in seconds
     local elapsed=0
     
-    until clab_ceos_exec eos-a1 "show mac add | inc 0243.ac" 2>/dev/null | grep -q "STATIC"; do
+    until clab_ceos_exec eos-a1 "show mac add int eth 1 | inc 0243.ac" 2>/dev/null | grep -q "STATIC"; do
         if (( elapsed >= max_wait )); then
             log "ERROR: Containerlab failed to be ready within ${max_wait}s"
             return 1
