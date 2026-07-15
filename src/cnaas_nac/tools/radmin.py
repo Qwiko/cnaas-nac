@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from cnaas_nac.core.settings import settings
 from cnaas_nac.models.radiusadminevent import RadiusAdminEvent, RadiusCommand
 from asyncio.subprocess import Process
+from cnaas_nac.core.logging import get_logger
 
+logger = get_logger()
 
 class ClearClientPayload(BaseModel):
     network: IPvAnyNetwork
@@ -55,24 +57,24 @@ async def radius_clear_client(proc: Process, raw_payload: dict) -> None:
     data = ClearClientPayload(**raw_payload)
 
     if data.network.num_addresses > 4098:
-        print(
+        logger.info(
             f"Network {data.network} has more than 4098 addresses. Terminating radius service"
         )
         await send_radmin_command(proc, "terminate")
-        print("Executed radmin terminate.")
+        logger.info("Executed radmin terminate.")
     else:
         sem = asyncio.Semaphore(50)
 
         async def clear_ip(ip: str) -> None:
             async with sem:
                 await send_radmin_command(proc, f"del client ipaddr {ip}")
-                print(f"Cleared client {ip}")
+                logger.info(f"Cleared client {ip}")
 
         tasks = [clear_ip(str(ip)) for ip in data.network.hosts()]
 
         await asyncio.gather(*tasks)
 
-    print(f"Cleared network {data.network}")
+    logger.info(f"Cleared network {data.network}")
 
 
 async def radius_debug_start(proc: Process, raw_payload: dict) -> None:
@@ -95,7 +97,7 @@ async def radius_debug_start(proc: Process, raw_payload: dict) -> None:
     # If it does, we need to add it with an || next to the other conditions
     if output_lines:
         if f'&Calling-Station-Id == "{data.mac}"' in output_lines:
-            print(f"Debug condition for {data.mac} already exists.")
+            logger.info(f"Debug condition for {data.mac} already exists.")
             return
         pre_conditions = output_lines[0].strip()
     if pre_conditions:
@@ -107,7 +109,7 @@ async def radius_debug_start(proc: Process, raw_payload: dict) -> None:
         proc,
         f"debug condition '{debug_condition}'",
     )
-    print(f"Started debug trace for {data.mac}")
+    logger.info(f"Started debug trace for {data.mac}")
 
 
 async def radius_debug_stop(
@@ -125,7 +127,7 @@ async def radius_debug_stop(
         "debug level 0",
     )
 
-    print("Stopped debug trace")
+    logger.info("Stopped debug trace")
 
 
 async def execute_radius_command(
@@ -145,9 +147,9 @@ async def execute_radius_command(
             )
 
     except ValidationError as e:
-        print(f"Payload validation failed for '{command}': {e}")
+        logger.error(f"Payload validation failed for '{command}': {e}")
     except Exception as e:
-        print(f"Execution failed for '{command}': {e}")
+        logger.error(f"Execution failed for '{command}': {e}")
 
 
 # Use the asyncpg or psycopg driver for async operations
@@ -156,14 +158,14 @@ AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 async def run_worker() -> None:
-    print("Starting CNaaS NAC radmin sidecar...")
+    logger.info("Starting CNaaS NAC radmin sidecar...")
     last_checked = None
 
     try:
-        print("Setting up radmin session")
+        logger.info("Setting up radmin session")
         proc = await radmin_setup()
 
-        print("Setting up database session")
+        logger.info("Setting up database session")
         async with AsyncSessionLocal() as session:
             while True:
                 if last_checked is None:
@@ -179,7 +181,7 @@ async def run_worker() -> None:
 
                 events = (await session.scalars(stmt)).all()
                 for event in events:
-                    print(f"[{event.created_at}] Processing: {event.command.value}")
+                    logger.info(f"[{event.created_at}] Processing: {event.command.value}")
                     await execute_radius_command(
                         proc, event.command, event.payload or {}
                     )
@@ -188,7 +190,7 @@ async def run_worker() -> None:
                 await asyncio.sleep(2)
 
     except Exception as e:
-        print(f"Database error, backing off: {e}")
+        logger.error(f"Database error, backing off: {e}")
         await asyncio.sleep(5)
 
 
