@@ -6,7 +6,6 @@ from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.sse import EventSourceResponse
-from pydantic import BaseModel
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,11 +22,11 @@ from cnaas_nac.schemas.debug import DebugBase, DebugLog
 router = APIRouter(prefix="/debug", tags=["debug"])
 
 
-class CustomDebugBase(DebugBase):
+class CustomDebugResponse(DebugBase):
     id: int
 
 
-@router.get("", response_model=Optional[CustomDebugBase])
+@router.get("", response_model=Optional[CustomDebugResponse])
 async def get_debug(
     db: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -55,10 +54,6 @@ async def get_debug(
     return {"id": event.id, **event.payload}
 
 
-class CustomDebugResponse(BaseModel):
-    id: int
-
-
 @router.post(
     "", response_model=CustomDebugResponse, status_code=status.HTTP_201_CREATED
 )
@@ -79,7 +74,7 @@ async def post_debug(
     db.add(debug_event)
     await db.commit()
 
-    return debug_event
+    return {"id": debug_event.id, **debug_event.payload}
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
