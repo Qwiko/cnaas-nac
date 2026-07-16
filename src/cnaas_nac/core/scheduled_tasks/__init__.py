@@ -13,6 +13,9 @@ from cnaas_nac.core.scheduled_tasks.prune_endpoints import (
 )
 from cnaas_nac.core.scheduled_tasks.prune_postauth import prune_postauth
 from cnaas_nac.core.scheduled_tasks.prune_radacct import prune_radacct
+from cnaas_nac.core.scheduled_tasks.prune_radius_admin_events import (
+    prune_radius_admin_events,
+)
 
 logger = get_logger()
 
@@ -33,5 +36,7 @@ def setup_scheduled_tasks() -> AsyncIOScheduler:
 
     scheduler.add_job(prune_postauth, "cron", hour=2, minute=0)
     scheduler.add_job(prune_radacct, "cron", hour=2, minute=0)
+
+    scheduler.add_job(prune_radius_admin_events, "cron", hour=2, minute=30)
 
     return scheduler
