@@ -19,7 +19,9 @@ class DebugBase(BaseModel):
 
     @model_validator(mode="after")
     def at_least_one_field(self) -> Self:
-        if not any(getattr(self, field) is not None for field in self.model_fields):
+        if not any(
+            getattr(self, field) is not None for field in type(self).model_fields
+        ):
             raise ValueError("At least one field must be set.")
         return self
 
