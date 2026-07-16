@@ -62,8 +62,6 @@ load shared.bash
     # Reset any previous runs
     run clab_exec alpine-c1 "rm /var/run/wpa_supplicant/eth1"
     run clab_exec alpine-c1 "pgrep wpa_supplicant | xargs kill"
-    # Install wpa_supplicant on alpine-c1 and start it to trigger EAP authentication
-    run clab_exec alpine-c1 "apk add wpa_supplicant"
     # Start wpa_supplicant on alpine-c1 to trigger EAP authentication
     run clab_exec alpine-c1 "wpa_supplicant -Dwired -i eth1 -c /tmp/wpa_supplicant.conf -B"
 
