@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Self
 
-from pydantic import BaseModel, IPvAnyAddress
+from pydantic import BaseModel, IPvAnyAddress, model_validator
 from pydantic_extra_types.mac_address import MacAddress
 
 from cnaas_nac.models.policy import PortType
@@ -16,6 +16,12 @@ class DebugBase(BaseModel):
     called_station_id: Optional[MacAddress] = None
     nas_ip_address: Optional[IPvAnyAddress] = None
     realm: Optional[str] = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self) -> Self:
+        if not any(getattr(self, field) is not None for field in self.model_fields):
+            raise ValueError("At least one field must be set.")
+        return self
 
 
 class DebugLog(BaseModel):

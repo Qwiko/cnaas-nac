@@ -28,7 +28,7 @@ class RadiusAdminEvent(Base, TimestampsMixin):
     payload: Mapped[dict] = mapped_column(JSONB, nullable=True)
 
 
-class RadiusDebugLog(Base):
+class RadiusDebugLog(Base, TimestampsMixin):
     __tablename__ = "radius_debug_log"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

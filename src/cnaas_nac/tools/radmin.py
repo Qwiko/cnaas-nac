@@ -192,40 +192,48 @@ async def radius_debug_start(
     await send_radmin_command(proc, lock, "debug condition")
 
     # Reset debug file
-    await (await asyncio.create_subprocess_exec("sh", "-c", f"> {TRACE_FILE}")).wait()
+    await (
+        await asyncio.create_subprocess_exec(
+            "sh",
+            "-c",
+            f"> {TRACE_FILE}",
+        )
+    ).wait()
 
-    # Reset log db and add initial log line
-    await session.execute(delete(RadiusDebugLog))
-    rdl = RadiusDebugLog(
-        node_name=NODE_NAME,
-        log_line=f"Started debugging, conditions: {data.model_dump(exclude_unset=True)}",
+    # Resets logs related to this NODE_NAME
+    # Issuing a CLEAR logs from the API resets all logs
+    await session.execute(
+        delete(RadiusDebugLog).where(RadiusDebugLog.node_name == NODE_NAME)
     )
-    session.add(rdl)
     await session.commit()
 
     await send_radmin_command(proc, lock, f"debug file {LOG_NAME}")
     await send_radmin_command(proc, lock, f"debug condition '{condition_string}'")
-    logger.info(f"Started debugging, conditions: {data.model_dump(exclude_unset=True)}")
+    logger.info(
+        f"Started debugging, conditions: {data.model_dump(exclude_unset=True, exclude_none=True)}"
+    )
 
 
 async def radius_debug_stop(proc: Process, lock: asyncio.Lock) -> None:
     await send_radmin_command(proc, lock, "debug condition")
     await send_radmin_command(proc, lock, "debug file")
     await send_radmin_command(proc, lock, "debug level 0")
+    await (
+        await asyncio.create_subprocess_exec(
+            "sh",
+            "-c",
+            f"echo 'Stopped debugging' >> {TRACE_FILE}",
+        )
+    ).wait()
 
     logger.info("Stopped debug trace")
 
 
-async def radius_debug_clear(
-    proc: Process, lock: asyncio.Lock, session: AsyncSession
-) -> None:
+async def radius_debug_clear(proc: Process, lock: asyncio.Lock) -> None:
     # Reset debug file
     await (await asyncio.create_subprocess_exec("sh", "-c", f"> {TRACE_FILE}")).wait()
 
-    # Reset log db
-    await session.execute(delete(RadiusDebugLog))
-    await session.commit()
-
+    # Resetting the DB is done in the external api.
     logger.info("Cleared debug logs")
 
 
@@ -247,7 +255,7 @@ async def execute_radius_command(
             await radius_debug_stop(proc, lock)
 
         elif command == RadiusCommand.DEBUG_CLEAR:
-            await radius_debug_clear(proc, lock, session)
+            await radius_debug_clear(proc, lock)
 
     except ValidationError as e:
         logger.error(f"Payload validation failed for '{command}': {e}")

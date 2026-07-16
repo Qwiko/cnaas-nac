@@ -1,11 +1,17 @@
-from typing import Annotated, Any
+import asyncio
+from collections import deque
+from collections.abc import AsyncIterable
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Any, Optional
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, status
+from fastapi.sse import EventSourceResponse
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cnaas_nac.core.db import get_async_session
+from cnaas_nac.core.db import async_session_factory, get_async_session
+from cnaas_nac.core.exceptions import NotFound
 from cnaas_nac.core.security import User, get_current_user
 from cnaas_nac.models.radiusadminevent import (
     RadiusAdminEvent,
@@ -17,24 +23,37 @@ from cnaas_nac.schemas.debug import DebugBase, DebugLog
 router = APIRouter(prefix="/debug", tags=["debug"])
 
 
-# @router.get("", response_model=DebugBase)
-# async def get_debug(
-#     db: Annotated[AsyncSession, Depends(get_async_session)],
-#     current_user: Annotated[User, Depends(get_current_user)],
-# ) -> Any:
-#     """
-#     Get active debugging.
-#     """
+class CustomDebugBase(DebugBase):
+    id: int
 
-#     debug_event = RadiusAdminEvent(
-#         command=RadiusCommand.DEBUG_START,
-#         payload=input_debug.model_dump(exclude_unset=True),
-#     )
 
-#     db.add(debug_event)
-#     await db.commit()
+@router.get("", response_model=Optional[CustomDebugBase])
+async def get_debug(
+    db: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Any:
+    """
+    Get active debugging.
+    """
 
-#     return debug_event.payload
+    stmt = (
+        select(RadiusAdminEvent)
+        .where(
+            RadiusAdminEvent.command.in_(
+                [RadiusCommand.DEBUG_STOP, RadiusCommand.DEBUG_START]
+            )
+        )
+        .limit(100)
+        .distinct()
+        .order_by(RadiusAdminEvent.created_at.desc())
+    )
+
+    event = (await db.scalars(stmt)).first()
+
+    if not event or not event.payload:
+        raise NotFound()
+
+    return {"id": event.id, **event.payload}
 
 
 class CustomDebugResponse(BaseModel):
@@ -79,21 +98,44 @@ async def delete_debug(
     await db.commit()
 
 
-@router.get("/logs", response_model=list[DebugLog])
+@router.get("/logs", response_class=EventSourceResponse)
 async def get_debug_logs(
-    db: Annotated[AsyncSession, Depends(get_async_session)],
-    response: Response,
+    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
-) -> Any:
-    """
-    Get debug logs.
-    """
+) -> AsyncIterable[DebugLog]:
+    """Stream debug logs"""
 
-    debug_logs = (await db.execute(select(RadiusDebugLog))).scalars().all()
+    seen_ids: deque[int] = deque(maxlen=5000)
 
-    response.headers["X-Total-Count"] = str(len(debug_logs))
+    try:
+        while not await request.is_disconnected():
+            cutoff = datetime.now(timezone.utc) - timedelta(seconds=5)
 
-    return debug_logs
+            async with async_session_factory() as db:
+                stmt = (
+                    select(RadiusDebugLog)
+                    .where(RadiusDebugLog.created_at >= cutoff)
+                    .order_by(
+                        RadiusDebugLog.created_at,
+                        RadiusDebugLog.id,
+                    )
+                    .limit(5000)
+                )
+
+                result = await db.execute(stmt)
+
+                for log in result.scalars():
+                    if log.id in seen_ids:
+                        continue
+
+                    seen_ids.append(log.id)
+
+                    yield log # type: ignore
+
+            await asyncio.sleep(1)
+
+    except asyncio.CancelledError:
+        raise
 
 
 @router.delete("/logs", status_code=status.HTTP_204_NO_CONTENT)
@@ -105,7 +147,11 @@ async def delete_debug_logs(
     Clear debug logs.
     """
 
+    # This clears the actual logs file on radius
     debug_event = RadiusAdminEvent(command=RadiusCommand.DEBUG_CLEAR)
+
+    # Delete all logs
+    await db.execute(delete(RadiusDebugLog))
 
     db.add(debug_event)
     await db.commit()
