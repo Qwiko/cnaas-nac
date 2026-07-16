@@ -265,7 +265,11 @@ async def radius_debug_stop(proc: Process, lock: asyncio.Lock) -> None:
 
 async def radius_debug_clear(proc: Process, lock: asyncio.Lock) -> None:
     # Reset debug file
-    await (await asyncio.create_subprocess_exec("sh", "-c", f"echo 'Cleared debug logs' > {TRACE_FILE}")).wait()
+    await (
+        await asyncio.create_subprocess_exec(
+            "sh", "-c", f"echo 'Cleared debug logs' > {TRACE_FILE}"
+        )
+    ).wait()
 
     # Resetting the DB is done in the external api.
     logger.info("Cleared debug logs")
