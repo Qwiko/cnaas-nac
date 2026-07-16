@@ -361,9 +361,12 @@ async def run_worker() -> None:
                         .order_by(RadiusAdminEvent.created_at.desc())
                     )
 
-                    event = (await session.scalars(stmt)).first()
+                    event_mismatch = (await session.scalars(stmt)).first()
                     logger.debug("Checking for debug state mismatch")
-                    if event and event.command == RadiusCommand.DEBUG_START:
+                    if (
+                        event_mismatch
+                        and event_mismatch.command == RadiusCommand.DEBUG_START
+                    ):
                         # Debugging should be active
                         lines = await send_radmin_command(
                             proc, radmin_lock, "show debug condition"
@@ -374,9 +377,12 @@ async def run_worker() -> None:
                                 "Debug logging should be active, activating again"
                             )
                             await radius_debug_start(
-                                proc, radmin_lock, session, event.payload
+                                proc, radmin_lock, session, event_mismatch.payload
                             )
-                    elif event and event.command == RadiusCommand.DEBUG_STOP:
+                    elif (
+                        event_mismatch
+                        and event_mismatch.command == RadiusCommand.DEBUG_STOP
+                    ):
                         # Debugging should not be active
                         lines = await send_radmin_command(
                             proc, radmin_lock, "show debug condition"
