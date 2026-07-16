@@ -225,21 +225,21 @@ async def radius_debug_start(
     # Reset radius debug condition so no residual logs come through
     await send_radmin_command(proc, lock, "debug condition")
 
-    # Reset debug file
-    await (
-        await asyncio.create_subprocess_exec(
-            "sh",
-            "-c",
-            f"> {TRACE_FILE}",
-        )
-    ).wait()
-
     # Resets logs related to this NODE_NAME
     # Issuing a CLEAR logs from the API resets all logs
     await session.execute(
         delete(RadiusDebugLog).where(RadiusDebugLog.node_name == NODE_NAME)
     )
     await session.commit()
+
+    # Reset debug file
+    await (
+        await asyncio.create_subprocess_exec(
+            "sh",
+            "-c",
+            f"echo 'Starting debugging' > {TRACE_FILE}",
+        )
+    ).wait()
 
     await send_radmin_command(proc, lock, f"debug file {LOG_NAME}")
     await send_radmin_command(proc, lock, f"debug condition '{condition_string}'")
@@ -265,7 +265,7 @@ async def radius_debug_stop(proc: Process, lock: asyncio.Lock) -> None:
 
 async def radius_debug_clear(proc: Process, lock: asyncio.Lock) -> None:
     # Reset debug file
-    await (await asyncio.create_subprocess_exec("sh", "-c", f"> {TRACE_FILE}")).wait()
+    await (await asyncio.create_subprocess_exec("sh", "-c", f"echo 'Cleared debug logs' > {TRACE_FILE}")).wait()
 
     # Resetting the DB is done in the external api.
     logger.info("Cleared debug logs")
