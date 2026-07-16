@@ -7,8 +7,6 @@ pytestmark = pytest.mark.anyio
 
 
 async def test_v2_health(ext_client: AsyncClient) -> None:
-    # Delete all entries from the db.
-
     response = await ext_client.get(
         "/api/v2/health",
     )
