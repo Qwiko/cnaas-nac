@@ -43,7 +43,6 @@ async def get_debug(
                 [RadiusCommand.DEBUG_STOP, RadiusCommand.DEBUG_START]
             )
         )
-        .limit(100)
         .distinct()
         .order_by(RadiusAdminEvent.created_at.desc())
     )
@@ -105,11 +104,11 @@ async def get_debug_logs(
 ) -> AsyncIterable[DebugLog]:
     """Stream debug logs"""
 
-    seen_ids: deque[int] = deque(maxlen=5000)
+    seen_ids: deque[int] = deque(maxlen=25000)
 
     try:
         while not await request.is_disconnected():
-            cutoff = datetime.now(timezone.utc) - timedelta(seconds=5)
+            cutoff = datetime.now(timezone.utc) - timedelta(seconds=3)
 
             async with async_session_factory() as db:
                 stmt = (
@@ -119,7 +118,7 @@ async def get_debug_logs(
                         RadiusDebugLog.created_at,
                         RadiusDebugLog.id,
                     )
-                    .limit(5000)
+                    .limit(10000)
                 )
 
                 result = await db.execute(stmt)
@@ -130,7 +129,7 @@ async def get_debug_logs(
 
                     seen_ids.append(log.id)
 
-                    yield log # type: ignore
+                    yield log  # type: ignore
 
             await asyncio.sleep(1)
 
