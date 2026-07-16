@@ -24,6 +24,18 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("node_name", sa.String(length=50), nullable=False),
         sa.Column("log_line", sa.Text(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
