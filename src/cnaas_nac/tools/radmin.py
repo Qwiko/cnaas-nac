@@ -327,19 +327,6 @@ async def run_worker() -> None:
                             select(func.timezone("utc", func.now()))
                         )
 
-                    # Ensure debugging is active
-                    # When freeradius restarts debugging stops
-                    stmt = (
-                        select(RadiusAdminEvent)
-                        .where(
-                            RadiusAdminEvent.command.in_(
-                                [RadiusCommand.DEBUG_STOP, RadiusCommand.DEBUG_START]
-                            )
-                        )
-                        .distinct()
-                        .order_by(RadiusAdminEvent.created_at.desc())
-                    )
-
                     stmt = (
                         select(RadiusAdminEvent)
                         .where(RadiusAdminEvent.created_at > last_checked)
@@ -361,9 +348,22 @@ async def run_worker() -> None:
                         )
                         last_checked = event.created_at
 
+                    # Ensure debugging is active
+                    # When freeradius restarts debugging stops
+                    stmt = (
+                        select(RadiusAdminEvent)
+                        .where(
+                            RadiusAdminEvent.command.in_(
+                                [RadiusCommand.DEBUG_STOP, RadiusCommand.DEBUG_START]
+                            )
+                        )
+                        .distinct()
+                        .order_by(RadiusAdminEvent.created_at.desc())
+                    )
+
                     event = (await session.scalars(stmt)).first()
                     logger.debug("Checking for debug state mismatch")
-                    if event and event.payload:
+                    if event and event.command == RadiusCommand.DEBUG_START:
                         # Debugging should be active
                         lines = await send_radmin_command(
                             proc, radmin_lock, "show debug condition"
@@ -376,6 +376,17 @@ async def run_worker() -> None:
                             await radius_debug_start(
                                 proc, radmin_lock, session, event.payload
                             )
+                    elif event and event.command == RadiusCommand.DEBUG_STOP:
+                        # Debugging should not be active
+                        lines = await send_radmin_command(
+                            proc, radmin_lock, "show debug condition"
+                        )
+                        logger.debug(f"LINES FROM SEND_CMD: {lines}")
+                        if len(lines) >= 1 and lines[0] != "":
+                            logger.info(
+                                "Debug logging should not be active, disabling debug"
+                            )
+                            await radius_debug_stop(proc, radmin_lock)
 
                     await asyncio.sleep(1)
 
