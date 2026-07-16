@@ -340,22 +340,6 @@ async def run_worker() -> None:
                         .order_by(RadiusAdminEvent.created_at.desc())
                     )
 
-                    event = (await session.scalars(stmt)).first()
-                    logger.debug("Checking for debug state mismatch")
-                    if event and event.payload:
-                        # Debugging should be active
-                        lines = await send_radmin_command(
-                            proc, radmin_lock, "show debug condition"
-                        )
-                        logger.debug(f"LINES FROM SEND_CMD: {lines}")
-                        if not lines or len(lines) == 1 and lines[0] == "":
-                            logger.info(
-                                "Debug logging should be active, activating again"
-                            )
-                            await radius_debug_start(
-                                proc, radmin_lock, session, event.payload
-                            )
-
                     stmt = (
                         select(RadiusAdminEvent)
                         .where(RadiusAdminEvent.created_at > last_checked)
@@ -376,6 +360,22 @@ async def run_worker() -> None:
                             event.payload or {},
                         )
                         last_checked = event.created_at
+
+                    event = (await session.scalars(stmt)).first()
+                    logger.debug("Checking for debug state mismatch")
+                    if event and event.payload:
+                        # Debugging should be active
+                        lines = await send_radmin_command(
+                            proc, radmin_lock, "show debug condition"
+                        )
+                        logger.debug(f"LINES FROM SEND_CMD: {lines}")
+                        if not lines or len(lines) == 1 and lines[0] == "":
+                            logger.info(
+                                "Debug logging should be active, activating again"
+                            )
+                            await radius_debug_start(
+                                proc, radmin_lock, session, event.payload
+                            )
 
                     await asyncio.sleep(1)
 
