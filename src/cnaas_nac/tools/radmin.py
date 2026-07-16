@@ -79,6 +79,7 @@ def generate_mac_formats(mac: MacAddress) -> list[str]:
 async def continuous_log_streamer() -> None:
     """Runs forever, tailing the file and inserting to DB if a debug is active."""
     logger.info("Starting continuous log streamer...")
+    counter = 0
 
     while True:
         try:
@@ -99,6 +100,29 @@ async def continuous_log_streamer() -> None:
                         log = RadiusDebugLog(node_name=NODE_NAME, log_line=decoded_line)
                         session.add(log)
                         await session.commit()
+
+                        counter += 1
+
+                        # Prune occasionally old logs
+                        if counter >= 100:
+                            counter = 0
+                            logger.debug("Deleting old logs for this node")
+                            result = await session.execute(
+                                select(RadiusDebugLog.id)
+                                .order_by(RadiusDebugLog.created_at.desc())
+                                .offset(1000)
+                            )
+
+                            old_ids = result.scalars().all()
+
+                            if old_ids:
+                                await session.execute(
+                                    delete(RadiusDebugLog).where(
+                                        RadiusDebugLog.node_name == NODE_NAME,
+                                        RadiusDebugLog.id.in_(old_ids),
+                                    )
+                                )
+                                await session.commit()
 
         except Exception as e:
             logger.info(f"Log streamer encountered an error: {e}")
@@ -144,10 +168,20 @@ async def send_radmin_command(
             raw_output = e.partial
 
         output_str = raw_output.decode("utf-8")
-        lines = output_str.strip().split("\n")
+        logger.debug(f"RAW: {output_str}")
+        lines = [
+            line
+            for line in output_str.strip().split("\n")
+            if line != "radmin>" and line != command
+        ]
 
-        # Remove the command echo and the prompt
-        return lines[1:-1] if len(lines) > 1 else lines
+        # Clean last line if it is concatinated with 'radmin> '
+        if len(lines) > 1 and lines[-1].endswith("radmin>"):
+            lines[-1] = lines[-1][:-7]
+
+        logger.debug(f"lines: {len(lines)} - {lines}")
+
+        return lines
 
 
 async def radius_clear_client(
@@ -288,6 +322,35 @@ async def run_worker() -> None:
                         last_checked = await session.scalar(
                             select(func.timezone("utc", func.now()))
                         )
+
+                    # Ensure debugging is active
+                    # When freeradius restarts debugging stops
+                    stmt = (
+                        select(RadiusAdminEvent)
+                        .where(
+                            RadiusAdminEvent.command.in_(
+                                [RadiusCommand.DEBUG_STOP, RadiusCommand.DEBUG_START]
+                            )
+                        )
+                        .distinct()
+                        .order_by(RadiusAdminEvent.created_at.desc())
+                    )
+
+                    event = (await session.scalars(stmt)).first()
+                    logger.debug("Checking for debug state mismatch")
+                    if event and event.payload:
+                        # Debugging should be active
+                        lines = await send_radmin_command(
+                            proc, radmin_lock, "show debug condition"
+                        )
+                        logger.debug(f"LINES FROM SEND_CMD: {lines}")
+                        if not lines or len(lines) == 1 and lines[0] == "":
+                            logger.info(
+                                "Debug logging should be active, activating again"
+                            )
+                            await radius_debug_start(
+                                proc, radmin_lock, session, event.payload
+                            )
 
                     stmt = (
                         select(RadiusAdminEvent)
