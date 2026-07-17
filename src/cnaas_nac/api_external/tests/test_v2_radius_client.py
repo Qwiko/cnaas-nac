@@ -171,3 +171,11 @@ async def test_v2_radius_client_delete_name(
             RadiusAdminEvent.payload["network"].astext == "10.0.0.0/24",
         )
     ).scalar_one_or_none() is not None
+
+
+async def test_v2_radius_client_delete_none(ext_client: AsyncClient) -> None:
+    response = await ext_client.delete(
+        "/api/v2/radius_client/99999",
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
