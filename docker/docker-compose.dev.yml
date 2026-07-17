@@ -12,7 +12,6 @@ services:
     ports:
       - 8000:8000
     environment:
-      - RADIUS_COA_SECRET=testing123
       - POSTGRES_USER=cnaas
       - POSTGRES_PASSWORD=cnaas
       - ENVIRONMENT=local
@@ -57,7 +56,6 @@ services:
       - 1812:1812/udp
       - 1813:1813/udp
     environment:
-      RADIUS_SERVER_SECRET: testing123
       RADIUS_EAP_CONFIGS: |
         [
             {
