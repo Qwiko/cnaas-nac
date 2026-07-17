@@ -20,6 +20,20 @@ async def test_v2_radius_client_post(ext_client: AsyncClient) -> None:
     assert response.json().get("name") == "TestClient"
 
 
+async def test_v2_radius_client_postv6(ext_client: AsyncClient) -> None:
+    response = await ext_client.post(
+        "/api/v2/radius_client",
+        json={
+            "name": "TestClient",
+            "network": "3b49:dd1f:0849:389f::/64",
+            "secret": "testing123",
+        },
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    assert isinstance(response.json().get("id"), int)
+    assert response.json().get("name") == "TestClient"
+
+
 async def test_v2_radius_client_post_fail(ext_client: AsyncClient) -> None:
     # No data
     response = await ext_client.post(
