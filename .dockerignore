@@ -2,3 +2,4 @@
 venv
 test
 src/cnaas_nac/conftest.py
+docs

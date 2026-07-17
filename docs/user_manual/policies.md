@@ -50,12 +50,11 @@ A policy can have multiple conditions with two different match logic, **AND** or
 | :--- | :--- |
 | User-Name | MAC address in format: (00:00:00:00:00:00) or a EAP username |
 | NAS-Identifier | Device hostname |
-| NAS-Port-Id | Number identifier for port |
-| NAS-Port-Type | Common name for port, ex: Ethernet1|
+| NAS-Port-Id | Common name for port, ex: Ethernet1 |
 | Calling-Station-Id | MAC address of the supplicant |
 | Called-Station-Id | MAC address of the device |
 | NAS-IP-Address | Device IP address |
-| Realm | Domain name of an EAP user |
+| Realm | Domain of an EAP user |
 | Ldap-Groups | When LDAP is enabled Ldap groups for the user can also be matched |
 | Endpoint group | CNaaS-NAC internal group for mac-address based endpoints. |
 

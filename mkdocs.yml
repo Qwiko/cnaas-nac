@@ -72,8 +72,10 @@ nav:
     - Links: links.md
   - User manual:
     - User manual: user_manual/index.md
+    - Debugging: user_manual/debugging.md
     - Endpoints: user_manual/endpoints.md
     - Policies: user_manual/policies.md
+    - Radius clients: user_manual/radius_clients.md
     - API: user_manual/api.md
   - Configuration:
     - Configuration: configuration/index.md
