@@ -27,7 +27,7 @@ Read more about sites [here](index.md).
 
 ## Dynamic behavior
 
-When a client is updated, or deleted, CNaaS-NAC can clear the existing dynamic client state in FreeRADIUS.
+When a client is updated or deleted, CNaaS-NAC can clear the existing dynamic client state in FreeRADIUS.
 
 - Updating a client's `secret` triggers a clear event so the new secret is applied.
 - Deleting a client also clears the dynamic client definition from FreeRADIUS.
