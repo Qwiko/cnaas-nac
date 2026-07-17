@@ -5,8 +5,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Depends, Request, status
-from fastapi.sse import EventSourceResponse
-from sqlalchemy import select, delete
+from fastapi.sse import EventSourceResponse, ServerSentEvent
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from cnaas_nac.core.db import async_session_factory, get_async_session
@@ -100,6 +100,9 @@ async def get_debug_logs(
     """Stream debug logs"""
 
     seen_ids: deque[int] = deque(maxlen=25000)
+
+    # Issue a ping instantly so the frontend can mark the connection as alive
+    yield ServerSentEvent(comment="ping")  # type: ignore
 
     try:
         while not await request.is_disconnected():
