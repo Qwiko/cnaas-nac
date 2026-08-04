@@ -3,8 +3,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
 from authlib.integrations.starlette_client import OAuth, StarletteOAuth2App
-from authlib.jose import jwt
-from authlib.jose.errors import JoseError
+from joserfc import jwt, jwk
+from joserfc.errors import JoseError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -39,9 +39,8 @@ url_pattern = re.compile(r"/api/v2/(.+)/")
 
 def _create_jwt_token(data: dict[str, Any]) -> str:
     header = {"alg": "HS256"}
-    token_bytes = jwt.encode(header, data, settings.SECRET_KEY)
     try:
-        jwt_token = str(token_bytes.decode("utf-8"))
+        jwt_token = jwt.encode(header, data, jwk.import_key(settings.SECRET_KEY, "oct"))
     except UnicodeDecodeError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -131,10 +130,10 @@ async def get_current_user(
         )
 
     try:
-        # Validate the token
-        claims = jwt.decode(token.credentials, key=settings.SECRET_KEY)
-
-        claims.validate()
+        # Validate and decode the token
+        jwt_token = jwt.decode(
+            token.credentials, key=jwk.import_key(settings.SECRET_KEY, "oct")
+        )
 
     except JoseError as e:
         raise HTTPException(
@@ -142,7 +141,7 @@ async def get_current_user(
             detail=str(e),
         )
     # Create a User object from the claims
-    user = User(**claims)
+    user = User(**jwt_token.claims)
 
     # Admin user have full access
     if user.is_admin:
