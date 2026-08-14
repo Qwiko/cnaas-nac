@@ -22,7 +22,6 @@ A MAB endpoint that have been manually added or changed via the api and is waiti
 
 An endpoint that is authorized.
 
-
 ## Endpoint group
 
 A MAB endpoint can be part of an endpoint group to easier match multiple different mac addresses in a policy.

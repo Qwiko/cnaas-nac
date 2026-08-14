@@ -1,8 +1,9 @@
 # Development
 
 ## Prerequisites
- - Install [docker and docker compose](https://www.docker.com/get-started/)
- - Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+- Install [docker and docker compose](https://www.docker.com/get-started/)
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ## Generate jwt access_token
 
@@ -64,13 +65,16 @@ uv run fastapi dev src/cnaas_nac/api_internal/main.py
 ```
 
 ## Run within docker
+
 !!! warning "WIP"
     Need to be updated
+
 ```bash
 docker compose -f docker/docker-compose.dev.yml up -d
 ```
 
 ## Developing documentation
+
 ```bash
 uv run --group docs zensical serve
 ```

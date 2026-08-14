@@ -1,8 +1,8 @@
 # Testing
 
 ## Prerequisites
-Install [development prerequisites](index.md)
 
+Install [development prerequisites](index.md)
 
 ## Pytest
 
@@ -16,13 +16,12 @@ POSTGRES_SERVER=127.0.0.1 uv run --group dev pytest
 
 ## End to end tests
 
-### Prerequisites
+### Prerequisites E2E
 
 - Install [Bats](https://bats-core.readthedocs.io/en/stable/index.html).
 - Install docker & docker compose.
 - Install [containerlab](https://containerlab.dev/).
 - Add [Arista cEOS image](https://containerlab.dev/manual/kinds/ceos/).
-
 
 ### Run in automatic mode
 

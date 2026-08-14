@@ -7,6 +7,7 @@ CNaaS NAC provides a way for clients to authenticate themselves using
 IEEE 802.1X and MAB.
 
 ## Features
+
 - Automatic discovery of MAB clients
 - Periodic cleanup of inactive clients.
 - Replication between primary and secondary server.
@@ -17,9 +18,11 @@ IEEE 802.1X and MAB.
 ## Components
 
 ### High level
+
 ![CNaaS component architecture](nac-components-20201209.png)
 
 ### Low level
+
 ```mermaid
 flowchart TB
     %% Services

@@ -5,6 +5,7 @@ The following environment variables can be used to configure different applicati
 ## nac_api
 
 ### Shared
+
 Environment variables shared between external and internal mode.
 
 | Variable | Type | Default | Description |
@@ -14,10 +15,11 @@ Environment variables shared between external and internal mode.
 | `POSTGRES_SERVER` | `string` | "nac_postgres" | Postgres server |
 | `POSTGRES_PORT` | `int` | 5432 | Postgres port |
 | `POSTGRES_DB` | `string` | "nac" | Postgres db name |
-| `LOGGING` | `string | int` | `INFO` | Set to `DEBUG` to enable verbose debug logging |
+| `LOGGING` | `string \| int` | `INFO` | Set to `DEBUG` to enable verbose debug logging |
 | `ENVIRONMENT` | `string` | `local` when run locally, `production` for the docker image. | Sets the running environment. Mainly used in security functions |
 
 ### External specific
+
 | Variable | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `OIDC_CLIENT_ID` | `string` | "cnaas-nac" | OIDC client id |
@@ -33,6 +35,7 @@ Environment variables shared between external and internal mode.
 | `FRONTEND_CALLBACK_URL` | `string` | "/#/auth-callback" | Frontend callback during OIDC login |
 
 ### Internal specific
+
 | Variable | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `PRUNING_DISABLED` | `bool` | False | Disable pruning by setting this to true |
@@ -55,10 +58,10 @@ Environment variables shared between external and internal mode.
 | `RADIUS_EAP_CONFIGS` | `list (object)` | `[]` | See: [RADIUS_EAP_CONFIGS](#radius_eap_configs). |
 | `LDAP_CONFIGS` | `list (object)` | `[]` | See: [LDAP_CONFIGS](#ldap_configs). |
 
-
 ### Examples
 
 #### RADIUS_PROXY_CONFIGS
+
 ```bash
 RADIUS_PROXY_CONFIGS: |
     [
@@ -79,6 +82,7 @@ RADIUS_PROXY_CONFIGS: |
 ```
 
 #### RADIUS_EAP_CONFIGS
+
 !!! warning "WIP"
     Not yet fully implemented.
 
@@ -97,6 +101,7 @@ RADIUS_EAP_CONFIGS: |
 ```
 
 #### LDAP_CONFIGS
+
 ```bash
 LDAP_CONFIGS: |
     [
